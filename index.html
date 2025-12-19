@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Organizador da Faculdade</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icon_transparent.png">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Organizador da Faculdade 🎓</h1>
+      <p class="subtitle">Calendário, notas, trabalhos, provas e matérias em um lugar só.</p>
+    </div>
+    <div class="header-controls">
+      <label for="globalSemesterSelect">Semestre atual:</label>
+      <select id="globalSemesterSelect">
+        <option value="1">1º semestre</option>
+        <option value="2">2º semestre</option>
+        <option value="3">3º semestre</option>
+        <option value="4">4º semestre</option>
+        <option value="5" selected>5º semestre</option>
+      </select>
+      <button id="themeToggleBtn" class="theme-toggle-btn" type="button">Modo escuro</button>
+    </div>
+  </header>
+
+  <nav class="top-nav">
+    <button class="nav-btn active" data-view="capa">Capa</button>
+    <button class="nav-btn" data-view="notas">Notas</button>
+    <button class="nav-btn" data-view="trabalhos">Trabalhos</button>
+    <button class="nav-btn" data-view="provas">Provas</button>
+    <button class="nav-btn" data-view="materias">Matérias</button>
+    <button class="nav-btn" data-view="backup">Backup</button>
+  </nav>
+
+  <main>
+
+    <!-- CAPA -->
+    <section id="view-capa" class="view active">
+      <!-- SUMÁRIO -->
+      <section class="summary-grid">
+        <div class="summary-card">
+          <h2>Matérias do semestre</h2>
+          <p id="summarySubjects">-</p>
+        </div>
+        <div class="summary-card">
+          <h2>Trabalhos concluídos</h2>
+          <p id="summaryWorks">-</p>
+        </div>
+        <div class="summary-card">
+          <h2>Provas realizadas</h2>
+          <p id="summaryExams">-</p>
+        </div>
+        <div class="summary-card">
+          <h2>Progresso de estudo</h2>
+          <p id="summaryLessons">-</p>
+        </div>
+      </section>
+
+      <section class="capa-layout">
+
+        <div class="calendar-column">
+          <div class="card">
+            <div class="calendar-header">
+              <button id="prevMonthBtn" class="icon-btn" title="Mês anterior">&#9664;</button>
+              <span id="calendarMonthLabel"></span>
+              <button id="nextMonthBtn" class="icon-btn" title="Próximo mês">&#9654;</button>
+            </div>
+            <table class="calendar-table">
+              <thead>
+                <tr>
+                  <th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th>
+                </tr>
+              </thead>
+              <tbody id="calendarBody"></tbody>
+            </table>
+            <div id="calendarSelectedInfo" class="calendar-selected-info">
+              <strong>Selecione um dia para ver detalhes.</strong>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Próximos prazos</h2>
+            <ul id="upcomingList" class="simple-list"></ul>
+          </div>
+
+          <div class="card">
+            <h2>Estado do semestre</h2>
+            <div id="semesterStatusContainer" class="semester-status"></div>
+          </div>
+        </div>
+
+        <div class="info-column">
+
+          <div class="card">
+            <h2>Feriados do ano</h2>
+            <ul id="holidayList" class="simple-list"></ul>
+          </div>
+
+          <div class="card">
+            <h2>Datas importantes</h2>
+            <ul id="importantDatesList" class="simple-list"></ul>
+            <form id="addImportantDateForm" class="inline-form">
+              <input type="date" id="importantDateInput" required />
+              <input type="text" id="importantLabelInput" placeholder="Ex.: Entrega de documentos" required />
+              <button type="submit">Adicionar</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Horário das aulas</h2>
+            <table class="timetable-table">
+              <thead>
+                <tr><th>Dia</th><th>Horário</th><th>Matéria</th></tr>
+              </thead>
+              <tbody id="timetableBody"></tbody>
+            </table>
+            <form id="addTimetableForm" class="inline-form">
+              <select id="timetableDayInput" required>
+                <option value="">Dia</option>
+                <option value="monday">Segunda</option>
+                <option value="tuesday">Terça</option>
+                <option value="wednesday">Quarta</option>
+                <option value="thursday">Quinta</option>
+                <option value="friday">Sexta</option>
+              </select>
+              <input type="text" id="timetableTimeInput" placeholder="19:30 - 21:00" required />
+              <input type="text" id="timetableSubjectInput" placeholder="Nome da matéria" required />
+              <button type="submit">Adicionar</button>
+            </form>
+          </div>
+
+        </div>
+
+      </section>
+    </section>
+
+    <!-- NOTAS -->
+    <section id="view-notas" class="view">
+      <h2 class="view-title">Notas por matéria</h2>
+      <p class="view-subtitle">
+        Fórmula: (Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, tudo dividido por 5.
+      </p>
+      <div id="gradesContainer" class="cards-column"></div>
+    </section>
+
+    <!-- TRABALHOS -->
+    <section id="view-trabalhos" class="view">
+  <h2 class="view-title">Trabalhos</h2>
+  <p class="view-subtitle">
+    Escreva o que o professor pediu e marque quando cada trabalho estiver concluído.
+  </p>
+
+  <!-- FILTROS DE TRABALHOS (AQUI DENTRO!) -->
+  <div class="card" style="margin-bottom: 10px; padding: 10px;">
+    <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtros</h3>
+
+    <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+      <select id="workFilterIndex">
+        <option value="all">Todos os Trabalhos</option>
+        <option value="0">Trabalho 1</option>
+        <option value="1">Trabalho 2</option>
+      </select>
+
+      <select id="workFilterDifficulty">
+        <option value="all">Dificuldade (todas)</option>
+        <option value="facil">Fácil</option>
+        <option value="medio">Médio</option>
+        <option value="dificil">Difícil</option>
+      </select>
+
+      <select id="workFilterDone">
+        <option value="all">Concluído (todos)</option>
+        <option value="done">Somente concluídos</option>
+        <option value="not">Somente não concluídos</option>
+      </select>
+
+      <select id="workFilterDelivered">
+        <option value="all">Entregue (todos)</option>
+        <option value="delivered">Somente entregues</option>
+        <option value="not">Somente não entregues</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CONTAINER DOS TRABALHOS -->
+  <div id="worksPageContainer" class="cards-column"></div>
+
+</section>
+
+      <div id="worksPageContainer" class="cards-column"></div>
+    </section>
+
+    <!-- PROVAS -->
+    <section id="view-provas" class="view">
+      <h2 class="view-title">Provas</h2>
+      <p class="view-subtitle">
+        Cadastre o conteúdo das provas e marque quando fizer cada uma.
+      </p>
+      <div id="examsPageContainer" class="cards-column"></div>
+    </section>
+
+    <!-- MATÉRIAS -->
+    <section id="view-materias" class="view">
+      <div class="subjects-header">
+        <div>
+          <h2 class="view-title">Matérias e conteúdo estudado</h2>
+          <p class="view-subtitle">
+            Cadastre as matérias de cada semestre e, dentro delas, as aulas/unidades que você já estudou.
+          </p>
+        </div>
+        <form id="addSubjectForm" class="add-subject-form">
+          <input id="subjectNameInput" type="text" placeholder="Nome da matéria" required />
+          <select id="subjectSemesterInput" required>
+            <option value="">Semestre</option>
+            <option value="1">1º</option>
+            <option value="2">2º</option>
+            <option value="3">3º</option>
+            <option value="4">4º</option>
+            <option value="5">5º</option>
+          </select>
+          <button type="submit">Adicionar matéria</button>
+        </form>
+      </div>
+      <div id="subjectsManager" class="subjects-manager"></div>
+    </section>
+
+    <!-- BACKUP -->
+    <section id="view-backup" class="view">
+      <h2 class="view-title">Backup</h2>
+      <p class="view-subtitle">
+        Aqui você pode baixar um arquivo com todos os seus dados ou restaurar um backup antigo.
+      </p>
+      <div class="cards-column">
+        <div class="card">
+          <h3>Baixar backup</h3>
+          <p style="font-size:0.85rem;margin-bottom:6px;">
+            Gera um arquivo <strong>.json</strong> com todas as matérias, notas, trabalhos, provas, aulas estudadas, datas importantes e horários.
+          </p>
+          <button id="downloadBackupBtn" type="button">Baixar arquivo de backup</button>
+        </div>
+        <div class="card">
+          <h3>Restaurar backup</h3>
+          <p style="font-size:0.85rem;margin-bottom:6px;">
+            Escolha um arquivo <strong>.json</strong> gerado por este site. Isso vai substituir os dados atuais.
+          </p>
+          <input type="file" id="backupFileInput" accept="application/json" />
+          <button id="restoreBackupBtn" type="button" style="margin-top:6px;">Restaurar backup</button>
+          <p id="backupStatus" class="backup-status"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Seus dados ficam salvos apenas neste navegador ❤️</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
