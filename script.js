@@ -30,7 +30,7 @@ function clone(obj) {
 };
 
 let state = loadState();
-let currentSemester = 5;
+let currentSemester = state.currentSemester || 5;
 
 function loadState() {
   try {
@@ -1402,6 +1402,8 @@ navButtons.forEach(btn => {
 
 globalSemesterSelect.addEventListener("change", () => {
   currentSemester = Number(globalSemesterSelect.value);
+  state.currentSemester = currentSemester;
+  saveState();
   renderAll();
 });
 
@@ -1489,5 +1491,11 @@ function renderTimetable() {
   }
 }
 
-renderUpcomingDeadlines();
+ensureSemesterMaps();
+currentSemester = state.currentSemester || 5;
+migrateLegacyDataIfNeeded();
+saveState();
+
+applyTheme();
+initCalendar();
 renderAll();
