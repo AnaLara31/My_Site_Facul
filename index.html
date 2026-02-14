@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Organizador da Faculdade</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="icon_transparent.png">
+  <meta charset="UTF-8">
+  <title>Organizador da Faculdade</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon_transparent.png">
 </head>
 <body>
   <header class="app-header">
@@ -67,6 +67,7 @@
               <span id="calendarMonthLabel"></span>
               <button id="nextMonthBtn" class="icon-btn" title="Próximo mês">&#9654;</button>
             </div>
+
             <table class="calendar-table">
               <thead>
                 <tr>
@@ -75,6 +76,7 @@
               </thead>
               <tbody id="calendarBody"></tbody>
             </table>
+
             <div id="calendarSelectedInfo" class="calendar-selected-info">
               <strong>Selecione um dia para ver detalhes.</strong>
             </div>
@@ -92,7 +94,6 @@
         </div>
 
         <div class="info-column">
-
           <div class="card">
             <h2>Feriados do ano</h2>
             <ul id="holidayList" class="simple-list"></ul>
@@ -116,6 +117,7 @@
               </thead>
               <tbody id="timetableBody"></tbody>
             </table>
+
             <form id="addTimetableForm" class="inline-form">
               <select id="timetableDayInput" required>
                 <option value="">Dia</option>
@@ -125,12 +127,12 @@
                 <option value="thursday">Quinta</option>
                 <option value="friday">Sexta</option>
               </select>
+
               <input type="text" id="timetableTimeInput" placeholder="19:30 - 21:00" required />
               <input type="text" id="timetableSubjectInput" placeholder="Nome da matéria" required />
               <button type="submit">Adicionar</button>
             </form>
           </div>
-
         </div>
 
       </section>
@@ -147,47 +149,44 @@
 
     <!-- TRABALHOS -->
     <section id="view-trabalhos" class="view">
-  <h2 class="view-title">Trabalhos</h2>
-  <p class="view-subtitle">
-    Escreva o que o professor pediu e marque quando cada trabalho estiver concluído.
-  </p>
+      <h2 class="view-title">Trabalhos</h2>
+      <p class="view-subtitle">
+        Escreva o que o professor pediu e marque quando cada trabalho estiver concluído.
+      </p>
 
-  <!-- FILTROS DE TRABALHOS (AQUI DENTRO!) -->
-  <div class="card" style="margin-bottom: 10px; padding: 10px;">
-    <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtros</h3>
+      <div class="card" style="margin-bottom: 10px; padding: 10px;">
+        <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtros</h3>
 
-    <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
-      <select id="workFilterIndex">
-        <option value="all">Todos os Trabalhos</option>
-        <option value="0">Trabalho 1</option>
-        <option value="1">Trabalho 2</option>
-      </select>
+        <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+          <select id="workFilterIndex">
+            <option value="all">Todos os Trabalhos</option>
+            <option value="0">Trabalho 1</option>
+            <option value="1">Trabalho 2</option>
+          </select>
 
-      <select id="workFilterDifficulty">
-        <option value="all">Dificuldade (todas)</option>
-        <option value="facil">Fácil</option>
-        <option value="medio">Médio</option>
-        <option value="dificil">Difícil</option>
-      </select>
+          <select id="workFilterDifficulty">
+            <option value="all">Dificuldade (todas)</option>
+            <option value="facil">Fácil</option>
+            <option value="medio">Médio</option>
+            <option value="dificil">Difícil</option>
+          </select>
 
-      <select id="workFilterDone">
-        <option value="all">Concluído (todos)</option>
-        <option value="done">Somente concluídos</option>
-        <option value="not">Somente não concluídos</option>
-      </select>
+          <select id="workFilterDone">
+            <option value="all">Concluído (todos)</option>
+            <option value="done">Somente concluídos</option>
+            <option value="not">Somente não concluídos</option>
+          </select>
 
-      <select id="workFilterDelivered">
-        <option value="all">Entregue (todos)</option>
-        <option value="delivered">Somente entregues</option>
-        <option value="not">Somente não entregues</option>
-      </select>
-    </div>
-  </div>
+          <select id="workFilterDelivered">
+            <option value="all">Entregue (todos)</option>
+            <option value="delivered">Somente entregues</option>
+            <option value="not">Somente não entregues</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- CONTAINER DOS TRABALHOS -->
-  <div id="worksPageContainer" class="cards-column"></div>
-
-</section>
+      <div id="worksPageContainer" class="cards-column"></div>
+    </section>
 
     <!-- PROVAS -->
     <section id="view-provas" class="view">
@@ -207,6 +206,7 @@
             Cadastre as matérias de cada semestre e, dentro delas, as aulas/unidades que você já estudou.
           </p>
         </div>
+
         <form id="addSubjectForm" class="add-subject-form">
           <input id="subjectNameInput" type="text" placeholder="Nome da matéria" required />
           <select id="subjectSemesterInput" required>
@@ -220,6 +220,7 @@
           <button type="submit">Adicionar matéria</button>
         </form>
       </div>
+
       <div id="subjectsManager" class="subjects-manager"></div>
     </section>
 
@@ -229,6 +230,7 @@
       <p class="view-subtitle">
         Aqui você pode baixar um arquivo com todos os seus dados ou restaurar um backup antigo.
       </p>
+
       <div class="cards-column">
         <div class="card">
           <h3>Baixar backup</h3>
@@ -237,6 +239,7 @@
           </p>
           <button id="downloadBackupBtn" type="button">Baixar arquivo de backup</button>
         </div>
+
         <div class="card">
           <h3>Restaurar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
@@ -248,6 +251,7 @@
         </div>
       </div>
     </section>
+
   </main>
 
   <footer>
@@ -257,3 +261,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
