@@ -6,65 +6,20 @@ function clone(obj) {
 }
 
 // Estado inicial com alguns exemplos. Você pode editar depois direto no site.
-const defaultState = {
-  theme: "dark",
-  subjects: [
-    {
-      id: "animacao3d",
-      name: "Animação 3D",
-      semester: 5,
-      grades: { t1: null, p1: null, t2: null, p2: null },
-      works: [
-        { id: "animacao3d_w1", description: "", done: false, dueDate: null },
-        { id: "animacao3d_w2", description: "", done: false, dueDate: null }
-      ],
-      exams: [
-        { id: "animacao3d_e1", description: "", done: false, date: null },
-        { id: "animacao3d_e2", description: "", done: false, date: null }
-      ],
-      lessons: [
-        { id: "animacao3d_l1", title: "Princípios de animação", done: false },
-        { id: "animacao3d_l2", title: "Ciclo de caminhada", done: false }
-      ]
-    },
-    {
-      id: "leveldesign",
-      name: "Level Design",
-      semester: 5,
-      grades: { t1: null, p1: null, t2: null, p2: null },
-      works: [
-        { id: "leveldesign_w1", description: "", done: false, dueDate: null },
-        { id: "leveldesign_w2", description: "", done: false, dueDate: null }
-      ],
-      exams: [
-        { id: "leveldesign_e1", description: "", done: false, date: null },
-        { id: "leveldesign_e2", description: "", done: false, date: null }
-      ],
-      lessons: [
-        { id: "leveldesign_l1", title: "Kishotenketsu", done: false }
-      ]
-    }
-  ],
-  holidays: [
-    { date: "2025-01-01", label: "Ano Novo" },
-    { date: "2025-04-18", label: "Sexta-feira Santa" },
-    { date: "2025-04-21", label: "Tiradentes" },
-    { date: "2025-05-01", label: "Dia do Trabalhador" },
-    { date: "2025-09-07", label: "Independência do Brasil" },
-    { date: "2025-10-12", label: "Nossa Senhora Aparecida" },
-    { date: "2025-11-02", label: "Finados" },
-    { date: "2025-11-15", label: "Proclamação da República" },
-    { date: "2025-12-25", label: "Natal" }
-  ],
-  importantDates: [
-    { date: "2025-03-10", label: "Entrega de documentos" },
-    { date: "2025-08-01", label: "Início do semestre" }
-  ],
-  timetable: {
-    monday: [
-      { time: "19:30 - 21:00", subject: "Programação para Jogos" },
-      { time: "21:10 - 22:40", subject: "Animação 3D" }
-    ],
+  currentSemester: 5,
+
+  // feriados agora serão gerados automaticamente (não salvar no state)
+  // holidays: [],
+
+  // agora por semestre:
+  importantDatesBySemester: {
+    // exemplo: "5": [{ date:"2026-03-10", label:"Entrega..." }]
+  },
+
+  timetableBySemester: {
+    // exemplo:
+    // "5": { monday:[{time:"19:30 - 21:00", subject:"..." }], tuesday:[], ... }
+  }
     tuesday: [
       { time: "19:30 - 21:00", subject: "Level Design" }
     ],
@@ -124,6 +79,62 @@ themeToggleBtn.addEventListener("click", () => {
   saveState();
   applyTheme();
 });
+function ensureSemesterMaps() {
+  if (!state.currentSemester) state.currentSemester = 5;
+  if (!state.importantDatesBySemester) state.importantDatesBySemester = {};
+  if (!state.timetableBySemester) state.timetableBySemester = {};
+}
+
+// migração: se existir estrutura antiga, joga no semestre atual e remove as antigas
+function migrateLegacyDataIfNeeded() {
+  // importantDates antigo
+  if (Array.isArray(state.importantDates)) {
+    const semKey = String(state.currentSemester || currentSemester || 5);
+    if (!state.importantDatesBySemester[semKey]) state.importantDatesBySemester[semKey] = [];
+    state.importantDatesBySemester[semKey].push(...state.importantDates);
+    delete state.importantDates;
+  }
+
+  // timetable antigo
+  if (state.timetable && typeof state.timetable === "object") {
+    const semKey = String(state.currentSemester || currentSemester || 5);
+    if (!state.timetableBySemester[semKey]) state.timetableBySemester[semKey] = {};
+    state.timetableBySemester[semKey] = state.timetable;
+    delete state.timetable;
+  }
+
+  // holidays antigo (não vamos mais usar)
+  if (Array.isArray(state.holidays)) {
+    delete state.holidays;
+  }
+}
+
+function getSemesterKey() {
+  return String(currentSemester);
+}
+
+function getImportantDatesForCurrentSemester() {
+  const sem = getSemesterKey();
+  return state.importantDatesBySemester[sem] || [];
+}
+
+function getTimetableForCurrentSemester() {
+  const sem = getSemesterKey();
+  const base = state.timetableBySemester[sem] || {};
+  // garante os dias
+  return {
+    monday: base.monday || [],
+    tuesday: base.tuesday || [],
+    wednesday: base.wednesday || [],
+    thursday: base.thursday || [],
+    friday: base.friday || []
+  };
+}
+
+function setTimetableForCurrentSemester(newTable) {
+  const sem = getSemesterKey();
+  state.timetableBySemester[sem] = newTable;
+}
 
 // --------- RESUMO (CAPA) ---------
 const summarySubjectsEl = document.getElementById("summarySubjects");
@@ -312,12 +323,18 @@ function dateToIso(d) {
 }
 
 function hasEventsOnDate(iso) {
-  const hasHoliday = state.holidays.some(h => h.date === iso);
-  const hasImportant = state.importantDates.some(d => d.date === iso);
+  const year = Number(iso.slice(0, 4));
+  const holidays = getBrazilHolidays(year);
+  const hasHoliday = holidays.some(h => h.date === iso);
+
+  const important = getImportantDatesForCurrentSemester();
+  const hasImportant = important.some(d => d.date === iso);
+
   const works = state.subjects.flatMap(s => s.works);
   const exams = state.subjects.flatMap(s => s.exams);
   const hasWork = works.some(w => w.dueDate === iso);
   const hasExam = exams.some(e => e.date === iso);
+
   return hasHoliday || hasImportant || hasWork || hasExam;
 }
 
@@ -332,13 +349,13 @@ function renderSelectedDateInfo() {
 
   const events = [];
 
-  state.holidays.forEach(h => {
-    if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
-  });
+ getBrazilHolidays(Number(selectedDate.slice(0,4))).forEach(h => {
+  if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
+});
 
-  state.importantDates.forEach(d => {
-    if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
-  });
+  getImportantDatesForCurrentSemester().forEach(d => {
+  if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
+});
 
   state.subjects.forEach(s => {
     s.works.forEach(w => {
@@ -384,7 +401,7 @@ nextMonthBtn.addEventListener("click", () => {
   renderCalendar();
 });
 
-function renderHolidayList() {
+function () {
   holidayList.innerHTML = "";
   const sorted = [...state.holidays].sort((a, b) => a.date.localeCompare(b.date));
   sorted.forEach(h => {
@@ -397,7 +414,7 @@ function renderHolidayList() {
 
 function renderImportantDatesList() {
   importantDatesList.innerHTML = "";
-  const sorted = [...state.importantDates].sort((a, b) => a.date.localeCompare(b.date));
+  const sorted = [...getImportantDatesForCurrentSemester()].sort((a, b) => a.date.localeCompare(b.date));
 
   sorted.forEach(d => {
     const li = document.createElement("li");
@@ -416,8 +433,8 @@ function renderImportantDatesList() {
     delBtn.textContent = "Excluir";
 
     delBtn.addEventListener("click", () => {
-      // remove essa data importante do estado
-      state.importantDates = state.importantDates.filter(
+      const sem = getSemesterKey();
+      state.importantDatesBySemester[sem] = (state.importantDatesBySemester[sem] || []).filter(
         item => !(item.date === d.date && item.label === d.label)
       );
       saveState();
@@ -433,6 +450,51 @@ function renderImportantDatesList() {
   });
 }
 
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getBrazilHolidays(year) {
+  const fixed = [
+    { date: `${year}-01-01`, label: "Ano Novo" },
+    { date: `${year}-04-21`, label: "Tiradentes" },
+    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
+    { date: `${year}-09-07`, label: "Independência do Brasil" },
+    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
+    { date: `${year}-11-02`, label: "Finados" },
+    { date: `${year}-11-15`, label: "Proclamação da República" },
+    { date: `${year}-12-25`, label: "Natal" }
+  ];
+
+  const easter = easterDate(year);
+  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
+  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
+  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
+
+  const movable = [
+    { date: dateToIso(carnival), label: "Carnaval" },
+    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
+    { date: dateToIso(easter), label: "Páscoa" },
+    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
+  ];
+
+  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 // adicionar nova data importante via formulário
 addImportantDateForm.addEventListener("submit", evt => {
   evt.preventDefault();
@@ -440,12 +502,7 @@ addImportantDateForm.addEventListener("submit", evt => {
   const label = importantLabelInput.value.trim();
   if (!date || !label) return;
   state.importantDates.push({ date, label });
-  saveState();
-  importantDateInput.value = "";
-  importantLabelInput.value = "";
-  renderImportantDatesList();
-  renderCalendar();
-  renderUpcomingDeadlines();
+  ...
 });
 
 function renderTimetable() {
@@ -515,14 +572,63 @@ addTimetableForm.addEventListener("submit", evt => {
   const time = timetableTimeInput.value.trim();
   const subj = timetableSubjectInput.value.trim();
   if (!dayKey || !time || !subj) return;
-  if (!state.timetable[dayKey]) state.timetable[dayKey] = [];
-  state.timetable[dayKey].push({ time, subject: subj });
+
+  const updated = getTimetableForCurrentSemester();
+  updated[dayKey].push({ time, subject: subj });
+  setTimetableForCurrentSemester(updated);
+
   saveState();
   timetableDayInput.value = "";
   timetableTimeInput.value = "";
   timetableSubjectInput.value = "";
   renderTimetable();
 });
+
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getBrazilHolidays(year) {
+  const fixed = [
+    { date: `${year}-01-01`, label: "Ano Novo" },
+    { date: `${year}-04-21`, label: "Tiradentes" },
+    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
+    { date: `${year}-09-07`, label: "Independência do Brasil" },
+    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
+    { date: `${year}-11-02`, label: "Finados" },
+    { date: `${year}-11-15`, label: "Proclamação da República" },
+    { date: `${year}-12-25`, label: "Natal" }
+  ];
+
+  const easter = easterDate(year);
+  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
+  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
+  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
+
+  const movable = [
+    { date: dateToIso(carnival), label: "Carnaval" },
+    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
+    { date: dateToIso(easter), label: "Páscoa" },
+    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
+  ];
+
+  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 
 // --------- PRÓXIMOS PRAZOS ---------
 function renderUpcomingDeadlines() {
@@ -532,15 +638,11 @@ function renderUpcomingDeadlines() {
   const todayIso = dateToIso(new Date());
 
   // Datas importantes
-  state.importantDates.forEach(d => {
-    if (d.date >= todayIso) {
-      items.push({
-        date: d.date,
-        label: d.label,
-        type: "Importante"
-      });
-    }
-  });
+  getImportantDatesForCurrentSemester().forEach(d => {
+  if (d.date >= todayIso) {
+    items.push({ date: d.date, label: d.label, type: "Importante" });
+  }
+});
 
   // Trabalhos
   state.subjects.forEach(s => {
@@ -1304,18 +1406,18 @@ globalSemesterSelect.addEventListener("change", () => {
 });
 
 // --------- RENDERIZAÇÃO GERAL ---------
-function renderAll() {
-  updateSummary();
-  renderSemesterStatus();
-  renderCalendar();
-  renderHolidayList();
-  renderImportantDatesList();
-  renderTimetable();
-  renderUpcomingDeadlines();
-  renderGrades();
-  renderWorksPage();
-  renderExamsPage();
-  renderSubjectsManager();
+function renderHolidayList() {
+  holidayList.innerHTML = "";
+
+  // mostra feriados do ANO que o calendário está exibindo
+  const holidays = getBrazilHolidays(calendarYear);
+
+  holidays.forEach(h => {
+    const li = document.createElement("li");
+    const [y, m, d] = h.date.split("-");
+    li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
+    holidayList.appendChild(li);
+  });
 }
 
 // Inicialização
@@ -1323,6 +1425,69 @@ applyTheme();
 initCalendar();
 renderHolidayList();
 renderImportantDatesList();
-renderTimetable();
+function renderTimetable() {
+  timetableBody.innerHTML = "";
+
+  const mapping = {
+    monday: "Segunda",
+    tuesday: "Terça",
+    wednesday: "Quarta",
+    thursday: "Quinta",
+    friday: "Sexta"
+  };
+
+  const table = getTimetableForCurrentSemester();
+
+  Object.keys(mapping).forEach(key => {
+    const dayName = mapping[key];
+    const slots = table[key] || [];
+    if (!slots.length) return;
+
+    slots.forEach((slot, index) => {
+      const tr = document.createElement("tr");
+
+      const dayTd = document.createElement("td");
+      dayTd.textContent = index === 0 ? dayName : "";
+
+      const timeTd = document.createElement("td");
+      timeTd.textContent = slot.time;
+
+      const subjTd = document.createElement("td");
+      const subjSpan = document.createElement("span");
+      subjSpan.textContent = slot.subject;
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "inline-delete-btn";
+      delBtn.textContent = "Excluir";
+
+      delBtn.addEventListener("click", () => {
+        const updated = getTimetableForCurrentSemester();
+        updated[key].splice(index, 1);
+        setTimetableForCurrentSemester(updated);
+        saveState();
+        renderTimetable();
+      });
+
+      subjTd.appendChild(subjSpan);
+      subjTd.appendChild(delBtn);
+
+      tr.appendChild(dayTd);
+      tr.appendChild(timeTd);
+      tr.appendChild(subjTd);
+      timetableBody.appendChild(tr);
+    });
+  });
+
+  if (!timetableBody.hasChildNodes()) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = "Nenhum horário cadastrado.";
+    tr.appendChild(td);
+    timetableBody.appendChild(tr);
+  }
+}
+
 renderUpcomingDeadlines();
 renderAll();
