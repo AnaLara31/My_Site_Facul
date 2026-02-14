@@ -6,31 +6,57 @@ function clone(obj) {
 }
 
 // Estado inicial com alguns exemplos. Você pode editar depois direto no site.
+const defaultState = {
+  theme: "dark",
+
+  // salva o semestre atual escolhido no topo
   currentSemester: 5,
 
-  // feriados agora serão gerados automaticamente (não salvar no state)
-  // holidays: [],
+  subjects: [
+    {
+      id: "animacao3d",
+      name: "Animação 3D",
+      semester: 5,
+      grades: { t1: null, p1: null, t2: null, p2: null },
+      works: [
+        { id: "animacao3d_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
+        { id: "animacao3d_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
+      ],
+      exams: [
+        { id: "animacao3d_e1", description: "", done: false, date: null },
+        { id: "animacao3d_e2", description: "", done: false, date: null }
+      ],
+      lessons: [
+        { id: "animacao3d_l1", title: "Princípios de animação", done: false },
+        { id: "animacao3d_l2", title: "Ciclo de caminhada", done: false }
+      ]
+    },
+    {
+      id: "leveldesign",
+      name: "Level Design",
+      semester: 5,
+      grades: { t1: null, p1: null, t2: null, p2: null },
+      works: [
+        { id: "leveldesign_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
+        { id: "leveldesign_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
+      ],
+      exams: [
+        { id: "leveldesign_e1", description: "", done: false, date: null },
+        { id: "leveldesign_e2", description: "", done: false, date: null }
+      ],
+      lessons: [{ id: "leveldesign_l1", title: "Kishotenketsu", done: false }]
+    }
+  ],
 
   // agora por semestre:
   importantDatesBySemester: {
-    // exemplo: "5": [{ date:"2026-03-10", label:"Entrega..." }]
+    // "5": [{ date: "2026-03-10", label: "Entrega de documentos" }]
   },
 
   timetableBySemester: {
-    // exemplo:
-    // "5": { monday:[{time:"19:30 - 21:00", subject:"..." }], tuesday:[], ... }
-  }
-    tuesday: [
-      { time: "19:30 - 21:00", subject: "Level Design" }
-    ],
-    wednesday: [],
-    thursday: [],
-    friday: []
+    // "5": { monday:[{time:"19:30 - 21:00", subject:"..." }], ... }
   }
 };
-
-let state = loadState();
-let currentSemester = state.currentSemester || 5;
 
 function loadState() {
   try {
@@ -44,8 +70,72 @@ function loadState() {
   }
 }
 
+let state = loadState();
+let currentSemester = Number(state.currentSemester || 5);
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// --------- HELPERS DE SEMESTRE + MIGRAÇÃO ---------
+function ensureSemesterMaps() {
+  if (!state.currentSemester) state.currentSemester = currentSemester || 5;
+  if (!state.importantDatesBySemester) state.importantDatesBySemester = {};
+  if (!state.timetableBySemester) state.timetableBySemester = {};
+}
+
+function getSemesterKey() {
+  return String(currentSemester);
+}
+
+function getImportantDatesForCurrentSemester() {
+  ensureSemesterMaps();
+  const sem = getSemesterKey();
+  return state.importantDatesBySemester[sem] || [];
+}
+
+function getTimetableForCurrentSemester() {
+  ensureSemesterMaps();
+  const sem = getSemesterKey();
+  const base = state.timetableBySemester[sem] || {};
+  return {
+    monday: base.monday || [],
+    tuesday: base.tuesday || [],
+    wednesday: base.wednesday || [],
+    thursday: base.thursday || [],
+    friday: base.friday || []
+  };
+}
+
+function setTimetableForCurrentSemester(newTable) {
+  ensureSemesterMaps();
+  const sem = getSemesterKey();
+  state.timetableBySemester[sem] = newTable;
+}
+
+// migração: se existir estrutura antiga, joga no semestre atual e remove as antigas
+function migrateLegacyDataIfNeeded() {
+  ensureSemesterMaps();
+
+  // importantDates antigo -> semestre atual
+  if (Array.isArray(state.importantDates)) {
+    const semKey = String(state.currentSemester || currentSemester || 5);
+    if (!state.importantDatesBySemester[semKey]) state.importantDatesBySemester[semKey] = [];
+    state.importantDatesBySemester[semKey].push(...state.importantDates);
+    delete state.importantDates;
+  }
+
+  // timetable antigo -> semestre atual
+  if (state.timetable && typeof state.timetable === "object") {
+    const semKey = String(state.currentSemester || currentSemester || 5);
+    state.timetableBySemester[semKey] = state.timetable;
+    delete state.timetable;
+  }
+
+  // holidays antigo (não usamos mais)
+  if (Array.isArray(state.holidays)) {
+    delete state.holidays;
+  }
 }
 
 // --------- ELEMENTOS GERAIS ---------
@@ -79,62 +169,6 @@ themeToggleBtn.addEventListener("click", () => {
   saveState();
   applyTheme();
 });
-function ensureSemesterMaps() {
-  if (!state.currentSemester) state.currentSemester = 5;
-  if (!state.importantDatesBySemester) state.importantDatesBySemester = {};
-  if (!state.timetableBySemester) state.timetableBySemester = {};
-}
-
-// migração: se existir estrutura antiga, joga no semestre atual e remove as antigas
-function migrateLegacyDataIfNeeded() {
-  // importantDates antigo
-  if (Array.isArray(state.importantDates)) {
-    const semKey = String(state.currentSemester || currentSemester || 5);
-    if (!state.importantDatesBySemester[semKey]) state.importantDatesBySemester[semKey] = [];
-    state.importantDatesBySemester[semKey].push(...state.importantDates);
-    delete state.importantDates;
-  }
-
-  // timetable antigo
-  if (state.timetable && typeof state.timetable === "object") {
-    const semKey = String(state.currentSemester || currentSemester || 5);
-    if (!state.timetableBySemester[semKey]) state.timetableBySemester[semKey] = {};
-    state.timetableBySemester[semKey] = state.timetable;
-    delete state.timetable;
-  }
-
-  // holidays antigo (não vamos mais usar)
-  if (Array.isArray(state.holidays)) {
-    delete state.holidays;
-  }
-}
-
-function getSemesterKey() {
-  return String(currentSemester);
-}
-
-function getImportantDatesForCurrentSemester() {
-  const sem = getSemesterKey();
-  return state.importantDatesBySemester[sem] || [];
-}
-
-function getTimetableForCurrentSemester() {
-  const sem = getSemesterKey();
-  const base = state.timetableBySemester[sem] || {};
-  // garante os dias
-  return {
-    monday: base.monday || [],
-    tuesday: base.tuesday || [],
-    wednesday: base.wednesday || [],
-    thursday: base.thursday || [],
-    friday: base.friday || []
-  };
-}
-
-function setTimetableForCurrentSemester(newTable) {
-  const sem = getSemesterKey();
-  state.timetableBySemester[sem] = newTable;
-}
 
 // --------- RESUMO (CAPA) ---------
 const summarySubjectsEl = document.getElementById("summarySubjects");
@@ -167,15 +201,7 @@ function computeSemesterStats() {
     doneLessons += s.lessons.filter(l => l.done).length;
   });
 
-  return {
-    subjectsCount: subjects.length,
-    totalWorks,
-    doneWorks,
-    totalExams,
-    doneExams,
-    totalLessons,
-    doneLessons
-  };
+  return { subjectsCount: subjects.length, totalWorks, doneWorks, totalExams, doneExams, totalLessons, doneLessons };
 }
 
 function updateSummary() {
@@ -196,21 +222,15 @@ function renderSemesterStatus() {
   semesterStatusContainer.innerHTML = `
     <div class="semester-status-row">
       <strong>Aulas estudadas:</strong> ${stats.doneLessons}/${stats.totalLessons} (${progressLessons}%)
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" style="width:${progressLessons}%;"></div>
-      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressLessons}%;"></div></div>
     </div>
     <div class="semester-status-row">
       <strong>Trabalhos concluídos:</strong> ${stats.doneWorks}/${stats.totalWorks} (${progressWorks}%)
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" style="width:${progressWorks}%;"></div>
-      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressWorks}%;"></div></div>
     </div>
     <div class="semester-status-row">
       <strong>Provas realizadas:</strong> ${stats.doneExams}/${stats.totalExams} (${progressExams}%)
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" style="width:${progressExams}%;"></div>
-      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressExams}%;"></div></div>
     </div>
   `;
 }
@@ -244,6 +264,75 @@ function initCalendar() {
   renderCalendar();
 }
 
+function dateToIso(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// ---- FERIADOS BR (auto por ano) ----
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getBrazilHolidays(year) {
+  const fixed = [
+    { date: `${year}-01-01`, label: "Ano Novo" },
+    { date: `${year}-04-21`, label: "Tiradentes" },
+    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
+    { date: `${year}-09-07`, label: "Independência do Brasil" },
+    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
+    { date: `${year}-11-02`, label: "Finados" },
+    { date: `${year}-11-15`, label: "Proclamação da República" },
+    { date: `${year}-12-25`, label: "Natal" }
+  ];
+
+  const easter = easterDate(year);
+  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
+  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
+  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
+
+  const movable = [
+    { date: dateToIso(carnival), label: "Carnaval" },
+    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
+    { date: dateToIso(easter), label: "Páscoa" },
+    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
+  ];
+
+  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function hasEventsOnDate(iso) {
+  const year = Number(iso.slice(0, 4));
+  const holidays = getBrazilHolidays(year);
+  const hasHoliday = holidays.some(h => h.date === iso);
+
+  const important = getImportantDatesForCurrentSemester();
+  const hasImportant = important.some(d => d.date === iso);
+
+  const works = state.subjects.flatMap(s => s.works);
+  const exams = state.subjects.flatMap(s => s.exams);
+  const hasWork = works.some(w => w.dueDate === iso);
+  const hasExam = exams.some(e => e.date === iso);
+
+  return hasHoliday || hasImportant || hasWork || hasExam;
+}
+
 function renderCalendar() {
   const firstDay = new Date(calendarYear, calendarMonth, 1);
   const startDayOfWeek = firstDay.getDay();
@@ -269,16 +358,13 @@ function renderCalendar() {
 
       let displayDay;
       let dateObj;
-      let inCurrentMonth = true;
 
       if (week === 0 && dow < startDayOfWeek) {
         displayDay = prevMonthDays - (startDayOfWeek - dow - 1);
-        inCurrentMonth = false;
         dateObj = new Date(calendarYear, calendarMonth - 1, displayDay);
         div.classList.add("other-month");
       } else if (day > daysInMonth) {
         displayDay = nextMonthDay++;
-        inCurrentMonth = false;
         dateObj = new Date(calendarYear, calendarMonth + 1, displayDay);
         div.classList.add("other-month");
       } else {
@@ -292,13 +378,8 @@ function renderCalendar() {
       div.dataset.date = iso;
 
       const todayIso = dateToIso(new Date());
-      if (iso === todayIso) {
-        div.classList.add("today");
-      }
-
-      if (hasEventsOnDate(iso)) {
-        div.classList.add("has-event");
-      }
+      if (iso === todayIso) div.classList.add("today");
+      if (hasEventsOnDate(iso)) div.classList.add("has-event");
 
       div.addEventListener("click", () => {
         selectedDate = iso;
@@ -313,29 +394,7 @@ function renderCalendar() {
   }
 
   renderSelectedDateInfo();
-}
-
-function dateToIso(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function hasEventsOnDate(iso) {
-  const year = Number(iso.slice(0, 4));
-  const holidays = getBrazilHolidays(year);
-  const hasHoliday = holidays.some(h => h.date === iso);
-
-  const important = getImportantDatesForCurrentSemester();
-  const hasImportant = important.some(d => d.date === iso);
-
-  const works = state.subjects.flatMap(s => s.works);
-  const exams = state.subjects.flatMap(s => s.exams);
-  const hasWork = works.some(w => w.dueDate === iso);
-  const hasExam = exams.some(e => e.date === iso);
-
-  return hasHoliday || hasImportant || hasWork || hasExam;
+  renderHolidayList(); // atualiza lista de feriados conforme o ano mostrado
 }
 
 function renderSelectedDateInfo() {
@@ -349,24 +408,23 @@ function renderSelectedDateInfo() {
 
   const events = [];
 
- getBrazilHolidays(Number(selectedDate.slice(0,4))).forEach(h => {
-  if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
-});
+  // feriados do ano do dia selecionado
+  getBrazilHolidays(Number(selectedDate.slice(0, 4))).forEach(h => {
+    if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
+  });
 
+  // datas importantes do semestre atual
   getImportantDatesForCurrentSemester().forEach(d => {
-  if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
-});
+    if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
+  });
 
+  // trabalhos/provas (todos)
   state.subjects.forEach(s => {
     s.works.forEach(w => {
-      if (w.dueDate === selectedDate) {
-        events.push({ type: "Trabalho", label: `${s.name} - Trabalho` });
-      }
+      if (w.dueDate === selectedDate) events.push({ type: "Trabalho", label: `${s.name} - Trabalho` });
     });
     s.exams.forEach(e => {
-      if (e.date === selectedDate) {
-        events.push({ type: "Prova", label: `${s.name} - Prova` });
-      }
+      if (e.date === selectedDate) events.push({ type: "Prova", label: `${s.name} - Prova` });
     });
   });
 
@@ -375,36 +433,26 @@ function renderSelectedDateInfo() {
     return;
   }
 
-  const listItems = events
-    .map(ev => `<li><strong>${ev.type}:</strong> ${ev.label}</li>`)
-    .join("");
+  const listItems = events.map(ev => `<li><strong>${ev.type}:</strong> ${ev.label}</li>`).join("");
   calendarSelectedInfo.innerHTML = `<strong>${formatted}</strong><ul>${listItems}</ul>`;
 }
 
 prevMonthBtn.addEventListener("click", () => {
-  if (calendarMonth === 0) {
-    calendarMonth = 11;
-    calendarYear--;
-  } else {
-    calendarMonth--;
-  }
+  if (calendarMonth === 0) { calendarMonth = 11; calendarYear--; }
+  else calendarMonth--;
   renderCalendar();
 });
 
 nextMonthBtn.addEventListener("click", () => {
-  if (calendarMonth === 11) {
-    calendarMonth = 0;
-    calendarYear++;
-  } else {
-    calendarMonth++;
-  }
+  if (calendarMonth === 11) { calendarMonth = 0; calendarYear++; }
+  else calendarMonth++;
   renderCalendar();
 });
 
-function () {
+function renderHolidayList() {
   holidayList.innerHTML = "";
-  const sorted = [...state.holidays].sort((a, b) => a.date.localeCompare(b.date));
-  sorted.forEach(h => {
+  const holidays = getBrazilHolidays(calendarYear);
+  holidays.forEach(h => {
     const li = document.createElement("li");
     const [y, m, d] = h.date.split("-");
     li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
@@ -434,9 +482,8 @@ function renderImportantDatesList() {
 
     delBtn.addEventListener("click", () => {
       const sem = getSemesterKey();
-      state.importantDatesBySemester[sem] = (state.importantDatesBySemester[sem] || []).filter(
-        item => !(item.date === d.date && item.label === d.label)
-      );
+      state.importantDatesBySemester[sem] =
+        (state.importantDatesBySemester[sem] || []).filter(item => !(item.date === d.date && item.label === d.label));
       saveState();
       renderImportantDatesList();
       renderUpcomingDeadlines();
@@ -450,63 +497,28 @@ function renderImportantDatesList() {
   });
 }
 
-function easterDate(year) {
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return new Date(year, month, day);
-}
-
-function getBrazilHolidays(year) {
-  const fixed = [
-    { date: `${year}-01-01`, label: "Ano Novo" },
-    { date: `${year}-04-21`, label: "Tiradentes" },
-    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
-    { date: `${year}-09-07`, label: "Independência do Brasil" },
-    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
-    { date: `${year}-11-02`, label: "Finados" },
-    { date: `${year}-11-15`, label: "Proclamação da República" },
-    { date: `${year}-12-25`, label: "Natal" }
-  ];
-
-  const easter = easterDate(year);
-  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
-  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
-  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
-
-  const movable = [
-    { date: dateToIso(carnival), label: "Carnaval" },
-    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
-    { date: dateToIso(easter), label: "Páscoa" },
-    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
-  ];
-
-  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
-}
-
-// adicionar nova data importante via formulário
+// adicionar nova data importante via formulário (AGORA POR SEMESTRE)
 addImportantDateForm.addEventListener("submit", evt => {
   evt.preventDefault();
   const date = importantDateInput.value;
   const label = importantLabelInput.value.trim();
   if (!date || !label) return;
-  state.importantDates.push({ date, label });
-  ...
+
+  const sem = getSemesterKey();
+  if (!state.importantDatesBySemester[sem]) state.importantDatesBySemester[sem] = [];
+  state.importantDatesBySemester[sem].push({ date, label });
+
+  saveState();
+  importantDateInput.value = "";
+  importantLabelInput.value = "";
+  renderImportantDatesList();
+  renderCalendar();
+  renderUpcomingDeadlines();
 });
 
 function renderTimetable() {
   timetableBody.innerHTML = "";
+
   const mapping = {
     monday: "Segunda",
     tuesday: "Terça",
@@ -515,9 +527,11 @@ function renderTimetable() {
     friday: "Sexta"
   };
 
+  const table = getTimetableForCurrentSemester();
+
   Object.keys(mapping).forEach(key => {
     const dayName = mapping[key];
-    const slots = state.timetable[key] || [];
+    const slots = table[key] || [];
     if (!slots.length) return;
 
     slots.forEach((slot, index) => {
@@ -539,8 +553,9 @@ function renderTimetable() {
       delBtn.textContent = "Excluir";
 
       delBtn.addEventListener("click", () => {
-        // remove esse slot desse dia
-        state.timetable[key].splice(index, 1);
+        const updated = getTimetableForCurrentSemester();
+        updated[key].splice(index, 1);
+        setTimetableForCurrentSemester(updated);
         saveState();
         renderTimetable();
       });
@@ -565,7 +580,7 @@ function renderTimetable() {
   }
 }
 
-// adicionar novo horário via formulário
+// adicionar novo horário via formulário (AGORA POR SEMESTRE)
 addTimetableForm.addEventListener("submit", evt => {
   evt.preventDefault();
   const dayKey = timetableDayInput.value;
@@ -584,75 +599,22 @@ addTimetableForm.addEventListener("submit", evt => {
   renderTimetable();
 });
 
-function easterDate(year) {
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return new Date(year, month, day);
-}
-
-function getBrazilHolidays(year) {
-  const fixed = [
-    { date: `${year}-01-01`, label: "Ano Novo" },
-    { date: `${year}-04-21`, label: "Tiradentes" },
-    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
-    { date: `${year}-09-07`, label: "Independência do Brasil" },
-    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
-    { date: `${year}-11-02`, label: "Finados" },
-    { date: `${year}-11-15`, label: "Proclamação da República" },
-    { date: `${year}-12-25`, label: "Natal" }
-  ];
-
-  const easter = easterDate(year);
-  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
-  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
-  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
-
-  const movable = [
-    { date: dateToIso(carnival), label: "Carnaval" },
-    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
-    { date: dateToIso(easter), label: "Páscoa" },
-    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
-  ];
-
-  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
-}
-
-
 // --------- PRÓXIMOS PRAZOS ---------
 function renderUpcomingDeadlines() {
   upcomingList.innerHTML = "";
   const items = [];
-
   const todayIso = dateToIso(new Date());
 
-  // Datas importantes
+  // Datas importantes (do semestre atual)
   getImportantDatesForCurrentSemester().forEach(d => {
-  if (d.date >= todayIso) {
-    items.push({ date: d.date, label: d.label, type: "Importante" });
-  }
-});
+    if (d.date >= todayIso) items.push({ date: d.date, label: d.label, type: "Importante" });
+  });
 
   // Trabalhos
   state.subjects.forEach(s => {
     s.works.forEach(w => {
       if (w.dueDate && w.dueDate >= todayIso) {
-        items.push({
-          date: w.dueDate,
-          label: `${s.name} - Trabalho`,
-          type: "Trabalho"
-        });
+        items.push({ date: w.dueDate, label: `${s.name} - Trabalho`, type: "Trabalho" });
       }
     });
   });
@@ -661,17 +623,12 @@ function renderUpcomingDeadlines() {
   state.subjects.forEach(s => {
     s.exams.forEach(e => {
       if (e.date && e.date >= todayIso) {
-        items.push({
-          date: e.date,
-          label: `${s.name} - Prova`,
-          type: "Prova"
-        });
+        items.push({ date: e.date, label: `${s.name} - Prova`, type: "Prova" });
       }
     });
   });
 
   items.sort((a, b) => a.date.localeCompare(b.date));
-
   const limited = items.slice(0, 8);
 
   if (!limited.length) {
@@ -779,8 +736,7 @@ function renderGrades() {
       const rounded = finalGrade.toFixed(2);
       finalDiv.textContent = `Média final: ${rounded}`;
       const statusBadge = document.createElement("span");
-      statusBadge.className =
-        "badge " + (finalGrade >= 6 ? "badge-status-ok" : "badge-status-bad");
+      statusBadge.className = "badge " + (finalGrade >= 6 ? "badge-status-ok" : "badge-status-bad");
       statusBadge.textContent = finalGrade >= 6 ? "Aprovado (parcial)" : "Atenção";
       finalDiv.appendChild(statusBadge);
     }
@@ -795,56 +751,32 @@ function renderGrades() {
 // controla as cores do seletor de dificuldade
 function applyDifficultyClass(selectEl, difficulty) {
   selectEl.classList.remove("difficulty-facil", "difficulty-medio", "difficulty-dificil");
-
-  if (difficulty === "facil") {
-    selectEl.classList.add("difficulty-facil");
-  } else if (difficulty === "medio") {
-    selectEl.classList.add("difficulty-medio");
-  } else if (difficulty === "dificil") {
-    selectEl.classList.add("difficulty-dificil");
-  }
+  if (difficulty === "facil") selectEl.classList.add("difficulty-facil");
+  else if (difficulty === "medio") selectEl.classList.add("difficulty-medio");
+  else if (difficulty === "dificil") selectEl.classList.add("difficulty-dificil");
 }
 
 // --------- TRABALHOS ---------
 const worksPageContainer = document.getElementById("worksPageContainer");
 
-// filtros da aba de trabalhos (os selects do HTML)
+// filtros da aba de trabalhos
 const workFilterIndex = document.getElementById("workFilterIndex");
 const workFilterDifficulty = document.getElementById("workFilterDifficulty");
 const workFilterDone = document.getElementById("workFilterDone");
 const workFilterDelivered = document.getElementById("workFilterDelivered");
 
-// lê os filtros atuais
 function getWorkFilters() {
   return {
     index: workFilterIndex ? workFilterIndex.value : "all",
     difficulty: workFilterDifficulty ? workFilterDifficulty.value : "all",
     done: workFilterDone ? workFilterDone.value : "all",
-    delivered: workFilterDelivered ? workFilterDelivered.value : "all",
+    delivered: workFilterDelivered ? workFilterDelivered.value : "all"
   };
 }
 
-// controla as cores do seletor de dificuldade
-function applyDifficultyClass(selectEl, difficulty) {
-  selectEl.classList.remove("difficulty-facil", "difficulty-medio", "difficulty-dificil");
-
-  if (difficulty === "facil") {
-    selectEl.classList.add("difficulty-facil");
-  } else if (difficulty === "medio") {
-    selectEl.classList.add("difficulty-medio");
-  } else if (difficulty === "dificil") {
-    selectEl.classList.add("difficulty-dificil");
-  }
-}
-
-// sempre que mudar algum filtro, redesenha a página de trabalhos
 [workFilterIndex, workFilterDifficulty, workFilterDone, workFilterDelivered]
   .filter(Boolean)
-  .forEach((el) => {
-    el.addEventListener("change", () => {
-      renderWorksPage();
-    });
-  });
+  .forEach(el => el.addEventListener("change", () => renderWorksPage()));
 
 function renderWorksPage() {
   worksPageContainer.innerHTML = "";
@@ -857,7 +789,7 @@ function renderWorksPage() {
 
   const filters = getWorkFilters();
 
-  subjects.forEach((subject) => {
+  subjects.forEach(subject => {
     const card = document.createElement("div");
     card.className = "subject-card";
 
@@ -878,36 +810,20 @@ function renderWorksPage() {
     const blocks = document.createElement("div");
     blocks.className = "two-columns";
 
-    // percorre Trabalho 1 / Trabalho 2
     subject.works.forEach((work, index) => {
-      // garante campos novos
       if (!work.difficulty) work.difficulty = "medio";
       if (work.delivered === undefined) work.delivered = false;
 
-      // =========== APLICAÇÃO DOS FILTROS ===========
-
-      // 1) filtro por Trabalho 1 / 2 / Todos
-      if (filters.index !== "all" && Number(filters.index) !== index) {
-        return;
-      }
-
-      // 2) filtro por dificuldade
+      // filtros
+      if (filters.index !== "all" && Number(filters.index) !== index) return;
       const diff = work.difficulty || "medio";
-      if (filters.difficulty !== "all" && filters.difficulty !== diff) {
-        return;
-      }
-
-      // 3) filtro por concluído / não concluído
+      if (filters.difficulty !== "all" && filters.difficulty !== diff) return;
       const isDone = !!work.done;
       if (filters.done === "done" && !isDone) return;
       if (filters.done === "not" && isDone) return;
-
-      // 4) filtro por entregue / não entregue
       const isDelivered = !!work.delivered;
       if (filters.delivered === "delivered" && !isDelivered) return;
       if (filters.delivered === "not" && isDelivered) return;
-
-      // =========== FIM DOS FILTROS ===========
 
       const wb = document.createElement("div");
       wb.className = "work-block";
@@ -927,7 +843,6 @@ function renderWorksPage() {
       const smallRow = document.createElement("div");
       smallRow.className = "small-row";
 
-      // Data de entrega
       const dateInput = document.createElement("input");
       dateInput.type = "date";
       dateInput.value = work.dueDate || "";
@@ -938,17 +853,13 @@ function renderWorksPage() {
         renderUpcomingDeadlines();
       });
 
-      // seletor de dificuldade
       const diffSelect = document.createElement("select");
       diffSelect.className = "difficulty-select";
-
-      const difficulties = [
+      [
         { value: "facil", label: "Fácil" },
         { value: "medio", label: "Médio" },
-        { value: "dificil", label: "Difícil" },
-      ];
-
-      difficulties.forEach((d) => {
+        { value: "dificil", label: "Difícil" }
+      ].forEach(d => {
         const opt = document.createElement("option");
         opt.value = d.value;
         opt.textContent = d.label;
@@ -964,7 +875,6 @@ function renderWorksPage() {
         saveState();
       });
 
-      // checkbox Concluído
       const checkboxLabel = document.createElement("label");
       checkboxLabel.className = "checkbox-label";
       const cb = document.createElement("input");
@@ -981,7 +891,6 @@ function renderWorksPage() {
       checkboxLabel.appendChild(cb);
       checkboxLabel.appendChild(span);
 
-      // checkbox Entregue
       const deliveredLabel = document.createElement("label");
       deliveredLabel.className = "checkbox-label";
       const deliveredCb = document.createElement("input");
@@ -1007,7 +916,6 @@ function renderWorksPage() {
       blocks.appendChild(wb);
     });
 
-    // só mostra a matéria se sobrou algum trabalho depois dos filtros
     if (blocks.hasChildNodes()) {
       card.appendChild(header);
       card.appendChild(blocks);
@@ -1015,10 +923,8 @@ function renderWorksPage() {
     }
   });
 
-  // se nenhum trabalho passou pelos filtros:
   if (!worksPageContainer.hasChildNodes()) {
-    worksPageContainer.innerHTML =
-      "<p>Nenhum trabalho encontrado com os filtros selecionados.</p>";
+    worksPageContainer.innerHTML = "<p>Nenhum trabalho encontrado com os filtros selecionados.</p>";
   }
 }
 
@@ -1088,7 +994,7 @@ function renderExamsPage() {
       checkboxLabel.className = "checkbox-label";
       const cb = document.createElement("input");
       cb.type = "checkbox";
-      cb.checked = exam.done;
+      cb.checked = !!exam.done;
       cb.addEventListener("change", () => {
         exam.done = cb.checked;
         saveState();
@@ -1136,8 +1042,8 @@ addSubjectForm.addEventListener("submit", evt => {
     semester: sem,
     grades: { t1: null, p1: null, t2: null, p2: null },
     works: [
-      { id: id + "_w1", description: "", done: false, dueDate: null },
-      { id: id + "_w2", description: "", done: false, dueDate: null }
+      { id: id + "_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
+      { id: id + "_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
     ],
     exams: [
       { id: id + "_e1", description: "", done: false, date: null },
@@ -1155,20 +1061,14 @@ addSubjectForm.addEventListener("submit", evt => {
 
 function renderSubjectsManager() {
   subjectsManager.innerHTML = "";
-
-  // 👇 agora usamos só as matérias do semestre atual
   const subjects = getSubjectsForCurrentSemester();
 
-  // Se não tiver nenhuma matéria para ESTE semestre
   if (!subjects || !subjects.length) {
     subjectsManager.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre ainda.</p>";
     return;
   }
 
-  const sorted = [...subjects].sort((a, b) => {
-    if (a.semester !== b.semester) return a.semester - b.semester;
-    return a.name.localeCompare(b.name);
-  });
+  const sorted = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
 
   sorted.forEach(subject => {
     const card = document.createElement("div");
@@ -1177,12 +1077,10 @@ function renderSubjectsManager() {
     const header = document.createElement("div");
     header.className = "subject-card-header";
 
-    // Nome da matéria (lado esquerdo)
     const left = document.createElement("div");
     left.className = "subject-name";
     left.textContent = subject.name;
 
-    // Lado direito: semestre + botões de ação
     const right = document.createElement("div");
     right.className = "subject-actions";
 
@@ -1191,19 +1089,15 @@ function renderSubjectsManager() {
     badge.textContent = `${subject.semester}º sem.`;
     right.appendChild(badge);
 
-    // BOTÃO EDITAR MATÉRIA
     const editBtn = document.createElement("button");
     editBtn.textContent = "Editar";
     editBtn.addEventListener("click", () => {
       const newName = prompt("Novo nome da matéria:", subject.name);
-      if (newName === null) return; // cancelou
+      if (newName === null) return;
       const trimmed = newName.trim();
       if (!trimmed) return;
 
-      const newSemStr = prompt(
-        "Novo semestre (ex.: 1, 2, 3, 4, 5):",
-        String(subject.semester)
-      );
+      const newSemStr = prompt("Novo semestre (ex.: 1, 2, 3, 4, 5):", String(subject.semester));
       if (newSemStr === null) return;
 
       const newSem = Number(newSemStr);
@@ -1215,21 +1109,16 @@ function renderSubjectsManager() {
       subject.name = trimmed;
       subject.semester = newSem;
       saveState();
-      // Recalcula tudo (notas, trabalhos, provas, capa etc.)
       renderAll();
     });
     right.appendChild(editBtn);
 
-    // BOTÃO EXCLUIR MATÉRIA
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Excluir";
     deleteBtn.addEventListener("click", () => {
-      const ok = confirm(
-        `Tem certeza que deseja excluir a matéria "${subject.name}" e TODOS os dados ligados a ela (notas, trabalhos, provas e aulas)?`
-      );
+      const ok = confirm(`Tem certeza que deseja excluir a matéria "${subject.name}" e TODOS os dados ligados a ela?`);
       if (!ok) return;
 
-      // Remove a matéria inteira do estado
       state.subjects = state.subjects.filter(s => s.id !== subject.id);
       saveState();
       renderAll();
@@ -1239,7 +1128,6 @@ function renderSubjectsManager() {
     header.appendChild(left);
     header.appendChild(right);
 
-    // PROGRESSO DAS AULAS
     const lessonsList = document.createElement("ul");
     lessonsList.className = "lessons-list";
 
@@ -1250,15 +1138,12 @@ function renderSubjectsManager() {
     const progressWrapper = document.createElement("div");
     progressWrapper.className = "progress-bar-wrapper";
     progressWrapper.innerHTML = `
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" style="width:${percent}%;"></div>
-      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${percent}%;"></div></div>
       <div style="font-size:0.78rem;margin-top:2px;color:var(--text-muted);">
         Progresso: ${done}/${total} (${percent}%)
       </div>
     `;
 
-    // LISTA DE AULAS
     subject.lessons.forEach(lesson => {
       const li = document.createElement("li");
 
@@ -1267,7 +1152,7 @@ function renderSubjectsManager() {
 
       const cb = document.createElement("input");
       cb.type = "checkbox";
-      cb.checked = lesson.done;
+      cb.checked = !!lesson.done;
       cb.addEventListener("change", () => {
         lesson.done = cb.checked;
         saveState();
@@ -1284,6 +1169,7 @@ function renderSubjectsManager() {
 
       const actions = document.createElement("div");
       actions.className = "lesson-actions";
+
       const delBtn = document.createElement("button");
       delBtn.textContent = "Excluir";
       delBtn.addEventListener("click", () => {
@@ -1293,19 +1179,20 @@ function renderSubjectsManager() {
         updateSummary();
         renderSemesterStatus();
       });
-      actions.appendChild(delBtn);
 
+      actions.appendChild(delBtn);
       li.appendChild(main);
       li.appendChild(actions);
       lessonsList.appendChild(li);
     });
 
-    // LINHA PARA ADICIONAR NOVA AULA
     const addRow = document.createElement("div");
     addRow.className = "add-lesson-row";
+
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Título da aula/unidade";
+
     const btn = document.createElement("button");
     btn.textContent = "Adicionar";
     btn.addEventListener("click", () => {
@@ -1319,6 +1206,7 @@ function renderSubjectsManager() {
       updateSummary();
       renderSemesterStatus();
     });
+
     addRow.appendChild(input);
     addRow.appendChild(btn);
 
@@ -1375,6 +1263,9 @@ restoreBackupBtn.addEventListener("click", () => {
         return;
       }
       state = parsed;
+      ensureSemesterMaps();
+      currentSemester = Number(state.currentSemester || 5);
+      migrateLegacyDataIfNeeded();
       saveState();
       applyTheme();
       renderAll();
@@ -1408,92 +1299,27 @@ globalSemesterSelect.addEventListener("change", () => {
 });
 
 // --------- RENDERIZAÇÃO GERAL ---------
-function renderHolidayList() {
-  holidayList.innerHTML = "";
+function renderAll() {
+  // sincroniza o select com o estado (evita ficar “desalinhado”)
+  if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
 
-  // mostra feriados do ANO que o calendário está exibindo
-  const holidays = getBrazilHolidays(calendarYear);
-
-  holidays.forEach(h => {
-    const li = document.createElement("li");
-    const [y, m, d] = h.date.split("-");
-    li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
-    holidayList.appendChild(li);
-  });
+  updateSummary();
+  renderSemesterStatus();
+  renderCalendar();
+  renderImportantDatesList();
+  renderTimetable();
+  renderUpcomingDeadlines();
+  renderGrades();
+  renderWorksPage();
+  renderExamsPage();
+  renderSubjectsManager();
 }
 
-// Inicialização
-applyTheme();
-initCalendar();
-renderHolidayList();
-renderImportantDatesList();
-function renderTimetable() {
-  timetableBody.innerHTML = "";
-
-  const mapping = {
-    monday: "Segunda",
-    tuesday: "Terça",
-    wednesday: "Quarta",
-    thursday: "Quinta",
-    friday: "Sexta"
-  };
-
-  const table = getTimetableForCurrentSemester();
-
-  Object.keys(mapping).forEach(key => {
-    const dayName = mapping[key];
-    const slots = table[key] || [];
-    if (!slots.length) return;
-
-    slots.forEach((slot, index) => {
-      const tr = document.createElement("tr");
-
-      const dayTd = document.createElement("td");
-      dayTd.textContent = index === 0 ? dayName : "";
-
-      const timeTd = document.createElement("td");
-      timeTd.textContent = slot.time;
-
-      const subjTd = document.createElement("td");
-      const subjSpan = document.createElement("span");
-      subjSpan.textContent = slot.subject;
-
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "inline-delete-btn";
-      delBtn.textContent = "Excluir";
-
-      delBtn.addEventListener("click", () => {
-        const updated = getTimetableForCurrentSemester();
-        updated[key].splice(index, 1);
-        setTimetableForCurrentSemester(updated);
-        saveState();
-        renderTimetable();
-      });
-
-      subjTd.appendChild(subjSpan);
-      subjTd.appendChild(delBtn);
-
-      tr.appendChild(dayTd);
-      tr.appendChild(timeTd);
-      tr.appendChild(subjTd);
-      timetableBody.appendChild(tr);
-    });
-  });
-
-  if (!timetableBody.hasChildNodes()) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 3;
-    td.textContent = "Nenhum horário cadastrado.";
-    tr.appendChild(td);
-    timetableBody.appendChild(tr);
-  }
-}
-
+// --------- INICIALIZAÇÃO ---------
 ensureSemesterMaps();
-currentSemester = state.currentSemester || 5;
 migrateLegacyDataIfNeeded();
+currentSemester = Number(state.currentSemester || currentSemester || 5);
+state.currentSemester = currentSemester;
 saveState();
 
 applyTheme();
