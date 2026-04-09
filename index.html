@@ -31,7 +31,7 @@
     <button class="nav-btn" data-view="trabalhos">Trabalhos</button>
     <button class="nav-btn" data-view="provas">Provas</button>
     <button class="nav-btn" data-view="materias">Matérias</button>
-    <button class="nav-btn" data-view="backup">Configuração</button>
+    <button class="nav-btn" data-view="backup">Backup</button>
   </nav>
 
   <main>
@@ -128,9 +128,9 @@
                 <option value="friday">Sexta</option>
               </select>
 
-              <input type="text" id="courseNameInput" placeholder="Nome do curso" />
-              <input type="number" id="totalSemestersInput" min="1" max="20" />
-              <button id="saveConfigBtn" type="button">Salvar</button>
+              <input type="text" id="timetableTimeInput" placeholder="19:30 - 21:00" required />
+              <input type="text" id="timetableSubjectInput" placeholder="Nome da matéria" required />
+              <button type="submit">Adicionar</button>
             </form>
           </div>
         </div>
@@ -224,36 +224,18 @@
       <div id="subjectsManager" class="subjects-manager"></div>
     </section>
 
-    <!-- CONFIGURAÇÃO -->
+    <!-- BACKUP -->
     <section id="view-backup" class="view">
-      <h2 class="view-title">Configuração</h2>
+      <h2 class="view-title">Backup</h2>
       <p class="view-subtitle">
-        Gerencie as informações gerais do seu curso e também faça backup dos seus dados.
+        Aqui você pode baixar um arquivo com todos os seus dados ou restaurar um backup antigo.
       </p>
 
       <div class="cards-column">
         <div class="card">
-          <h3>Informações da faculdade</h3>
-          <form id="settingsForm" class="settings-form">
-            <div class="settings-field">
-              <label for="courseNameInput">Qual curso</label>
-              <input type="text" id="courseNameInput" placeholder="Ex.: Sistemas de Informação" />
-            </div>
-
-            <div class="settings-field">
-              <label for="totalSemestersInput">Quantos semestres tem a faculdade toda</label>
-              <input type="number" id="totalSemestersInput" min="1" max="20" placeholder="Ex.: 8" />
-            </div>
-
-            <button type="submit">Salvar configurações</button>
-          </form>
-          <p id="settingsStatus" class="backup-status"></p>
-        </div>
-
-        <div class="card">
-          <h3>Backup</h3>
+          <h3>Baixar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
-            Gera um arquivo <strong>.json</strong> com todas as matérias, notas, trabalhos, provas, aulas estudadas, datas importantes, horários e configurações do curso.
+            Gera um arquivo <strong>.json</strong> com todas as matérias, notas, trabalhos, provas, aulas estudadas, datas importantes e horários.
           </p>
           <button id="downloadBackupBtn" type="button">Baixar arquivo de backup</button>
         </div>
