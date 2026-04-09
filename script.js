@@ -12,10 +12,6 @@ const defaultState = {
   // salva o semestre atual escolhido no topo
   currentSemester: 5,
 
-  // NOVO
-  totalSemesters: 5,
-  courseName: "",
-
   subjects: [
     {
       id: "animacao3d",
@@ -88,22 +84,6 @@ function ensureSemesterMaps() {
   if (!state.timetableBySemester) state.timetableBySemester = {};
 }
 
-function ensureConfigState() {
-  if (!state.totalSemesters || Number(state.totalSemesters) < 1) {
-    state.totalSemesters = 5;
-  }
-  if (!state.courseName) {
-    state.courseName = "";
-  }
-
-  state.totalSemesters = Number(state.totalSemesters);
-
-  if (currentSemester > state.totalSemesters) {
-    currentSemester = state.totalSemesters;
-    state.currentSemester = currentSemester;
-  }
-}
-
 function getSemesterKey() {
   return String(currentSemester);
 }
@@ -136,7 +116,6 @@ function setTimetableForCurrentSemester(newTable) {
 // migração: se existir estrutura antiga, joga no semestre atual e remove as antigas
 function migrateLegacyDataIfNeeded() {
   ensureSemesterMaps();
-  ensureConfigState();
 
   // importantDates antigo -> semestre atual
   if (Array.isArray(state.importantDates)) {
@@ -168,141 +147,28 @@ const views = {
   trabalhos: document.getElementById("view-trabalhos"),
   provas: document.getElementById("view-provas"),
   materias: document.getElementById("view-materias"),
-  config: document.getElementById("view-config") || document.getElementById("view-backup"),
-  backup: document.getElementById("view-backup") || document.getElementById("view-config")
+  backup: document.getElementById("view-backup")
 };
 
 const themeToggleBtn = document.getElementById("themeToggleBtn");
-
-// --------- ELEMENTOS DE CONFIGURAÇÃO ---------
-const courseNameInput = document.getElementById("courseNameInput");
-const totalSemestersInput = document.getElementById("totalSemestersInput");
-const saveConfigBtn = document.getElementById("saveConfigBtn");
-
-// --------- HELPERS DE SELECTS DINÂMICOS ---------
-function buildSemesterOptions(selectEl, selectedValue, placeholderText = "Semestre") {
-  if (!selectEl) return;
-
-  const total = Number(state.totalSemesters || 5);
-  const currentValue = selectedValue !== undefined && selectedValue !== null && selectedValue !== ""
-    ? String(selectedValue)
-    : "";
-
-  selectEl.innerHTML = "";
-
-  if (placeholderText) {
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = placeholderText;
-    selectEl.appendChild(placeholder);
-  }
-
-  for (let i = 1; i <= total; i++) {
-    const option = document.createElement("option");
-    option.value = String(i);
-    option.textContent = `${i}º semestre`;
-    selectEl.appendChild(option);
-  }
-
-  if (currentValue && Number(currentValue) <= total) {
-    selectEl.value = currentValue;
-  } else if (placeholderText) {
-    selectEl.value = "";
-  }
-}
-
-function renderSemesterSelectors() {
-  ensureConfigState();
-
-  if (globalSemesterSelect) {
-    globalSemesterSelect.innerHTML = "";
-
-    for (let i = 1; i <= state.totalSemesters; i++) {
-      const option = document.createElement("option");
-      option.value = String(i);
-      option.textContent = `${i}º semestre`;
-      globalSemesterSelect.appendChild(option);
-    }
-
-    if (currentSemester > state.totalSemesters) {
-      currentSemester = state.totalSemesters;
-      state.currentSemester = currentSemester;
-      saveState();
-    }
-
-    globalSemesterSelect.value = String(currentSemester);
-  }
-
-  if (subjectSemesterInput) {
-    const selected = subjectSemesterInput.value;
-    subjectSemesterInput.innerHTML = `<option value="">Semestre</option>`;
-
-    for (let i = 1; i <= state.totalSemesters; i++) {
-      const option = document.createElement("option");
-      option.value = String(i);
-      option.textContent = `${i}º`;
-      subjectSemesterInput.appendChild(option);
-    }
-
-    if (selected && Number(selected) <= state.totalSemesters) {
-      subjectSemesterInput.value = selected;
-    }
-  }
-}
-
-// --------- SALVAR CONFIGURAÇÃO ---------
-if (saveConfigBtn) {
-  saveConfigBtn.addEventListener("click", () => {
-    const newCourseName = courseNameInput ? courseNameInput.value.trim() : "";
-    const newTotalSemesters = totalSemestersInput ? Number(totalSemestersInput.value) : 0;
-
-    if (!newTotalSemesters || newTotalSemesters < 1 || newTotalSemesters > 20) {
-      alert("Informe uma quantidade válida de semestres entre 1 e 20.");
-      return;
-    }
-
-    state.courseName = newCourseName;
-    state.totalSemesters = newTotalSemesters;
-
-    if (currentSemester > state.totalSemesters) {
-      currentSemester = state.totalSemesters;
-      state.currentSemester = currentSemester;
-    }
-
-    state.subjects.forEach(subject => {
-      if (subject.semester > state.totalSemesters) {
-        subject.semester = state.totalSemesters;
-      }
-    });
-
-    saveState();
-
-    renderSemesterSelectors();
-    renderAll();
-
-    alert("Configuração salva com sucesso.");
-  });
-}
 
 // --------- TEMA (CLARO / ESCURO) ---------
 function applyTheme() {
   const theme = state.theme || "dark";
   if (theme === "light") {
     document.body.classList.add("light");
-    if (themeToggleBtn) themeToggleBtn.textContent = "Modo claro";
+    themeToggleBtn.textContent = "Modo claro";
   } else {
     document.body.classList.remove("light");
-    if (themeToggleBtn) themeToggleBtn.textContent = "Modo escuro";
+    themeToggleBtn.textContent = "Modo escuro";
   }
 }
 
-if (themeToggleBtn) {
-  themeToggleBtn.addEventListener("click", () => {
-    state.theme = state.theme === "light" ? "dark" : "light";
-    saveState();
-    applyTheme();
-  });
-}
+themeToggleBtn.addEventListener("click", () => {
+  state.theme = state.theme === "light" ? "dark" : "light";
+  saveState();
+  applyTheme();
+});
 
 // --------- RESUMO (CAPA) ---------
 const summarySubjectsEl = document.getElementById("summarySubjects");
@@ -340,16 +206,14 @@ function computeSemesterStats() {
 
 function updateSummary() {
   const stats = computeSemesterStats();
-  if (summarySubjectsEl) summarySubjectsEl.textContent = stats.subjectsCount || "0";
-  if (summaryWorksEl) summaryWorksEl.textContent = `${stats.doneWorks}/${stats.totalWorks}`;
-  if (summaryExamsEl) summaryExamsEl.textContent = `${stats.doneExams}/${stats.totalExams}`;
+  summarySubjectsEl.textContent = stats.subjectsCount || "0";
+  summaryWorksEl.textContent = `${stats.doneWorks}/${stats.totalWorks}`;
+  summaryExamsEl.textContent = `${stats.doneExams}/${stats.totalExams}`;
   const progress = stats.totalLessons ? Math.round((stats.doneLessons / stats.totalLessons) * 100) : 0;
-  if (summaryLessonsEl) summaryLessonsEl.textContent = `${progress}%`;
+  summaryLessonsEl.textContent = `${progress}%`;
 }
 
 function renderSemesterStatus() {
-  if (!semesterStatusContainer) return;
-
   const stats = computeSemesterStats();
   const progressLessons = stats.totalLessons ? Math.round((stats.doneLessons / stats.totalLessons) * 100) : 0;
   const progressWorks = stats.totalWorks ? Math.round((stats.doneWorks / stats.totalWorks) * 100) : 0;
@@ -470,8 +334,6 @@ function hasEventsOnDate(iso) {
 }
 
 function renderCalendar() {
-  if (!calendarBody || !calendarMonthLabel) return;
-
   const firstDay = new Date(calendarYear, calendarMonth, 1);
   const startDayOfWeek = firstDay.getDay();
   const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
@@ -536,8 +398,6 @@ function renderCalendar() {
 }
 
 function renderSelectedDateInfo() {
-  if (!calendarSelectedInfo) return;
-
   if (!selectedDate) {
     calendarSelectedInfo.innerHTML = "<strong>Selecione um dia para ver detalhes.</strong>";
     return;
@@ -577,45 +437,37 @@ function renderSelectedDateInfo() {
   calendarSelectedInfo.innerHTML = `<strong>${formatted}</strong><ul>${listItems}</ul>`;
 }
 
-if (prevMonthBtn) {
-  prevMonthBtn.addEventListener("click", () => {
-    if (calendarMonth === 0) { calendarMonth = 11; calendarYear--; }
-    else calendarMonth--;
-    renderCalendar();
-  });
-}
+prevMonthBtn.addEventListener("click", () => {
+  if (calendarMonth === 0) { calendarMonth = 11; calendarYear--; }
+  else calendarMonth--;
+  renderCalendar();
+});
 
-if (nextMonthBtn) {
-  nextMonthBtn.addEventListener("click", () => {
-    if (calendarMonth === 11) { calendarMonth = 0; calendarYear++; }
-    else calendarMonth++;
-    renderCalendar();
-  });
-}
+nextMonthBtn.addEventListener("click", () => {
+  if (calendarMonth === 11) { calendarMonth = 0; calendarYear++; }
+  else calendarMonth++;
+  renderCalendar();
+});
 
 function renderHolidayList() {
-  if (!holidayList) return;
-
   holidayList.innerHTML = "";
   const holidays = getBrazilHolidays(calendarYear);
   holidays.forEach(h => {
     const li = document.createElement("li");
-    const [, m, d] = h.date.split("-");
+    const [y, m, d] = h.date.split("-");
     li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
     holidayList.appendChild(li);
   });
 }
 
 function renderImportantDatesList() {
-  if (!importantDatesList) return;
-
   importantDatesList.innerHTML = "";
   const sorted = [...getImportantDatesForCurrentSemester()].sort((a, b) => a.date.localeCompare(b.date));
 
   sorted.forEach(d => {
     const li = document.createElement("li");
 
-    const [, m, day] = d.date.split("-");
+    const [y, m, day] = d.date.split("-");
     const dateSpan = document.createElement("span");
     dateSpan.className = "date";
     dateSpan.textContent = `${day}/${m}`;
@@ -646,29 +498,25 @@ function renderImportantDatesList() {
 }
 
 // adicionar nova data importante via formulário (AGORA POR SEMESTRE)
-if (addImportantDateForm) {
-  addImportantDateForm.addEventListener("submit", evt => {
-    evt.preventDefault();
-    const date = importantDateInput ? importantDateInput.value : "";
-    const label = importantLabelInput ? importantLabelInput.value.trim() : "";
-    if (!date || !label) return;
+addImportantDateForm.addEventListener("submit", evt => {
+  evt.preventDefault();
+  const date = importantDateInput.value;
+  const label = importantLabelInput.value.trim();
+  if (!date || !label) return;
 
-    const sem = getSemesterKey();
-    if (!state.importantDatesBySemester[sem]) state.importantDatesBySemester[sem] = [];
-    state.importantDatesBySemester[sem].push({ date, label });
+  const sem = getSemesterKey();
+  if (!state.importantDatesBySemester[sem]) state.importantDatesBySemester[sem] = [];
+  state.importantDatesBySemester[sem].push({ date, label });
 
-    saveState();
-    if (importantDateInput) importantDateInput.value = "";
-    if (importantLabelInput) importantLabelInput.value = "";
-    renderImportantDatesList();
-    renderCalendar();
-    renderUpcomingDeadlines();
-  });
-}
+  saveState();
+  importantDateInput.value = "";
+  importantLabelInput.value = "";
+  renderImportantDatesList();
+  renderCalendar();
+  renderUpcomingDeadlines();
+});
 
 function renderTimetable() {
-  if (!timetableBody) return;
-
   timetableBody.innerHTML = "";
 
   const mapping = {
@@ -733,30 +581,26 @@ function renderTimetable() {
 }
 
 // adicionar novo horário via formulário (AGORA POR SEMESTRE)
-if (addTimetableForm) {
-  addTimetableForm.addEventListener("submit", evt => {
-    evt.preventDefault();
-    const dayKey = timetableDayInput ? timetableDayInput.value : "";
-    const time = timetableTimeInput ? timetableTimeInput.value.trim() : "";
-    const subj = timetableSubjectInput ? timetableSubjectInput.value.trim() : "";
-    if (!dayKey || !time || !subj) return;
+addTimetableForm.addEventListener("submit", evt => {
+  evt.preventDefault();
+  const dayKey = timetableDayInput.value;
+  const time = timetableTimeInput.value.trim();
+  const subj = timetableSubjectInput.value.trim();
+  if (!dayKey || !time || !subj) return;
 
-    const updated = getTimetableForCurrentSemester();
-    updated[dayKey].push({ time, subject: subj });
-    setTimetableForCurrentSemester(updated);
+  const updated = getTimetableForCurrentSemester();
+  updated[dayKey].push({ time, subject: subj });
+  setTimetableForCurrentSemester(updated);
 
-    saveState();
-    if (timetableDayInput) timetableDayInput.value = "";
-    if (timetableTimeInput) timetableTimeInput.value = "";
-    if (timetableSubjectInput) timetableSubjectInput.value = "";
-    renderTimetable();
-  });
-}
+  saveState();
+  timetableDayInput.value = "";
+  timetableTimeInput.value = "";
+  timetableSubjectInput.value = "";
+  renderTimetable();
+});
 
 // --------- PRÓXIMOS PRAZOS ---------
 function renderUpcomingDeadlines() {
-  if (!upcomingList) return;
-
   upcomingList.innerHTML = "";
   const items = [];
   const todayIso = dateToIso(new Date());
@@ -794,7 +638,7 @@ function renderUpcomingDeadlines() {
 
   limited.forEach(it => {
     const li = document.createElement("li");
-    const [, m, d] = it.date.split("-");
+    const [y, m, d] = it.date.split("-");
     li.innerHTML = `<span class="date">${d}/${m}</span><strong>${it.type}:</strong> ${it.label}`;
     upcomingList.appendChild(li);
   });
@@ -820,8 +664,6 @@ function computeFinalGrade(grades) {
 }
 
 function renderGrades() {
-  if (!gradesContainer) return;
-
   gradesContainer.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
 
@@ -937,8 +779,6 @@ function getWorkFilters() {
   .forEach(el => el.addEventListener("change", () => renderWorksPage()));
 
 function renderWorksPage() {
-  if (!worksPageContainer) return;
-
   worksPageContainer.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
 
@@ -1092,8 +932,6 @@ function renderWorksPage() {
 const examsPageContainer = document.getElementById("examsPageContainer");
 
 function renderExamsPage() {
-  if (!examsPageContainer) return;
-
   examsPageContainer.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
 
@@ -1190,42 +1028,38 @@ const subjectNameInput = document.getElementById("subjectNameInput");
 const subjectSemesterInput = document.getElementById("subjectSemesterInput");
 const subjectsManager = document.getElementById("subjectsManager");
 
-if (addSubjectForm) {
-  addSubjectForm.addEventListener("submit", evt => {
-    evt.preventDefault();
-    const name = subjectNameInput ? subjectNameInput.value.trim() : "";
-    const sem = subjectSemesterInput ? Number(subjectSemesterInput.value) : 0;
-    if (!name || !sem) return;
+addSubjectForm.addEventListener("submit", evt => {
+  evt.preventDefault();
+  const name = subjectNameInput.value.trim();
+  const sem = Number(subjectSemesterInput.value);
+  if (!name || !sem) return;
 
-    const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now();
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now();
 
-    state.subjects.push({
-      id,
-      name,
-      semester: sem,
-      grades: { t1: null, p1: null, t2: null, p2: null },
-      works: [
-        { id: id + "_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
-        { id: id + "_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
-      ],
-      exams: [
-        { id: id + "_e1", description: "", done: false, date: null },
-        { id: id + "_e2", description: "", done: false, date: null }
-      ],
-      lessons: []
-    });
-
-    saveState();
-    if (subjectNameInput) subjectNameInput.value = "";
-    if (subjectSemesterInput) subjectSemesterInput.value = "";
-    renderSubjectsManager();
-    renderAll();
+  state.subjects.push({
+    id,
+    name,
+    semester: sem,
+    grades: { t1: null, p1: null, t2: null, p2: null },
+    works: [
+      { id: id + "_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
+      { id: id + "_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
+    ],
+    exams: [
+      { id: id + "_e1", description: "", done: false, date: null },
+      { id: id + "_e2", description: "", done: false, date: null }
+    ],
+    lessons: []
   });
-}
+
+  saveState();
+  subjectNameInput.value = "";
+  subjectSemesterInput.value = "";
+  renderSubjectsManager();
+  renderAll();
+});
 
 function renderSubjectsManager() {
-  if (!subjectsManager) return;
-
   subjectsManager.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
 
@@ -1263,12 +1097,12 @@ function renderSubjectsManager() {
       const trimmed = newName.trim();
       if (!trimmed) return;
 
-      const newSemStr = prompt(`Novo semestre (1 até ${state.totalSemesters}):`, String(subject.semester));
+      const newSemStr = prompt("Novo semestre (ex.: 1, 2, 3, 4, 5):", String(subject.semester));
       if (newSemStr === null) return;
 
       const newSem = Number(newSemStr);
-      if (!newSem || newSem < 1 || newSem > state.totalSemesters) {
-        alert(`Semestre inválido. Use um número entre 1 e ${state.totalSemesters}.`);
+      if (!newSem || newSem < 1 || newSem > 10) {
+        alert("Semestre inválido. Use um número entre 1 e 10.");
         return;
       }
 
@@ -1385,69 +1219,64 @@ function renderSubjectsManager() {
   });
 }
 
-// --------- BACKUP / CONFIGURAÇÃO ---------
+// --------- BACKUP ---------
 const downloadBackupBtn = document.getElementById("downloadBackupBtn");
 const restoreBackupBtn = document.getElementById("restoreBackupBtn");
 const backupFileInput = document.getElementById("backupFileInput");
 const backupStatus = document.getElementById("backupStatus");
 
-if (downloadBackupBtn) {
-  downloadBackupBtn.addEventListener("click", () => {
-    try {
-      const dataStr = JSON.stringify(state, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, "0");
-      const d = String(now.getDate()).padStart(2, "0");
-      a.href = url;
-      a.download = `backup_faculdade_${y}-${m}-${d}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      if (backupStatus) backupStatus.textContent = "Backup baixado com sucesso. Guarde esse arquivo em um lugar seguro.";
-    } catch (e) {
-      console.error(e);
-      if (backupStatus) backupStatus.textContent = "Erro ao gerar backup.";
-    }
-  });
-}
+downloadBackupBtn.addEventListener("click", () => {
+  try {
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    a.href = url;
+    a.download = `backup_faculdade_${y}-${m}-${d}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    backupStatus.textContent = "Backup baixado com sucesso. Guarde esse arquivo em um lugar seguro.";
+  } catch (e) {
+    console.error(e);
+    backupStatus.textContent = "Erro ao gerar backup.";
+  }
+});
 
-if (restoreBackupBtn) {
-  restoreBackupBtn.addEventListener("click", () => {
-    const file = backupFileInput ? backupFileInput.files[0] : null;
-    if (!file) {
-      if (backupStatus) backupStatus.textContent = "Selecione um arquivo de backup (.json) primeiro.";
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const parsed = JSON.parse(e.target.result);
-        if (!parsed || typeof parsed !== "object" || !parsed.subjects) {
-          if (backupStatus) backupStatus.textContent = "Arquivo inválido. Parece que não é um backup deste site.";
-          return;
-        }
-        state = parsed;
-        ensureSemesterMaps();
-        ensureConfigState();
-        currentSemester = Number(state.currentSemester || 5);
-        migrateLegacyDataIfNeeded();
-        saveState();
-        applyTheme();
-        renderAll();
-        if (backupStatus) backupStatus.textContent = "Backup restaurado com sucesso!";
-      } catch (err) {
-        console.error(err);
-        if (backupStatus) backupStatus.textContent = "Erro ao ler arquivo de backup.";
+restoreBackupBtn.addEventListener("click", () => {
+  const file = backupFileInput.files[0];
+  if (!file) {
+    backupStatus.textContent = "Selecione um arquivo de backup (.json) primeiro.";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed || typeof parsed !== "object" || !parsed.subjects) {
+        backupStatus.textContent = "Arquivo inválido. Parece que não é um backup deste site.";
+        return;
       }
-    };
-    reader.readAsText(file, "utf-8");
-  });
-}
+      state = parsed;
+      ensureSemesterMaps();
+      currentSemester = Number(state.currentSemester || 5);
+      migrateLegacyDataIfNeeded();
+      saveState();
+      applyTheme();
+      renderAll();
+      backupStatus.textContent = "Backup restaurado com sucesso!";
+    } catch (err) {
+      console.error(err);
+      backupStatus.textContent = "Erro ao ler arquivo de backup.";
+    }
+  };
+  reader.readAsText(file, "utf-8");
+});
 
 // --------- NAVEGAÇÃO / ALTERAÇÃO DE SEMESTRE ---------
 navButtons.forEach(btn => {
@@ -1457,27 +1286,22 @@ navButtons.forEach(btn => {
     btn.classList.add("active");
 
     Object.keys(views).forEach(name => {
-      if (views[name]) {
-        views[name].classList.toggle("active", name === viewName);
-      }
+      views[name].classList.toggle("active", name === viewName);
     });
   });
 });
 
-if (globalSemesterSelect) {
-  globalSemesterSelect.addEventListener("change", () => {
-    currentSemester = Number(globalSemesterSelect.value);
-    state.currentSemester = currentSemester;
-    saveState();
-    renderAll();
-  });
-}
+globalSemesterSelect.addEventListener("change", () => {
+  currentSemester = Number(globalSemesterSelect.value);
+  state.currentSemester = currentSemester;
+  saveState();
+  renderAll();
+});
 
 // --------- RENDERIZAÇÃO GERAL ---------
 function renderAll() {
-  ensureConfigState();
-  renderSemesterSelectors();
-  renderConfigFields();
+  // sincroniza o select com o estado (evita ficar “desalinhado”)
+  if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
 
   updateSummary();
   renderSemesterStatus();
@@ -1493,19 +1317,11 @@ function renderAll() {
 
 // --------- INICIALIZAÇÃO ---------
 ensureSemesterMaps();
-ensureConfigState();
 migrateLegacyDataIfNeeded();
 currentSemester = Number(state.currentSemester || currentSemester || 5);
-
-if (currentSemester > state.totalSemesters) {
-  currentSemester = state.totalSemesters;
-}
-
 state.currentSemester = currentSemester;
 saveState();
 
 applyTheme();
-renderSemesterSelectors();
-renderConfigFields();
 initCalendar();
 renderAll();
