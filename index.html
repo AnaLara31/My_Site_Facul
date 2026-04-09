@@ -144,6 +144,18 @@
       <p class="view-subtitle">
         Fórmula: (Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, tudo dividido por 5.
       </p>
+
+      <div class="card" style="margin-bottom: 10px; padding: 10px;">
+        <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtros</h3>
+        <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+          <select id="gradePartFilter">
+            <option value="all">Mostrar tudo</option>
+            <option value="part1">Somente Parte 1 (Trabalho 1 + Prova 1)</option>
+            <option value="part2">Somente Parte 2 (Trabalho 2 + Prova 2)</option>
+          </select>
+        </div>
+      </div>
+
       <div id="gradesContainer" class="cards-column"></div>
     </section>
 
@@ -194,11 +206,34 @@
       <p class="view-subtitle">
         Cadastre o conteúdo das provas e marque quando fizer cada uma.
       </p>
+
+      <div class="card" style="margin-bottom: 10px; padding: 10px;">
+        <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtros</h3>
+        <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+          <select id="examFilterSubject">
+            <option value="all">Todas as matérias</option>
+          </select>
+
+          <select id="examFilterDone">
+            <option value="all">Todas as provas</option>
+            <option value="done">Somente concluídas</option>
+            <option value="not">Somente não concluídas</option>
+          </select>
+        </div>
+      </div>
+
       <div id="examsPageContainer" class="cards-column"></div>
     </section>
 
     <!-- MATÉRIAS -->
     <section id="view-materias" class="view">
+      <div class="card" style="margin-bottom: 10px; padding: 10px;">
+        <h3 style="font-size: 1rem; margin-bottom: 6px;">Filtro de matérias</h3>
+        <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+          <input id="subjectsFilterInput" type="text" placeholder="Digite o nome da matéria" />
+        </div>
+      </div>
+
       <div class="subjects-header">
         <div>
           <h2 class="view-title">Matérias e conteúdo estudado</h2>
