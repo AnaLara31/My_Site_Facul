@@ -215,22 +215,38 @@ function renderSemesterSelectors() {
   ensureConfigState();
 
   if (globalSemesterSelect) {
-    buildSemesterOptions(globalSemesterSelect, currentSemester, null);
+    globalSemesterSelect.innerHTML = "";
+
+    for (let i = 1; i <= state.totalSemesters; i++) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i}º semestre`;
+      globalSemesterSelect.appendChild(option);
+    }
+
+    if (currentSemester > state.totalSemesters) {
+      currentSemester = state.totalSemesters;
+      state.currentSemester = currentSemester;
+      saveState();
+    }
+
     globalSemesterSelect.value = String(currentSemester);
   }
 
   if (subjectSemesterInput) {
-    buildSemesterOptions(subjectSemesterInput, subjectSemesterInput.value, "Semestre");
-  }
-}
+    const selected = subjectSemesterInput.value;
+    subjectSemesterInput.innerHTML = `<option value="">Semestre</option>`;
 
-function renderConfigFields() {
-  if (courseNameInput) {
-    courseNameInput.value = state.courseName || "";
-  }
+    for (let i = 1; i <= state.totalSemesters; i++) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i}º`;
+      subjectSemesterInput.appendChild(option);
+    }
 
-  if (totalSemestersInput) {
-    totalSemestersInput.value = String(state.totalSemesters || 5);
+    if (selected && Number(selected) <= state.totalSemesters) {
+      subjectSemesterInput.value = selected;
+    }
   }
 }
 
@@ -238,7 +254,7 @@ function renderConfigFields() {
 if (saveConfigBtn) {
   saveConfigBtn.addEventListener("click", () => {
     const newCourseName = courseNameInput ? courseNameInput.value.trim() : "";
-    const newTotalSemesters = totalSemestersInput ? Number(totalSemestersInput.value) : state.totalSemesters;
+    const newTotalSemesters = totalSemestersInput ? Number(totalSemestersInput.value) : 0;
 
     if (!newTotalSemesters || newTotalSemesters < 1 || newTotalSemesters > 20) {
       alert("Informe uma quantidade válida de semestres entre 1 e 20.");
@@ -248,13 +264,11 @@ if (saveConfigBtn) {
     state.courseName = newCourseName;
     state.totalSemesters = newTotalSemesters;
 
-    // ajusta semestre atual se ultrapassar o limite
     if (currentSemester > state.totalSemesters) {
       currentSemester = state.totalSemesters;
       state.currentSemester = currentSemester;
     }
 
-    // ajusta matérias que estiverem acima do limite
     state.subjects.forEach(subject => {
       if (subject.semester > state.totalSemesters) {
         subject.semester = state.totalSemesters;
@@ -262,9 +276,10 @@ if (saveConfigBtn) {
     });
 
     saveState();
+
     renderSemesterSelectors();
-    renderConfigFields();
     renderAll();
+
     alert("Configuração salva com sucesso.");
   });
 }
