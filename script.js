@@ -152,6 +152,14 @@ const views = {
 
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 
+// --------- NOVOS FILTROS ---------
+const gradeFilterPart = document.getElementById("gradeFilterPart");
+
+const examFilterSubject = document.getElementById("examFilterSubject");
+const examFilterStatus = document.getElementById("examFilterStatus");
+
+const subjectFilterInput = document.getElementById("subjectFilterInput");
+
 // --------- TEMA (CLARO / ESCURO) ---------
 function applyTheme() {
   const theme = state.theme || "dark";
@@ -394,7 +402,7 @@ function renderCalendar() {
   }
 
   renderSelectedDateInfo();
-  renderHolidayList(); // atualiza lista de feriados conforme o ano mostrado
+  renderHolidayList();
 }
 
 function renderSelectedDateInfo() {
@@ -408,17 +416,14 @@ function renderSelectedDateInfo() {
 
   const events = [];
 
-  // feriados do ano do dia selecionado
   getBrazilHolidays(Number(selectedDate.slice(0, 4))).forEach(h => {
     if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
   });
 
-  // datas importantes do semestre atual
   getImportantDatesForCurrentSemester().forEach(d => {
     if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
   });
 
-  // trabalhos/provas (todos)
   state.subjects.forEach(s => {
     s.works.forEach(w => {
       if (w.dueDate === selectedDate) events.push({ type: "Trabalho", label: `${s.name} - Trabalho` });
@@ -453,8 +458,8 @@ function renderHolidayList() {
   holidayList.innerHTML = "";
   const holidays = getBrazilHolidays(calendarYear);
   holidays.forEach(h => {
+    const [, m, d] = h.date.split("-");
     const li = document.createElement("li");
-    const [y, m, d] = h.date.split("-");
     li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
     holidayList.appendChild(li);
   });
@@ -467,7 +472,7 @@ function renderImportantDatesList() {
   sorted.forEach(d => {
     const li = document.createElement("li");
 
-    const [y, m, day] = d.date.split("-");
+    const [, m, day] = d.date.split("-");
     const dateSpan = document.createElement("span");
     dateSpan.className = "date";
     dateSpan.textContent = `${day}/${m}`;
@@ -497,7 +502,6 @@ function renderImportantDatesList() {
   });
 }
 
-// adicionar nova data importante via formulário (AGORA POR SEMESTRE)
 addImportantDateForm.addEventListener("submit", evt => {
   evt.preventDefault();
   const date = importantDateInput.value;
@@ -580,7 +584,6 @@ function renderTimetable() {
   }
 }
 
-// adicionar novo horário via formulário (AGORA POR SEMESTRE)
 addTimetableForm.addEventListener("submit", evt => {
   evt.preventDefault();
   const dayKey = timetableDayInput.value;
@@ -605,12 +608,10 @@ function renderUpcomingDeadlines() {
   const items = [];
   const todayIso = dateToIso(new Date());
 
-  // Datas importantes (do semestre atual)
   getImportantDatesForCurrentSemester().forEach(d => {
     if (d.date >= todayIso) items.push({ date: d.date, label: d.label, type: "Importante" });
   });
 
-  // Trabalhos
   state.subjects.forEach(s => {
     s.works.forEach(w => {
       if (w.dueDate && w.dueDate >= todayIso) {
@@ -619,7 +620,6 @@ function renderUpcomingDeadlines() {
     });
   });
 
-  // Provas
   state.subjects.forEach(s => {
     s.exams.forEach(e => {
       if (e.date && e.date >= todayIso) {
@@ -637,8 +637,8 @@ function renderUpcomingDeadlines() {
   }
 
   limited.forEach(it => {
+    const [, m, d] = it.date.split("-");
     const li = document.createElement("li");
-    const [y, m, d] = it.date.split("-");
     li.innerHTML = `<span class="date">${d}/${m}</span><strong>${it.type}:</strong> ${it.label}`;
     upcomingList.appendChild(li);
   });
@@ -666,6 +666,7 @@ function computeFinalGrade(grades) {
 function renderGrades() {
   gradesContainer.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
+  const gradePartFilter = gradeFilterPart ? gradeFilterPart.value : "all";
 
   if (!subjects.length) {
     gradesContainer.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre.</p>";
@@ -694,13 +695,15 @@ function renderGrades() {
     gradesGrid.className = "grades-grid";
 
     const fields = [
-      { key: "t1", label: "Trabalho 1" },
-      { key: "p1", label: "Prova 1" },
-      { key: "t2", label: "Trabalho 2" },
-      { key: "p2", label: "Prova 2" }
+      { key: "t1", label: "Trabalho 1", part: "part1" },
+      { key: "p1", label: "Prova 1", part: "part1" },
+      { key: "t2", label: "Trabalho 2", part: "part2" },
+      { key: "p2", label: "Prova 2", part: "part2" }
     ];
 
     fields.forEach(f => {
+      if (gradePartFilter !== "all" && gradePartFilter !== f.part) return;
+
       const fieldDiv = document.createElement("div");
       fieldDiv.className = "grade-field";
 
@@ -814,7 +817,6 @@ function renderWorksPage() {
       if (!work.difficulty) work.difficulty = "medio";
       if (work.delivered === undefined) work.delivered = false;
 
-      // filtros
       if (filters.index !== "all" && Number(filters.index) !== index) return;
       const diff = work.difficulty || "medio";
       if (filters.difficulty !== "all" && filters.difficulty !== diff) return;
@@ -931,9 +933,36 @@ function renderWorksPage() {
 // --------- PROVAS ---------
 const examsPageContainer = document.getElementById("examsPageContainer");
 
+function populateExamSubjectFilter() {
+  if (!examFilterSubject) return;
+
+  const subjects = getSubjectsForCurrentSemester();
+  const previousValue = examFilterSubject.value || "all";
+
+  examFilterSubject.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "Todas as matérias";
+  examFilterSubject.appendChild(allOption);
+
+  subjects.forEach(subject => {
+    const option = document.createElement("option");
+    option.value = subject.id;
+    option.textContent = subject.name;
+    examFilterSubject.appendChild(option);
+  });
+
+  const stillExists = [...examFilterSubject.options].some(opt => opt.value === previousValue);
+  examFilterSubject.value = stillExists ? previousValue : "all";
+}
+
 function renderExamsPage() {
   examsPageContainer.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
+
+  const selectedSubjectId = examFilterSubject ? examFilterSubject.value : "all";
+  const selectedStatus = examFilterStatus ? examFilterStatus.value : "all";
 
   if (!subjects.length) {
     examsPageContainer.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre.</p>";
@@ -941,6 +970,16 @@ function renderExamsPage() {
   }
 
   subjects.forEach(subject => {
+    if (selectedSubjectId !== "all" && subject.id !== selectedSubjectId) return;
+
+    const filteredExams = subject.exams.filter(exam => {
+      if (selectedStatus === "done") return !!exam.done;
+      if (selectedStatus === "not") return !exam.done;
+      return true;
+    });
+
+    if (!filteredExams.length) return;
+
     const card = document.createElement("div");
     card.className = "subject-card";
 
@@ -962,6 +1001,9 @@ function renderExamsPage() {
     blocks.className = "two-columns";
 
     subject.exams.forEach((exam, index) => {
+      if (selectedStatus === "done" && !exam.done) return;
+      if (selectedStatus === "not" && exam.done) return;
+
       const eb = document.createElement("div");
       eb.className = "exam-block";
 
@@ -1000,6 +1042,7 @@ function renderExamsPage() {
         saveState();
         updateSummary();
         renderSemesterStatus();
+        renderExamsPage();
       });
       const span = document.createElement("span");
       span.textContent = "Realizada";
@@ -1016,10 +1059,16 @@ function renderExamsPage() {
       blocks.appendChild(eb);
     });
 
-    card.appendChild(header);
-    card.appendChild(blocks);
-    examsPageContainer.appendChild(card);
+    if (blocks.hasChildNodes()) {
+      card.appendChild(header);
+      card.appendChild(blocks);
+      examsPageContainer.appendChild(card);
+    }
   });
+
+  if (!examsPageContainer.hasChildNodes()) {
+    examsPageContainer.innerHTML = "<p>Nenhuma prova encontrada com os filtros selecionados.</p>";
+  }
 }
 
 // --------- MATÉRIAS / AULAS ---------
@@ -1063,12 +1112,17 @@ function renderSubjectsManager() {
   subjectsManager.innerHTML = "";
   const subjects = getSubjectsForCurrentSemester();
 
-  if (!subjects || !subjects.length) {
-    subjectsManager.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre ainda.</p>";
+  const nameFilter = subjectFilterInput ? subjectFilterInput.value.trim().toLowerCase() : "";
+  const filteredSubjects = subjects.filter(subject =>
+    !nameFilter || subject.name.toLowerCase().includes(nameFilter)
+  );
+
+  if (!filteredSubjects.length) {
+    subjectsManager.innerHTML = "<p>Nenhuma matéria encontrada com o filtro selecionado.</p>";
     return;
   }
 
-  const sorted = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
+  const sorted = [...filteredSubjects].sort((a, b) => a.name.localeCompare(b.name));
 
   sorted.forEach(subject => {
     const card = document.createElement("div");
@@ -1278,6 +1332,23 @@ restoreBackupBtn.addEventListener("click", () => {
   reader.readAsText(file, "utf-8");
 });
 
+// --------- EVENTOS DOS NOVOS FILTROS ---------
+if (gradeFilterPart) {
+  gradeFilterPart.addEventListener("change", renderGrades);
+}
+
+if (examFilterSubject) {
+  examFilterSubject.addEventListener("change", renderExamsPage);
+}
+
+if (examFilterStatus) {
+  examFilterStatus.addEventListener("change", renderExamsPage);
+}
+
+if (subjectFilterInput) {
+  subjectFilterInput.addEventListener("input", renderSubjectsManager);
+}
+
 // --------- NAVEGAÇÃO / ALTERAÇÃO DE SEMESTRE ---------
 navButtons.forEach(btn => {
   btn.addEventListener("click", () => {
@@ -1300,9 +1371,9 @@ globalSemesterSelect.addEventListener("change", () => {
 
 // --------- RENDERIZAÇÃO GERAL ---------
 function renderAll() {
-  // sincroniza o select com o estado (evita ficar “desalinhado”)
   if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
 
+  populateExamSubjectFilter();
   updateSummary();
   renderSemesterStatus();
   renderCalendar();
