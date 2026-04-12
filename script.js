@@ -286,20 +286,30 @@ function renderNews() {
 
   const subjects = getSubjectsForCurrentSemester();
 
-  newsCenter.textContent = state.courseName || "Curso";
+  newsCenter.textContent = state.courseName && state.courseName.trim()
+    ? state.courseName
+    : "Curso";
+
   newsSubjects.innerHTML = "";
 
   if (!subjects.length) {
-    newsPanel.innerHTML = `<p>Nenhuma matéria cadastrada para este semestre.</p>`;
+    newsPanel.innerHTML = `
+      <h3>Nenhuma matéria neste semestre</h3>
+      <p>Não há matérias cadastradas para o semestre selecionado.</p>
+      <p>Selecione outro semestre ou adicione matérias primeiro.</p>
+    `;
     return;
   }
+
+  newsPanel.innerHTML = `
+    <p>Selecione uma matéria para visualizar conteúdos.</p>
+  `;
 
   const radius = 150;
   const total = subjects.length;
 
   subjects.forEach((subject, index) => {
     const angle = (index / total) * (2 * Math.PI);
-
     const x = radius * Math.cos(angle);
     const y = radius * Math.sin(angle);
 
@@ -308,8 +318,8 @@ function renderNews() {
     div.textContent = subject.name;
 
     div.style.position = "absolute";
-    div.style.left = `calc(50% + ${x}px - 40px)`;
-    div.style.top = `calc(50% + ${y}px - 18px)`;
+    div.style.left = `calc(50% + ${x}px - 60px)`;
+    div.style.top = `calc(50% + ${y}px - 20px)`;
 
     div.addEventListener("click", () => {
       renderNewsPanel(subject);
@@ -1509,12 +1519,19 @@ if (subjectFilterInput) {
 navButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const viewName = btn.dataset.view;
+
     navButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
     Object.keys(views).forEach(name => {
-      views[name].classList.toggle("active", name === viewName);
+      if (views[name]) {
+        views[name].classList.toggle("active", name === viewName);
+      }
     });
+
+    if (viewName === "noticias") {
+      renderNews();
+    }
   });
 });
 
