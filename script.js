@@ -215,6 +215,9 @@ const courseNameInput = document.getElementById("courseNameInput");
 const totalSemestersInput = document.getElementById("totalSemestersInput");
 const saveConfigBtn = document.getElementById("saveConfigBtn");
 const configStatus = document.getElementById("configStatus");
+const newsCenter = document.getElementById("newsCenter");
+const newsSubjects = document.getElementById("newsSubjects");
+const newsPanel = document.getElementById("newsPanel");
 
 // --------- NOVOS FILTROS ---------
 const gradeFilterPart = document.getElementById("gradePartFilter");
@@ -275,6 +278,59 @@ if (saveConfigBtn) {
       configStatus.textContent = "Configuração salva com sucesso.";
     }
   });
+}
+
+function renderNews() {
+  if (!newsCenter || !newsSubjects || !newsPanel) return;
+
+  const subjects = getSubjectsForCurrentSemester();
+
+  newsCenter.textContent = state.courseName || "Curso";
+  newsSubjects.innerHTML = "";
+
+  if (!subjects.length) {
+    newsPanel.innerHTML = `<p>Nenhuma matéria cadastrada para este semestre.</p>`;
+    return;
+  }
+
+  const radius = 150;
+  const total = subjects.length;
+
+  subjects.forEach((subject, index) => {
+    const angle = (index / total) * (2 * Math.PI);
+
+    const x = radius * Math.cos(angle);
+    const y = radius * Math.sin(angle);
+
+    const div = document.createElement("div");
+    div.className = "news-subject";
+    div.textContent = subject.name;
+
+    div.style.position = "absolute";
+    div.style.left = `calc(50% + ${x}px - 40px)`;
+    div.style.top = `calc(50% + ${y}px - 18px)`;
+
+    div.addEventListener("click", () => {
+      renderNewsPanel(subject);
+    });
+
+    newsSubjects.appendChild(div);
+  });
+}
+
+function renderNewsPanel(subject) {
+  if (!newsPanel) return;
+
+  newsPanel.innerHTML = `
+    <h3>${subject.name}</h3>
+    <p>Em breve você verá aqui:</p>
+    <ul>
+      <li>PDFs da matéria</li>
+      <li>Links e artigos</li>
+      <li>Vídeos</li>
+      <li>Notícias</li>
+    </ul>
+  `;
 }
 
 // --------- RESUMO (CAPA) ---------
@@ -1487,6 +1543,7 @@ function renderAll() {
   renderWorksPage();
   renderExamsPage();
   renderSubjectsManager();
+  renderNews();
 }
 
 // --------- INICIALIZAÇÃO ---------
