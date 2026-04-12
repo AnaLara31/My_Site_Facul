@@ -217,12 +217,9 @@ const saveConfigBtn = document.getElementById("saveConfigBtn");
 const configStatus = document.getElementById("configStatus");
 
 // --------- NOVOS FILTROS ---------
-const gradeFilterPart = document.getElementById("gradeFilterPart");
-
-const examFilterSubject = document.getElementById("examFilterSubject");
-const examFilterStatus = document.getElementById("examFilterStatus");
-
-const subjectFilterInput = document.getElementById("subjectFilterInput");
+const gradeFilterPart = document.getElementById("gradePartFilter");
+const examFilterStatus = document.getElementById("examFilterDone");
+const subjectFilterInput = document.getElementById("subjectsFilterInput");
 
 // --------- TEMA (CLARO / ESCURO) ---------
 function applyTheme() {
