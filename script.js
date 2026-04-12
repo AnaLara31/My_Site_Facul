@@ -305,11 +305,13 @@ function renderNews() {
     <p>Selecione uma matéria para visualizar conteúdos.</p>
   `;
 
-  const radius = 240;
   const total = subjects.length;
 
+// raio dinâmico baseado na quantidade
+const radius = Math.max(200, total * 35);
+
   subjects.forEach((subject, index) => {
-    const angle = (index / total) * (2 * Math.PI);
+    const angle = (index / total) * (2 * Math.PI) - Math.PI / 2;
     const x = radius * Math.cos(angle);
     const y = radius * Math.sin(angle);
 
