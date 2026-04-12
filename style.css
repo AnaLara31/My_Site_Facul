@@ -770,3 +770,32 @@ footer {
   margin-left: auto;
   margin-right: auto;
 }
+
+body.light .news-subject {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #111827;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+body.light .news-subject:hover {
+  background: #ede9fe;
+  border-color: #8b5cf6;
+  color: #111827;
+}
+
+body.light .news-panel {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #111827;
+}
+
+body.light .news-panel h3,
+body.light .news-panel p,
+body.light .news-panel li {
+  color: #111827;
+}
+
+body.light .news-center {
+  color: #ffffff;
+}
