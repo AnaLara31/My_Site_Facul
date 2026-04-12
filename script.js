@@ -308,7 +308,7 @@ function renderNews() {
   const total = subjects.length;
 
 // raio dinâmico baseado na quantidade
-const radius = Math.max(200, total * 35);
+const radius = Math.max(180, total * 30);
 
   subjects.forEach((subject, index) => {
     const angle = (index / total) * (2 * Math.PI) - Math.PI / 2;
@@ -321,7 +321,7 @@ const radius = Math.max(200, total * 35);
 
     div.style.position = "absolute";
     div.style.left = `calc(50% + ${x}px - 80px)`;
-    div.style.top = `calc(50% + ${y}px - 25px)`;
+    div.style.top = `calc(45% + ${y}px - 25px)`;
 
     div.addEventListener("click", () => {
       renderNewsPanel(subject);
