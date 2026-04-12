@@ -218,6 +218,7 @@ const configStatus = document.getElementById("configStatus");
 
 // --------- NOVOS FILTROS ---------
 const gradeFilterPart = document.getElementById("gradePartFilter");
+const examFilterSubject = document.getElementById("examFilterSubject");
 const examFilterStatus = document.getElementById("examFilterDone");
 const subjectFilterInput = document.getElementById("subjectsFilterInput");
 
