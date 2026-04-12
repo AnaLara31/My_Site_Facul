@@ -31,7 +31,7 @@
     <button class="nav-btn" data-view="trabalhos">Trabalhos</button>
     <button class="nav-btn" data-view="provas">Provas</button>
     <button class="nav-btn" data-view="materias">Matérias</button>
-    <button class="nav-btn" data-view="backup">Backup</button>
+    <button class="nav-btn" data-view="config">Configuração</button>
   </nav>
 
   <main>
@@ -260,13 +260,23 @@
     </section>
 
     <!-- BACKUP -->
-    <section id="view-backup" class="view">
-      <h2 class="view-title">Backup</h2>
+    <section id="view-config" class="view">
+      <h2 class="view-title">Configuração</h2>
       <p class="view-subtitle">
-        Aqui você pode baixar um arquivo com todos os seus dados ou restaurar um backup antigo.
+        Defina o curso e a quantidade total de semestres para personalizar o organizador para qualquer faculdade.
       </p>
-
+    
       <div class="cards-column">
+        <div class="card">
+          <h3>Informações do curso</h3>
+          <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+            <input type="text" id="courseNameInput" placeholder="Qual curso" />
+            <input type="number" id="totalSemestersInput" min="1" max="20" placeholder="Total de semestres" />
+            <button id="saveConfigBtn" type="button">Salvar configuração</button>
+          </div>
+          <p id="configStatus" class="backup-status"></p>
+        </div>
+    
         <div class="card">
           <h3>Baixar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
@@ -274,7 +284,7 @@
           </p>
           <button id="downloadBackupBtn" type="button">Baixar arquivo de backup</button>
         </div>
-
+    
         <div class="card">
           <h3>Restaurar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
