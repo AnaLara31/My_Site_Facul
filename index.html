@@ -298,7 +298,27 @@
           </div>
           <p id="configStatus" class="backup-status"></p>
         </div>
-    
+
+        <div class="card">
+  <h3>Materiais em PDF por matéria</h3>
+  <p style="font-size:0.85rem;margin-bottom:8px;">
+    Vincule um material em PDF a uma matéria usando o nome do material e o link do arquivo.
+  </p>
+
+  <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
+    <select id="materialSubjectSelect">
+      <option value="">Selecione a matéria</option>
+    </select>
+    <input type="text" id="materialNameInput" placeholder="Nome do PDF/material" />
+    <input type="text" id="materialUrlInput" placeholder="Link do PDF" />
+    <button id="saveMaterialBtn" type="button">Salvar material</button>
+  </div>
+
+  <p id="materialStatus" class="backup-status"></p>
+
+  <ul id="materialsListConfig" class="simple-list" style="margin-top:10px;"></ul>
+</div>
+        
         <div class="card">
           <h3>Baixar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
