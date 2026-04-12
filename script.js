@@ -11,6 +11,8 @@ const defaultState = {
 
   // salva o semestre atual escolhido no topo
   currentSemester: 5,
+  totalSemesters: 5,
+  courseName: "",
 
   subjects: [
     {
@@ -138,6 +140,64 @@ function migrateLegacyDataIfNeeded() {
   }
 }
 
+function ensureConfigState() {
+  if (!state.totalSemesters || Number(state.totalSemesters) < 1) {
+    state.totalSemesters = 5;
+  }
+
+  if (typeof state.courseName !== "string") {
+    state.courseName = "";
+  }
+
+  state.totalSemesters = Number(state.totalSemesters);
+
+  if (currentSemester > state.totalSemesters) {
+    currentSemester = state.totalSemesters;
+    state.currentSemester = currentSemester;
+  }
+}
+
+function renderSemesterOptions() {
+  ensureConfigState();
+
+  if (globalSemesterSelect) {
+    const previousValue = String(currentSemester);
+    globalSemesterSelect.innerHTML = "";
+
+    for (let i = 1; i <= state.totalSemesters; i++) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i}º semestre`;
+      globalSemesterSelect.appendChild(option);
+    }
+
+    const allowed = [...globalSemesterSelect.options].some(opt => opt.value === previousValue);
+    globalSemesterSelect.value = allowed ? previousValue : "1";
+  }
+
+  if (subjectSemesterInput) {
+    const previousValue = subjectSemesterInput.value;
+    subjectSemesterInput.innerHTML = `<option value="">Semestre</option>`;
+
+    for (let i = 1; i <= state.totalSemesters; i++) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i}º`;
+      subjectSemesterInput.appendChild(option);
+    }
+
+    const allowed = [...subjectSemesterInput.options].some(opt => opt.value === previousValue);
+    if (allowed) {
+      subjectSemesterInput.value = previousValue;
+    }
+  }
+}
+
+function renderConfigFields() {
+  if (courseNameInput) courseNameInput.value = state.courseName || "";
+  if (totalSemestersInput) totalSemestersInput.value = String(state.totalSemesters || 5);
+}
+
 // --------- ELEMENTOS GERAIS ---------
 const globalSemesterSelect = document.getElementById("globalSemesterSelect");
 const navButtons = document.querySelectorAll(".nav-btn");
@@ -147,10 +207,14 @@ const views = {
   trabalhos: document.getElementById("view-trabalhos"),
   provas: document.getElementById("view-provas"),
   materias: document.getElementById("view-materias"),
-  backup: document.getElementById("view-backup")
+  config: document.getElementById("view-config")
 };
 
 const themeToggleBtn = document.getElementById("themeToggleBtn");
+const courseNameInput = document.getElementById("courseNameInput");
+const totalSemestersInput = document.getElementById("totalSemestersInput");
+const saveConfigBtn = document.getElementById("saveConfigBtn");
+const configStatus = document.getElementById("configStatus");
 
 // --------- NOVOS FILTROS ---------
 const gradeFilterPart = document.getElementById("gradeFilterPart");
@@ -177,6 +241,43 @@ themeToggleBtn.addEventListener("click", () => {
   saveState();
   applyTheme();
 });
+
+if (saveConfigBtn) {
+  saveConfigBtn.addEventListener("click", () => {
+    const courseName = courseNameInput ? courseNameInput.value.trim() : "";
+    const totalSemesters = totalSemestersInput ? Number(totalSemestersInput.value) : 0;
+
+    if (!totalSemesters || totalSemesters < 1 || totalSemesters > 20) {
+      if (configStatus) {
+        configStatus.textContent = "Informe uma quantidade válida de semestres entre 1 e 20.";
+      }
+      return;
+    }
+
+    state.courseName = courseName;
+    state.totalSemesters = totalSemesters;
+
+    if (currentSemester > state.totalSemesters) {
+      currentSemester = state.totalSemesters;
+      state.currentSemester = currentSemester;
+    }
+
+    state.subjects.forEach(subject => {
+      if (subject.semester > state.totalSemesters) {
+        subject.semester = state.totalSemesters;
+      }
+    });
+
+    saveState();
+    renderSemesterOptions();
+    renderConfigFields();
+    renderAll();
+
+    if (configStatus) {
+      configStatus.textContent = "Configuração salva com sucesso.";
+    }
+  });
+}
 
 // --------- RESUMO (CAPA) ---------
 const summarySubjectsEl = document.getElementById("summarySubjects");
@@ -1371,6 +1472,10 @@ globalSemesterSelect.addEventListener("change", () => {
 
 // --------- RENDERIZAÇÃO GERAL ---------
 function renderAll() {
+  ensureConfigState();
+  renderSemesterOptions();
+  renderConfigFields();
+
   if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
 
   populateExamSubjectFilter();
@@ -1389,7 +1494,13 @@ function renderAll() {
 // --------- INICIALIZAÇÃO ---------
 ensureSemesterMaps();
 migrateLegacyDataIfNeeded();
+ensureConfigState();
+
 currentSemester = Number(state.currentSemester || currentSemester || 5);
+if (currentSemester > state.totalSemesters) {
+  currentSemester = state.totalSemesters;
+}
+
 state.currentSemester = currentSemester;
 saveState();
 
