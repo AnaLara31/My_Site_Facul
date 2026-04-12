@@ -216,9 +216,12 @@ const courseNameInput = document.getElementById("courseNameInput");
 const totalSemestersInput = document.getElementById("totalSemestersInput");
 const saveConfigBtn = document.getElementById("saveConfigBtn");
 const configStatus = document.getElementById("configStatus");
-const newsCenter = document.getElementById("newsCenter");
-const newsSubjects = document.getElementById("newsSubjects");
-const newsPanel = document.getElementById("newsPanel");
+const materialSubjectSelect = document.getElementById("materialSubjectSelect");
+const materialNameInput = document.getElementById("materialNameInput");
+const materialUrlInput = document.getElementById("materialUrlInput");
+const saveMaterialBtn = document.getElementById("saveMaterialBtn");
+const materialStatus = document.getElementById("materialStatus");
+const materialsListConfig = document.getElementById("materialsListConfig");
 
 // --------- NOVOS FILTROS ---------
 const gradeFilterPart = document.getElementById("gradePartFilter");
@@ -334,16 +337,169 @@ const radius = Math.max(180, total * 30);
 function renderNewsPanel(subject) {
   if (!newsPanel) return;
 
+  ensureMaterialsState();
+
+  const materials = state.materialsBySubject[subject.id] || [];
+
+  let materialsHtml = "";
+
+  if (materials.length) {
+    materialsHtml = `
+      <h4 style="margin-top:10px;">Materiais em PDF</h4>
+      <ul style="margin-top:8px; padding-left:18px;">
+        ${materials.map(material => `
+          <li style="margin-bottom:6px;">
+            <a href="${material.url}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">
+              ${material.name}
+            </a>
+          </li>
+        `).join("")}
+      </ul>
+    `;
+  } else {
+    materialsHtml = `
+      <h4 style="margin-top:10px;">Materiais em PDF</h4>
+      <p style="margin-top:6px;">Nenhum PDF cadastrado para esta matéria ainda.</p>
+    `;
+  }
+
   newsPanel.innerHTML = `
     <h3>${subject.name}</h3>
-    <p>Em breve você verá aqui:</p>
-    <ul>
-      <li>PDFs da matéria</li>
-      <li>Links e artigos</li>
-      <li>Vídeos</li>
-      <li>Notícias</li>
-    </ul>
+    <p>Conteúdos disponíveis para esta matéria:</p>
+    ${materialsHtml}
+    <div style="margin-top:12px;">
+      <p>Em breve você verá aqui também:</p>
+      <ul style="padding-left:18px; margin-top:6px;">
+        <li>Links e artigos</li>
+        <li>Vídeos</li>
+        <li>Notícias</li>
+      </ul>
+    </div>
   `;
+}
+
+function populateMaterialSubjectSelect() {
+  if (!materialSubjectSelect) return;
+
+  const previousValue = materialSubjectSelect.value || "";
+  materialSubjectSelect.innerHTML = `<option value="">Selecione a matéria</option>`;
+
+  const sortedSubjects = [...state.subjects].sort((a, b) => {
+    if (a.semester !== b.semester) return a.semester - b.semester;
+    return a.name.localeCompare(b.name);
+  });
+
+  sortedSubjects.forEach(subject => {
+    const option = document.createElement("option");
+    option.value = subject.id;
+    option.textContent = `${subject.name} (${subject.semester}º semestre)`;
+    materialSubjectSelect.appendChild(option);
+  });
+
+  const exists = [...materialSubjectSelect.options].some(opt => opt.value === previousValue);
+  if (exists) {
+    materialSubjectSelect.value = previousValue;
+  }
+}
+
+function renderMaterialsListConfig() {
+  if (!materialsListConfig) return;
+
+  materialsListConfig.innerHTML = "";
+
+  ensureMaterialsState();
+
+  const allSubjects = [...state.subjects];
+
+  let hasAny = false;
+
+  allSubjects.forEach(subject => {
+    const materials = state.materialsBySubject[subject.id] || [];
+    if (!materials.length) return;
+
+    hasAny = true;
+
+    const titleLi = document.createElement("li");
+    titleLi.style.marginTop = "8px";
+    titleLi.innerHTML = `<strong>${subject.name}</strong>`;
+    materialsListConfig.appendChild(titleLi);
+
+    materials.forEach(material => {
+      const li = document.createElement("li");
+      li.style.marginLeft = "12px";
+
+      const link = document.createElement("a");
+      link.href = material.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = material.name;
+      link.style.color = "inherit";
+      link.style.textDecoration = "underline";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "inline-delete-btn";
+      deleteBtn.textContent = "Excluir";
+
+      deleteBtn.addEventListener("click", () => {
+        state.materialsBySubject[subject.id] =
+          (state.materialsBySubject[subject.id] || []).filter(item => item.id !== material.id);
+
+        saveState();
+        renderMaterialsListConfig();
+
+        if (newsPanel && newsPanel.querySelector("h3")?.textContent === subject.name) {
+          renderNewsPanel(subject);
+        }
+      });
+
+      li.appendChild(link);
+      li.appendChild(deleteBtn);
+      materialsListConfig.appendChild(li);
+    });
+  });
+
+  if (!hasAny) {
+    materialsListConfig.innerHTML = `<li>Nenhum material cadastrado ainda.</li>`;
+  }
+}
+
+if (saveMaterialBtn) {
+  saveMaterialBtn.addEventListener("click", () => {
+    ensureMaterialsState();
+
+    const subjectId = materialSubjectSelect ? materialSubjectSelect.value : "";
+    const materialName = materialNameInput ? materialNameInput.value.trim() : "";
+    const materialUrl = materialUrlInput ? materialUrlInput.value.trim() : "";
+
+    if (!subjectId || !materialName || !materialUrl) {
+      if (materialStatus) {
+        materialStatus.textContent = "Preencha a matéria, o nome do material e o link do PDF.";
+      }
+      return;
+    }
+
+    if (!state.materialsBySubject[subjectId]) {
+      state.materialsBySubject[subjectId] = [];
+    }
+
+    state.materialsBySubject[subjectId].push({
+      id: "mat_" + Date.now(),
+      name: materialName,
+      url: materialUrl
+    });
+
+    saveState();
+
+    if (materialNameInput) materialNameInput.value = "";
+    if (materialUrlInput) materialUrlInput.value = "";
+
+    renderMaterialsListConfig();
+
+    if (materialStatus) {
+      materialStatus.textContent = "Material salvo com sucesso.";
+    }
+  });
 }
 
 // --------- RESUMO (CAPA) ---------
@@ -1547,12 +1703,14 @@ globalSemesterSelect.addEventListener("change", () => {
 // --------- RENDERIZAÇÃO GERAL ---------
 function renderAll() {
   ensureConfigState();
+  ensureMaterialsState();
   renderSemesterOptions();
   renderConfigFields();
 
   if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
 
   populateExamSubjectFilter();
+  populateMaterialSubjectSelect();
   updateSummary();
   renderSemesterStatus();
   renderCalendar();
@@ -1563,6 +1721,7 @@ function renderAll() {
   renderWorksPage();
   renderExamsPage();
   renderSubjectsManager();
+  renderMaterialsListConfig();
   renderNews();
 }
 
