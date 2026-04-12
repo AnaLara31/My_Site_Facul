@@ -320,8 +320,8 @@ const radius = Math.max(200, total * 35);
     div.textContent = subject.name;
 
     div.style.position = "absolute";
-    div.style.left = `calc(50% + ${x}px - 92px)`;
-    div.style.top = `calc(50% + ${y}px - 27px)`;
+    div.style.left = `calc(50% + ${x}px - 80px)`;
+    div.style.top = `calc(50% + ${y}px - 25px)`;
 
     div.addEventListener("click", () => {
       renderNewsPanel(subject);
