@@ -305,7 +305,7 @@ function renderNews() {
     <p>Selecione uma matéria para visualizar conteúdos.</p>
   `;
 
-  const radius = 150;
+  const radius = 240;
   const total = subjects.length;
 
   subjects.forEach((subject, index) => {
@@ -318,8 +318,8 @@ function renderNews() {
     div.textContent = subject.name;
 
     div.style.position = "absolute";
-    div.style.left = `calc(50% + ${x}px - 60px)`;
-    div.style.top = `calc(50% + ${y}px - 20px)`;
+    div.style.left = `calc(50% + ${x}px - 92px)`;
+    div.style.top = `calc(50% + ${y}px - 27px)`;
 
     div.addEventListener("click", () => {
       renderNewsPanel(subject);
