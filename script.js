@@ -207,6 +207,7 @@ const views = {
   trabalhos: document.getElementById("view-trabalhos"),
   provas: document.getElementById("view-provas"),
   materias: document.getElementById("view-materias"),
+  noticias: document.getElementById("view-noticias"),
   config: document.getElementById("view-config")
 };
 
