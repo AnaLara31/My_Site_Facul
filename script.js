@@ -55,8 +55,14 @@ const defaultState = {
     // "5": [{ date: "2026-03-10", label: "Entrega de documentos" }]
   },
 
-  timetableBySemester: {
+    timetableBySemester: {
     // "5": { monday:[{time:"19:30 - 21:00", subject:"..." }], ... }
+  },
+
+  materialsBySubject: {
+    // "id_da_materia": [
+    //   { id: "mat_1", name: "Nome do PDF", url: "https://..." }
+    // ]
   }
 };
 
@@ -193,6 +199,12 @@ function renderSemesterOptions() {
   }
 }
 
+function ensureMaterialsState() {
+  if (!state.materialsBySubject || typeof state.materialsBySubject !== "object") {
+    state.materialsBySubject = {};
+  }
+}
+
 function renderConfigFields() {
   if (courseNameInput) courseNameInput.value = state.courseName || "";
   if (totalSemestersInput) totalSemestersInput.value = String(state.totalSemesters || 5);
@@ -216,6 +228,11 @@ const courseNameInput = document.getElementById("courseNameInput");
 const totalSemestersInput = document.getElementById("totalSemestersInput");
 const saveConfigBtn = document.getElementById("saveConfigBtn");
 const configStatus = document.getElementById("configStatus");
+
+const newsCenter = document.getElementById("newsCenter");
+const newsSubjects = document.getElementById("newsSubjects");
+const newsPanel = document.getElementById("newsPanel");
+
 const materialSubjectSelect = document.getElementById("materialSubjectSelect");
 const materialNameInput = document.getElementById("materialNameInput");
 const materialUrlInput = document.getElementById("materialUrlInput");
@@ -1729,6 +1746,7 @@ function renderAll() {
 ensureSemesterMaps();
 migrateLegacyDataIfNeeded();
 ensureConfigState();
+ensureMaterialsState();
 
 currentSemester = Number(state.currentSemester || currentSemester || 5);
 if (currentSemester > state.totalSemesters) {
