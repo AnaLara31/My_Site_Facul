@@ -529,59 +529,41 @@ if (saveMaterialBtn) {
 // =====================================================
 
 function populateSummarySemesterSelect() {
-  if (!summarySemesterSelect) return;
+  if (!summarySemesterSelect) {
+    console.error("summarySemesterSelect não foi encontrado no HTML.");
+    return;
+  }
 
+  // garante que exista uma quantidade válida de semestres
+  const total = Number(state.totalSemesters) || 5;
+
+  // guarda o valor que estava selecionado
   const previousValue = summarySemesterSelect.value;
 
-  summarySemesterSelect.innerHTML =
-    `<option value="">Selecione o semestre</option>`;
+  // limpa o select
+  summarySemesterSelect.innerHTML = `
+    <option value="">Selecione o semestre</option>
+  `;
 
-  for (let i = 1; i <= state.totalSemesters; i++) {
+  // cria os semestres
+  for (let i = 1; i <= total; i++) {
     const option = document.createElement("option");
+
     option.value = String(i);
     option.textContent = `${i}º semestre`;
+
     summarySemesterSelect.appendChild(option);
   }
 
+  // tenta manter o semestre selecionado anteriormente
   if (
     previousValue &&
-    Number(previousValue) <= state.totalSemesters
+    Number(previousValue) >= 1 &&
+    Number(previousValue) <= total
   ) {
     summarySemesterSelect.value = previousValue;
   }
 }
-
-
-function formatSummaryDate(date) {
-  if (!date) return "-";
-
-  const [year, month, day] = date.split("-");
-
-  return `${day}/${month}/${year}`;
-}
-
-
-function getDifficultyLabel(value) {
-  if (value === "facil") return "Fácil";
-  if (value === "dificil") return "Difícil";
-
-  return "Médio";
-}
-
-
-function renderSemesterSummary(semesterNumber) {
-  if (!semesterSummaryResult) return;
-
-  const semester = Number(semesterNumber);
-
-  if (!semester) {
-    semesterSummaryResult.innerHTML = `
-      <div class="semester-summary-empty">
-        Selecione um semestre para visualizar o resumo.
-      </div>
-    `;
-    return;
-  }
 
   // =====================================================
   // DADOS DO SEMESTRE
@@ -2347,16 +2329,20 @@ globalSemesterSelect.addEventListener("change", () => {
 function renderAll() {
   ensureConfigState();
   ensureMaterialsState();
+
   renderSemesterOptions();
   renderConfigFields();
 
-  // atualiza a lista de semestres do resumo
+  // PREENCHE OS SEMESTRES DO RESUMO
   populateSummarySemesterSelect();
 
-  if (globalSemesterSelect) globalSemesterSelect.value = String(currentSemester);
+  if (globalSemesterSelect) {
+    globalSemesterSelect.value = String(currentSemester);
+  }
 
   populateExamSubjectFilter();
   populateMaterialSubjectSelect();
+
   updateSummary();
   renderSemesterStatus();
   renderCalendar();
