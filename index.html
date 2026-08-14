@@ -298,7 +298,33 @@
           </div>
           <p id="configStatus" class="backup-status"></p>
         </div>
+<div class="card semester-summary-config">
+  <div class="semester-summary-config-header">
+    <div>
+      <h3>Resumo do semestre</h3>
+      <p>
+        Gere uma visão completa de um semestre com informações da Capa,
+        Notas, Trabalhos, Provas e Matérias.
+      </p>
+    </div>
+  </div>
 
+  <div class="inline-form semester-summary-controls">
+    <select id="summarySemesterSelect">
+      <option value="">Selecione o semestre</option>
+    </select>
+
+    <button id="generateSemesterSummaryBtn" type="button">
+      Gerar resumo
+    </button>
+  </div>
+
+  <div id="semesterSummaryResult" class="semester-summary-result">
+    <div class="semester-summary-empty">
+      Selecione um semestre para visualizar o resumo.
+    </div>
+  </div>
+</div>
         <div class="card">
   <h3>Materiais em PDF por matéria</h3>
   <p style="font-size:0.85rem;margin-bottom:8px;">
