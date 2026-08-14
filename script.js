@@ -1157,6 +1157,1519 @@ if (generateSemesterSummaryBtn) {
   });
 }
 
+// =====================================================
+// RESUMO DOS SEMESTRES
+// =====================================================
+
+let selectedSummarySemester = null;
+let currentSummaryTab = "overview";
+
+
+function populateSummarySemesterSelect() {
+
+  if (!summarySemesterSelect) return;
+
+  const previousValue = summarySemesterSelect.value;
+
+  const total = Number(state.totalSemesters) || 5;
+
+  summarySemesterSelect.innerHTML = `
+    <option value="">Selecione o semestre</option>
+  `;
+
+  for (let i = 1; i <= total; i++) {
+
+    const option = document.createElement("option");
+
+    option.value = String(i);
+    option.textContent = `${i}º semestre`;
+
+    summarySemesterSelect.appendChild(option);
+  }
+
+  if (
+    previousValue &&
+    Number(previousValue) <= total
+  ) {
+    summarySemesterSelect.value = previousValue;
+  }
+}
+
+
+function formatSummaryDate(date) {
+
+  if (!date) return "-";
+
+  const [year, month, day] = date.split("-");
+
+  return `${day}/${month}/${year}`;
+}
+
+
+function getDifficultyLabel(value) {
+
+  if (value === "facil") return "Fácil";
+
+  if (value === "dificil") return "Difícil";
+
+  return "Médio";
+}
+
+
+function getSemesterSummaryData(semesterNumber) {
+
+  const semester = Number(semesterNumber);
+
+  const subjects = state.subjects.filter(
+    subject =>
+      Number(subject.semester) === semester
+  );
+
+  const key = String(semester);
+
+  const importantDates =
+    state.importantDatesBySemester?.[key] || [];
+
+  const timetable =
+    state.timetableBySemester?.[key] || {};
+
+
+  let totalWorks = 0;
+  let doneWorks = 0;
+  let deliveredWorks = 0;
+
+  let totalExams = 0;
+  let doneExams = 0;
+
+  let totalLessons = 0;
+  let doneLessons = 0;
+
+
+  subjects.forEach(subject => {
+
+    const works = subject.works || [];
+    const exams = subject.exams || [];
+    const lessons = subject.lessons || [];
+
+    totalWorks += works.length;
+
+    doneWorks +=
+      works.filter(work => work.done).length;
+
+    deliveredWorks +=
+      works.filter(work => work.delivered).length;
+
+
+    totalExams += exams.length;
+
+    doneExams +=
+      exams.filter(exam => exam.done).length;
+
+
+    totalLessons += lessons.length;
+
+    doneLessons +=
+      lessons.filter(lesson => lesson.done).length;
+
+  });
+
+
+  const studyProgress =
+    totalLessons
+      ? Math.round(
+          (doneLessons / totalLessons) * 100
+        )
+      : 0;
+
+
+  return {
+
+    semester,
+
+    subjects,
+
+    importantDates,
+
+    timetable,
+
+    totalWorks,
+
+    doneWorks,
+
+    deliveredWorks,
+
+    totalExams,
+
+    doneExams,
+
+    totalLessons,
+
+    doneLessons,
+
+    studyProgress
+
+  };
+}
+
+function renderSummaryStats(data) {
+
+  semesterSummaryStats.innerHTML = `
+
+    <div class="semester-summary-stat">
+      <span>Matérias</span>
+      <strong>${data.subjects.length}</strong>
+    </div>
+
+    <div class="semester-summary-stat">
+      <span>Trabalhos concluídos</span>
+      <strong>
+        ${data.doneWorks}/${data.totalWorks}
+      </strong>
+    </div>
+
+    <div class="semester-summary-stat">
+      <span>Trabalhos entregues</span>
+      <strong>
+        ${data.deliveredWorks}/${data.totalWorks}
+      </strong>
+    </div>
+
+    <div class="semester-summary-stat">
+      <span>Provas realizadas</span>
+      <strong>
+        ${data.doneExams}/${data.totalExams}
+      </strong>
+    </div>
+
+    <div class="semester-summary-stat">
+      <span>Progresso de estudo</span>
+      <strong>
+        ${data.studyProgress}%
+      </strong>
+    </div>
+
+  `;
+}
+
+function renderSummaryOverview(data) {
+
+  const subjectNames =
+    data.subjects.length
+      ? data.subjects
+          .map(subject => `
+            <span class="summary-subject-chip">
+              ${subject.name}
+            </span>
+          `)
+          .join("")
+      : `
+        <p class="semester-summary-muted">
+          Nenhuma matéria cadastrada.
+        </p>
+      `;
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+        <div>
+          <h3>Visão geral</h3>
+          <p>
+            Acompanhamento acadêmico do semestre.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="summary-progress-card">
+
+        <div class="summary-progress-header">
+
+          <strong>Progresso de estudo</strong>
+
+          <span>
+            ${data.doneLessons}/${data.totalLessons}
+            conteúdos
+          </span>
+
+        </div>
+
+        <div class="summary-big-progress">
+
+          <div
+            style="width:${data.studyProgress}%">
+          </div>
+
+        </div>
+
+        <span class="summary-progress-percent">
+          ${data.studyProgress}%
+        </span>
+
+      </div>
+
+
+      <div class="summary-overview-grid">
+
+        <div class="summary-overview-card">
+
+          <h4>📚 Matérias</h4>
+
+          <div class="summary-subject-chips">
+            ${subjectNames}
+          </div>
+
+        </div>
+
+
+        <div class="summary-overview-card">
+
+          <h4>📋 Trabalhos</h4>
+
+          <p>
+            <strong>${data.doneWorks}</strong>
+            concluídos de
+            <strong>${data.totalWorks}</strong>
+          </p>
+
+          <p>
+            <strong>${data.deliveredWorks}</strong>
+            entregues
+          </p>
+
+        </div>
+
+
+        <div class="summary-overview-card">
+
+          <h4>📝 Provas</h4>
+
+          <p>
+            <strong>${data.doneExams}</strong>
+            realizadas de
+            <strong>${data.totalExams}</strong>
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderSummaryGrades(data) {
+
+  let html = "";
+
+
+  data.subjects.forEach(subject => {
+
+    const grades =
+      subject.grades || {};
+
+    const finalGrade =
+      computeFinalGrade(grades);
+
+
+    const finalText =
+      finalGrade !== null &&
+      !isNaN(finalGrade)
+        ? finalGrade.toFixed(2)
+        : "-";
+
+
+    const gradeClass =
+      finalGrade >= 6
+        ? "summary-grade-approved"
+        : "summary-grade-warning";
+
+
+    html += `
+
+      <div class="summary-grade-card">
+
+        <div class="summary-grade-header">
+
+          <h4>${subject.name}</h4>
+
+          <div class="summary-grade-final ${gradeClass}">
+            ${finalText}
+          </div>
+
+        </div>
+
+
+        <div class="summary-grade-grid">
+
+          <div>
+            <span>Trabalho 1</span>
+            <strong>${grades.t1 ?? "-"}</strong>
+          </div>
+
+          <div>
+            <span>Prova 1</span>
+            <strong>${grades.p1 ?? "-"}</strong>
+          </div>
+
+          <div>
+            <span>Trabalho 2</span>
+            <strong>${grades.t2 ?? "-"}</strong>
+          </div>
+
+          <div>
+            <span>Prova 2</span>
+            <strong>${grades.p2 ?? "-"}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+
+        <div>
+
+          <h3>Notas</h3>
+
+          <p>
+            Resultado das avaliações do semestre.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="summary-content-list">
+
+        ${
+          html ||
+          `
+          <p class="semester-summary-muted">
+            Nenhuma matéria cadastrada.
+          </p>
+          `
+        }
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderSummaryWorks(data) {
+
+  let html = "";
+
+
+  data.subjects.forEach(subject => {
+
+    (subject.works || []).forEach(
+      (work, index) => {
+
+        html += `
+
+          <div class="summary-task-card">
+
+            <div class="summary-task-header">
+
+              <div>
+
+                <span class="summary-task-subject">
+                  ${subject.name}
+                </span>
+
+                <h4>
+                  Trabalho ${index + 1}
+                </h4>
+
+              </div>
+
+
+              <span class="
+                summary-status-badge
+                ${work.done
+                  ? "summary-status-done"
+                  : "summary-status-pending"}
+              ">
+
+                ${
+                  work.done
+                    ? "Concluído"
+                    : "Pendente"
+                }
+
+              </span>
+
+            </div>
+
+
+            <p class="summary-description">
+
+              ${
+                work.description ||
+                "Nenhuma descrição cadastrada."
+              }
+
+            </p>
+
+
+            <div class="summary-task-footer">
+
+              <span>
+                📅
+                ${
+                  work.dueDate
+                    ? formatSummaryDate(
+                        work.dueDate
+                      )
+                    : "Sem data"
+                }
+              </span>
+
+
+              <span>
+                ${
+                  work.delivered
+                    ? "📤 Entregue"
+                    : "📥 Não entregue"
+                }
+              </span>
+
+
+              <span>
+                Dificuldade:
+                ${
+                  getDifficultyLabel(
+                    work.difficulty
+                  )
+                }
+              </span>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    );
+
+  });
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+
+        <div>
+
+          <h3>Trabalhos</h3>
+
+          <p>
+            Atividades e entregas do semestre.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="summary-content-list">
+
+        ${
+          html ||
+          `
+          <p class="semester-summary-muted">
+            Nenhum trabalho cadastrado.
+          </p>
+          `
+        }
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderSummaryExams(data) {
+
+  let html = "";
+
+
+  data.subjects.forEach(subject => {
+
+    (subject.exams || []).forEach(
+      (exam, index) => {
+
+        html += `
+
+          <div class="summary-task-card">
+
+            <div class="summary-task-header">
+
+              <div>
+
+                <span class="summary-task-subject">
+                  ${subject.name}
+                </span>
+
+                <h4>
+                  Prova ${index + 1}
+                </h4>
+
+              </div>
+
+
+              <span class="
+                summary-status-badge
+                ${exam.done
+                  ? "summary-status-done"
+                  : "summary-status-pending"}
+              ">
+
+                ${
+                  exam.done
+                    ? "Realizada"
+                    : "Pendente"
+                }
+
+              </span>
+
+            </div>
+
+
+            <p class="summary-description">
+
+              ${
+                exam.description ||
+                "Nenhum conteúdo cadastrado."
+              }
+
+            </p>
+
+
+            <div class="summary-task-footer">
+
+              <span>
+                📅
+                ${
+                  exam.date
+                    ? formatSummaryDate(
+                        exam.date
+                      )
+                    : "Sem data"
+                }
+              </span>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    );
+
+  });
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+
+        <div>
+          <h3>Provas</h3>
+          <p>Avaliações do semestre.</p>
+        </div>
+
+      </div>
+
+      <div class="summary-content-list">
+
+        ${
+          html ||
+          `
+          <p class="semester-summary-muted">
+            Nenhuma prova cadastrada.
+          </p>
+          `
+        }
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderSummarySubjects(data) {
+
+  let html = "";
+
+
+  data.subjects.forEach(subject => {
+
+    const lessons =
+      subject.lessons || [];
+
+    const done =
+      lessons.filter(
+        lesson => lesson.done
+      ).length;
+
+    const percent =
+      lessons.length
+        ? Math.round(
+            (done / lessons.length) * 100
+          )
+        : 0;
+
+
+    const lessonHtml =
+      lessons.length
+        ? lessons.map(
+            lesson => `
+
+              <li class="
+                ${lesson.done
+                  ? "summary-lesson-done"
+                  : ""}
+              ">
+
+                <span>
+                  ${lesson.done ? "✓" : "○"}
+                </span>
+
+                ${lesson.title}
+
+              </li>
+
+            `
+          ).join("")
+        : `
+          <li>
+            Nenhum conteúdo cadastrado.
+          </li>
+        `;
+
+
+    html += `
+
+      <div class="summary-subject-card">
+
+        <div class="summary-subject-header">
+
+          <div>
+            <h4>${subject.name}</h4>
+          </div>
+
+          <strong>
+            ${percent}%
+          </strong>
+
+        </div>
+
+
+        <div class="summary-small-progress">
+
+          <div
+            style="width:${percent}%">
+          </div>
+
+        </div>
+
+
+        <p class="summary-subject-progress-text">
+
+          ${done}/${lessons.length}
+          conteúdos estudados
+
+        </p>
+
+
+        <ul class="summary-lessons-list">
+          ${lessonHtml}
+        </ul>
+
+      </div>
+
+    `;
+
+  });
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+
+        <div>
+
+          <h3>Matérias</h3>
+
+          <p>
+            Conteúdos estudados durante o semestre.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="summary-content-list">
+
+        ${
+          html ||
+          `
+          <p class="semester-summary-muted">
+            Nenhuma matéria cadastrada.
+          </p>
+          `
+        }
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderSummaryCalendar(data) {
+
+  let datesHtml = "";
+
+
+  [...data.importantDates]
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date)
+    )
+    .forEach(item => {
+
+      datesHtml += `
+
+        <div class="summary-date-item">
+
+          <div class="summary-date-box">
+            ${
+              formatSummaryDate(
+                item.date
+              )
+            }
+          </div>
+
+          <span>${item.label}</span>
+
+        </div>
+
+      `;
+
+    });
+
+
+  if (!datesHtml) {
+
+    datesHtml = `
+      <p class="semester-summary-muted">
+        Nenhuma data importante cadastrada.
+      </p>
+    `;
+
+  }
+
+
+  const dayNames = {
+
+    monday: "Segunda",
+
+    tuesday: "Terça",
+
+    wednesday: "Quarta",
+
+    thursday: "Quinta",
+
+    friday: "Sexta"
+
+  };
+
+
+  let timetableHtml = "";
+
+
+  Object.keys(dayNames).forEach(day => {
+
+    const classes =
+      data.timetable[day] || [];
+
+
+    classes.forEach(item => {
+
+      timetableHtml += `
+
+        <tr>
+
+          <td>
+            ${dayNames[day]}
+          </td>
+
+          <td>
+            ${item.time}
+          </td>
+
+          <td>
+            ${item.subject}
+          </td>
+
+        </tr>
+
+      `;
+
+    });
+
+  });
+
+
+  if (!timetableHtml) {
+
+    timetableHtml = `
+
+      <tr>
+
+        <td colspan="3">
+          Nenhum horário cadastrado.
+        </td>
+
+      </tr>
+
+    `;
+
+  }
+
+
+  semesterSummaryContent.innerHTML = `
+
+    <section class="summary-tab-section">
+
+      <div class="summary-section-title">
+
+        <div>
+
+          <h3>Calendário</h3>
+
+          <p>
+            Datas importantes e horário das aulas.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="summary-calendar-grid">
+
+        <div class="summary-overview-card">
+
+          <h4>📅 Datas importantes</h4>
+
+          <div class="summary-dates-list">
+            ${datesHtml}
+          </div>
+
+        </div>
+
+
+        <div class="summary-overview-card">
+
+          <h4>🕐 Horário das aulas</h4>
+
+          <div class="semester-summary-table-wrapper">
+
+            <table class="semester-summary-table">
+
+              <thead>
+
+                <tr>
+                  <th>Dia</th>
+                  <th>Horário</th>
+                  <th>Matéria</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+                ${timetableHtml}
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+}
+
+function renderCurrentSummaryTab() {
+
+  if (!selectedSummarySemester) return;
+
+
+  const data =
+    getSemesterSummaryData(
+      selectedSummarySemester
+    );
+
+
+  if (currentSummaryTab === "grades") {
+
+    renderSummaryGrades(data);
+
+  }
+
+  else if (
+    currentSummaryTab === "works"
+  ) {
+
+    renderSummaryWorks(data);
+
+  }
+
+  else if (
+    currentSummaryTab === "exams"
+  ) {
+
+    renderSummaryExams(data);
+
+  }
+
+  else if (
+    currentSummaryTab === "subjects"
+  ) {
+
+    renderSummarySubjects(data);
+
+  }
+
+  else if (
+    currentSummaryTab === "calendar"
+  ) {
+
+    renderSummaryCalendar(data);
+
+  }
+
+  else {
+
+    renderSummaryOverview(data);
+
+  }
+}
+
+
+semesterSummaryTabs.forEach(button => {
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      semesterSummaryTabs.forEach(tab =>
+        tab.classList.remove("active")
+      );
+
+
+      button.classList.add("active");
+
+
+      currentSummaryTab =
+        button.dataset.summaryTab;
+
+
+      renderCurrentSummaryTab();
+
+    }
+  );
+
+});
+
+if (generateSemesterSummaryBtn) {
+
+  generateSemesterSummaryBtn.addEventListener(
+    "click",
+    () => {
+
+      const semester =
+        Number(
+          summarySemesterSelect.value
+        );
+
+
+      if (!semester) {
+
+        alert(
+          "Selecione um semestre primeiro."
+        );
+
+        return;
+
+      }
+
+
+      selectedSummarySemester =
+        semester;
+
+
+      currentSummaryTab =
+        "overview";
+
+
+      semesterSummaryTabs.forEach(
+        tab =>
+          tab.classList.toggle(
+            "active",
+            tab.dataset.summaryTab ===
+              "overview"
+          )
+      );
+
+
+      const data =
+        getSemesterSummaryData(
+          semester
+        );
+
+
+      semesterSummaryTitle.textContent =
+        `${semester}º Semestre`;
+
+
+      semesterSummaryCourse.textContent =
+        state.courseName ||
+        "Curso não informado";
+
+
+      renderSummaryStats(data);
+
+      renderSummaryOverview(data);
+
+
+      semesterSummaryPage.classList.remove(
+        "hidden"
+      );
+
+
+      semesterSummaryPage.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start"
+
+      });
+
+    }
+  );
+
+}
+
+if (closeSemesterSummaryBtn) {
+
+  closeSemesterSummaryBtn.addEventListener(
+    "click",
+    () => {
+
+      semesterSummaryPage.classList.add(
+        "hidden"
+      );
+
+    }
+  );
+
+}
+
+function generatePrintReport(
+  semesterNumber
+) {
+
+  const data =
+    getSemesterSummaryData(
+      semesterNumber
+    );
+
+
+  let gradesHtml = "";
+  let worksHtml = "";
+  let examsHtml = "";
+  let subjectsHtml = "";
+
+
+  // NOTAS
+  data.subjects.forEach(subject => {
+
+    const grades =
+      subject.grades || {};
+
+    const final =
+      computeFinalGrade(grades);
+
+    gradesHtml += `
+
+      <div class="print-item">
+
+        <strong>
+          ${subject.name}
+        </strong>
+
+        <p>
+
+          Trabalho 1:
+          ${grades.t1 ?? "-"} |
+
+          Prova 1:
+          ${grades.p1 ?? "-"} |
+
+          Trabalho 2:
+          ${grades.t2 ?? "-"} |
+
+          Prova 2:
+          ${grades.p2 ?? "-"}
+
+        </p>
+
+        <p>
+
+          Média:
+          ${
+            final !== null &&
+            !isNaN(final)
+              ? final.toFixed(2)
+              : "-"
+          }
+
+        </p>
+
+      </div>
+
+    `;
+
+  });
+
+
+  // TRABALHOS
+  data.subjects.forEach(subject => {
+
+    (subject.works || [])
+      .forEach((work, index) => {
+
+        worksHtml += `
+
+          <div class="print-item">
+
+            <strong>
+
+              ${subject.name}
+              — Trabalho ${index + 1}
+
+            </strong>
+
+            <p>
+              ${
+                work.description ||
+                "Sem descrição."
+              }
+            </p>
+
+            <p>
+
+              Data:
+              ${
+                work.dueDate
+                  ? formatSummaryDate(
+                      work.dueDate
+                    )
+                  : "Sem data"
+              }
+
+              ·
+
+              ${
+                work.done
+                  ? "Concluído"
+                  : "Pendente"
+              }
+
+              ·
+
+              ${
+                work.delivered
+                  ? "Entregue"
+                  : "Não entregue"
+              }
+
+            </p>
+
+          </div>
+
+        `;
+
+      });
+
+  });
+
+
+  // PROVAS
+  data.subjects.forEach(subject => {
+
+    (subject.exams || [])
+      .forEach((exam, index) => {
+
+        examsHtml += `
+
+          <div class="print-item">
+
+            <strong>
+
+              ${subject.name}
+              — Prova ${index + 1}
+
+            </strong>
+
+            <p>
+              ${
+                exam.description ||
+                "Sem conteúdo cadastrado."
+              }
+            </p>
+
+            <p>
+
+              ${
+                exam.date
+                  ? formatSummaryDate(
+                      exam.date
+                    )
+                  : "Sem data"
+              }
+
+              ·
+
+              ${
+                exam.done
+                  ? "Realizada"
+                  : "Pendente"
+              }
+
+            </p>
+
+          </div>
+
+        `;
+
+      });
+
+  });
+
+
+  // MATÉRIAS
+  data.subjects.forEach(subject => {
+
+    const lessons =
+      subject.lessons || [];
+
+
+    subjectsHtml += `
+
+      <div class="print-item">
+
+        <strong>
+          ${subject.name}
+        </strong>
+
+        <ul>
+
+          ${
+            lessons.length
+              ? lessons.map(
+                  lesson => `
+
+                    <li>
+
+                      ${
+                        lesson.done
+                          ? "✓"
+                          : "○"
+                      }
+
+                      ${lesson.title}
+
+                    </li>
+
+                  `
+                ).join("")
+              : `
+                <li>
+                  Nenhum conteúdo cadastrado.
+                </li>
+              `
+          }
+
+        </ul>
+
+      </div>
+
+    `;
+
+  });
+
+
+  semesterPrintReport.innerHTML = `
+
+    <div class="print-report-header">
+
+      <h1>
+        Organizador da Faculdade
+      </h1>
+
+      <h2>
+        ${data.semester}º Semestre
+      </h2>
+
+      <p>
+        ${
+          state.courseName ||
+          "Curso não informado"
+        }
+      </p>
+
+    </div>
+
+
+    <section>
+
+      <h2>Visão geral</h2>
+
+      <p>
+        Matérias:
+        ${data.subjects.length}
+      </p>
+
+      <p>
+        Trabalhos concluídos:
+        ${data.doneWorks}/${data.totalWorks}
+      </p>
+
+      <p>
+        Provas realizadas:
+        ${data.doneExams}/${data.totalExams}
+      </p>
+
+      <p>
+        Progresso de estudo:
+        ${data.studyProgress}%
+      </p>
+
+    </section>
+
+
+    <section>
+
+      <h2>Notas</h2>
+
+      ${gradesHtml || "<p>Nenhuma nota cadastrada.</p>"}
+
+    </section>
+
+
+    <section>
+
+      <h2>Trabalhos</h2>
+
+      ${worksHtml || "<p>Nenhum trabalho cadastrado.</p>"}
+
+    </section>
+
+
+    <section>
+
+      <h2>Provas</h2>
+
+      ${examsHtml || "<p>Nenhuma prova cadastrada.</p>"}
+
+    </section>
+
+
+    <section>
+
+      <h2>
+        Matérias e conteúdos
+      </h2>
+
+      ${subjectsHtml}
+
+    </section>
+
+  `;
+
+}
+
+if (printSemesterSummaryBtn) {
+
+  printSemesterSummaryBtn.addEventListener(
+    "click",
+    () => {
+
+      const semester =
+        Number(
+          summarySemesterSelect.value
+        );
+
+
+      if (!semester) {
+
+        alert(
+          "Selecione o semestre que deseja gerar em PDF."
+        );
+
+        return;
+
+      }
+
+
+      generatePrintReport(
+        semester
+      );
+
+
+      window.print();
+
+    }
+  );
+
+}
+
 // --------- RESUMO (CAPA) ---------
 const summarySubjectsEl = document.getElementById("summarySubjects");
 const summaryWorksEl = document.getElementById("summaryWorks");
