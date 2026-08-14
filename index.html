@@ -299,34 +299,124 @@
           <p id="configStatus" class="backup-status"></p>
         </div>
 
+<!-- RESUMO DOS SEMESTRES -->
 <div class="card semester-summary-config">
+
   <div class="semester-summary-config-header">
     <div>
-      <h3>Resumo do semestre</h3>
+      <h3>Resumo dos semestres</h3>
       <p>
-        Gere uma visão completa de um semestre com informações da Capa,
-        Notas, Trabalhos, Provas e Matérias.
+        Consulte todas as informações acadêmicas de um semestre
+        ou gere um relatório em PDF.
       </p>
     </div>
   </div>
 
-  <div class="inline-form semester-summary-controls">
+  <div class="semester-summary-actions">
+
     <select id="summarySemesterSelect">
       <option value="">Selecione o semestre</option>
     </select>
 
     <button id="generateSemesterSummaryBtn" type="button">
-      Gerar resumo
+      Visualizar resumo
     </button>
+
+    <button id="printSemesterSummaryBtn"
+            class="secondary-summary-btn"
+            type="button">
+      📄 Gerar PDF
+    </button>
+
   </div>
 
-  <div id="semesterSummaryResult" class="semester-summary-result">
-    <div class="semester-summary-empty">
-      Selecione um semestre para visualizar o resumo.
-    </div>
-  </div>
 </div>
 
+
+<!-- ÁREA GRANDE DO RESUMO -->
+<div id="semesterSummaryPage"
+     class="semester-summary-page hidden">
+
+  <div class="semester-summary-page-header">
+
+    <div>
+      <span class="semester-summary-eyebrow">
+        RESUMO ACADÊMICO
+      </span>
+
+      <h2 id="semesterSummaryTitle">
+        5º Semestre
+      </h2>
+
+      <p id="semesterSummaryCourse">
+        Curso
+      </p>
+    </div>
+
+    <button id="closeSemesterSummaryBtn"
+            type="button"
+            class="summary-close-btn">
+      ✕
+    </button>
+
+  </div>
+
+
+  <!-- INDICADORES -->
+  <div id="semesterSummaryStats"
+       class="semester-summary-stat-grid">
+  </div>
+
+
+  <!-- ABAS -->
+  <div class="semester-summary-tabs">
+
+    <button class="semester-summary-tab active"
+            data-summary-tab="overview">
+      Visão geral
+    </button>
+
+    <button class="semester-summary-tab"
+            data-summary-tab="grades">
+      Notas
+    </button>
+
+    <button class="semester-summary-tab"
+            data-summary-tab="works">
+      Trabalhos
+    </button>
+
+    <button class="semester-summary-tab"
+            data-summary-tab="exams">
+      Provas
+    </button>
+
+    <button class="semester-summary-tab"
+            data-summary-tab="subjects">
+      Matérias
+    </button>
+
+    <button class="semester-summary-tab"
+            data-summary-tab="calendar">
+      Calendário
+    </button>
+
+  </div>
+
+
+  <!-- CONTEÚDO -->
+  <div id="semesterSummaryContent"
+       class="semester-summary-content">
+  </div>
+
+</div>
+
+
+<!-- RELATÓRIO COMPLETO UTILIZADO NA IMPRESSÃO -->
+<div id="semesterPrintReport"
+     class="semester-print-report">
+</div>
+        
         <div class="card">
   <h3>Materiais em PDF por matéria</h3>
   <p style="font-size:0.85rem;margin-bottom:8px;">
