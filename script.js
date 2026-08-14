@@ -241,9 +241,39 @@ const materialStatus = document.getElementById("materialStatus");
 const materialsListConfig = document.getElementById("materialsListConfig");
 
 // --------- RESUMO DO SEMESTRE ---------
-const summarySemesterSelect = document.getElementById("summarySemesterSelect");
-const generateSemesterSummaryBtn = document.getElementById("generateSemesterSummaryBtn");
-const semesterSummaryResult = document.getElementById("semesterSummaryResult");
+const summarySemesterSelect =
+  document.getElementById("summarySemesterSelect");
+
+const generateSemesterSummaryBtn =
+  document.getElementById("generateSemesterSummaryBtn");
+
+const printSemesterSummaryBtn =
+  document.getElementById("printSemesterSummaryBtn");
+
+const semesterSummaryPage =
+  document.getElementById("semesterSummaryPage");
+
+const semesterSummaryTitle =
+  document.getElementById("semesterSummaryTitle");
+
+const semesterSummaryCourse =
+  document.getElementById("semesterSummaryCourse");
+
+const semesterSummaryStats =
+  document.getElementById("semesterSummaryStats");
+
+const semesterSummaryContent =
+  document.getElementById("semesterSummaryContent");
+
+const closeSemesterSummaryBtn =
+  document.getElementById("closeSemesterSummaryBtn");
+
+const semesterPrintReport =
+  document.getElementById("semesterPrintReport");
+
+const semesterSummaryTabs =
+  document.querySelectorAll(".semester-summary-tab");
+
 
 // --------- NOVOS FILTROS ---------
 const gradeFilterPart = document.getElementById("gradePartFilter");
