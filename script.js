@@ -21,1263 +21,1763 @@ const defaultState = {
       semester: 5,
       grades: { t1: null, p1: null, t2: null, p2: null },
       works: [
-        { id: "animacao3d_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
-        { id: "animacao3d_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
+        {
+          id: "animacao3d_w1",
+          description: "",
+          done: false,
+          delivered: false,
+          difficulty: "medio",
+          dueDate: null
+        },
+        {
+          id: "animacao3d_w2",
+          description: "",
+          done: false,
+          delivered: false,
+          difficulty: "medio",
+          dueDate: null
+        }
       ],
       exams: [
-        { id: "animacao3d_e1", description: "", done: false, date: null },
-        { id: "animacao3d_e2", description: "", done: false, date: null }
+        {
+          id: "animacao3d_e1",
+          description: "",
+          done: false,
+          date: null
+        },
+        {
+          id: "animacao3d_e2",
+          description: "",
+          done: false,
+          date: null
+        }
       ],
       lessons: [
-        { id: "animacao3d_l1", title: "Princípios de animação", done: false },
-        { id: "animacao3d_l2", title: "Ciclo de caminhada", done: false }
+        {
+          id: "animacao3d_l1",
+          title: "Princípios de animação",
+          done: false
+        },
+        {
+          id: "animacao3d_l2",
+          title: "Ciclo de caminhada",
+          done: false
+        }
       ]
     },
+
     {
       id: "leveldesign",
       name: "Level Design",
       semester: 5,
-      grades: { t1: null, p1: null, t2: null, p2: null },
+      grades: {
+        t1: null,
+        p1: null,
+        t2: null,
+        p2: null
+      },
       works: [
-        { id: "leveldesign_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
-        { id: "leveldesign_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
+        {
+          id: "leveldesign_w1",
+          description: "",
+          done: false,
+          delivered: false,
+          difficulty: "medio",
+          dueDate: null
+        },
+        {
+          id: "leveldesign_w2",
+          description: "",
+          done: false,
+          delivered: false,
+          difficulty: "medio",
+          dueDate: null
+        }
       ],
       exams: [
-        { id: "leveldesign_e1", description: "", done: false, date: null },
-        { id: "leveldesign_e2", description: "", done: false, date: null }
+        {
+          id: "leveldesign_e1",
+          description: "",
+          done: false,
+          date: null
+        },
+        {
+          id: "leveldesign_e2",
+          description: "",
+          done: false,
+          date: null
+        }
       ],
-      lessons: [{ id: "leveldesign_l1", title: "Kishotenketsu", done: false }]
+      lessons: [
+        {
+          id: "leveldesign_l1",
+          title: "Kishotenketsu",
+          done: false
+        }
+      ]
     }
   ],
 
-  // agora por semestre:
-  importantDatesBySemester: {
-    // "5": [{ date: "2026-03-10", label: "Entrega de documentos" }]
-  },
+  importantDatesBySemester: {},
 
-    timetableBySemester: {
-    // "5": { monday:[{time:"19:30 - 21:00", subject:"..." }], ... }
-  },
+  timetableBySemester: {},
 
-  materialsBySubject: {
-    // "id_da_materia": [
-    //   { id: "mat_1", name: "Nome do PDF", url: "https://..." }
-    // ]
-  }
+  materialsBySubject: {}
 };
+
+
+// =====================================================
+// CARREGAMENTO E SALVAMENTO
+// =====================================================
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return clone(defaultState);
+
+    if (!raw) {
+      return clone(defaultState);
+    }
+
     const parsed = JSON.parse(raw);
+
     return parsed;
+
   } catch (e) {
-    console.error("Erro ao carregar estado:", e);
+
+    console.error(
+      "Erro ao carregar estado:",
+      e
+    );
+
     return clone(defaultState);
   }
 }
 
+
 let state = loadState();
-let currentSemester = Number(state.currentSemester || 5);
+
+let currentSemester =
+  Number(
+    state.currentSemester || 5
+  );
+
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(state)
+  );
 }
 
-// --------- HELPERS DE SEMESTRE + MIGRAÇÃO ---------
+
+// =====================================================
+// HELPERS DE SEMESTRE + MIGRAÇÃO
+// =====================================================
+
 function ensureSemesterMaps() {
-  if (!state.currentSemester) state.currentSemester = currentSemester || 5;
-  if (!state.importantDatesBySemester) state.importantDatesBySemester = {};
-  if (!state.timetableBySemester) state.timetableBySemester = {};
+
+  if (!state.currentSemester) {
+    state.currentSemester =
+      currentSemester || 5;
+  }
+
+  if (!state.importantDatesBySemester) {
+    state.importantDatesBySemester = {};
+  }
+
+  if (!state.timetableBySemester) {
+    state.timetableBySemester = {};
+  }
 }
+
 
 function getSemesterKey() {
   return String(currentSemester);
 }
 
+
 function getImportantDatesForCurrentSemester() {
+
   ensureSemesterMaps();
+
   const sem = getSemesterKey();
-  return state.importantDatesBySemester[sem] || [];
+
+  return (
+    state.importantDatesBySemester[sem] ||
+    []
+  );
 }
 
+
 function getTimetableForCurrentSemester() {
+
   ensureSemesterMaps();
+
   const sem = getSemesterKey();
-  const base = state.timetableBySemester[sem] || {};
+
+  const base =
+    state.timetableBySemester[sem] ||
+    {};
+
   return {
-    monday: base.monday || [],
-    tuesday: base.tuesday || [],
-    wednesday: base.wednesday || [],
-    thursday: base.thursday || [],
-    friday: base.friday || []
+
+    monday:
+      base.monday || [],
+
+    tuesday:
+      base.tuesday || [],
+
+    wednesday:
+      base.wednesday || [],
+
+    thursday:
+      base.thursday || [],
+
+    friday:
+      base.friday || []
+
   };
 }
 
-function setTimetableForCurrentSemester(newTable) {
+
+function setTimetableForCurrentSemester(
+  newTable
+) {
+
   ensureSemesterMaps();
+
   const sem = getSemesterKey();
-  state.timetableBySemester[sem] = newTable;
+
+  state.timetableBySemester[sem] =
+    newTable;
 }
 
-// migração: se existir estrutura antiga, joga no semestre atual e remove as antigas
+
+// =====================================================
+// MIGRAÇÃO DE DADOS ANTIGOS
+// =====================================================
+
 function migrateLegacyDataIfNeeded() {
+
   ensureSemesterMaps();
 
+
   // importantDates antigo -> semestre atual
-  if (Array.isArray(state.importantDates)) {
-    const semKey = String(state.currentSemester || currentSemester || 5);
-    if (!state.importantDatesBySemester[semKey]) state.importantDatesBySemester[semKey] = [];
-    state.importantDatesBySemester[semKey].push(...state.importantDates);
+
+  if (
+    Array.isArray(
+      state.importantDates
+    )
+  ) {
+
+    const semKey =
+      String(
+        state.currentSemester ||
+        currentSemester ||
+        5
+      );
+
+
+    if (
+      !state
+        .importantDatesBySemester[
+          semKey
+        ]
+    ) {
+
+      state
+        .importantDatesBySemester[
+          semKey
+        ] =
+        state.importantDates;
+
+    }
+
+
     delete state.importantDates;
   }
 
+
   // timetable antigo -> semestre atual
-  if (state.timetable && typeof state.timetable === "object") {
-    const semKey = String(state.currentSemester || currentSemester || 5);
-    state.timetableBySemester[semKey] = state.timetable;
+
+  if (
+    state.timetable &&
+    typeof state.timetable === "object"
+  ) {
+
+    const semKey =
+      String(
+        state.currentSemester ||
+        currentSemester ||
+        5
+      );
+
+
+    if (
+      !state
+        .timetableBySemester[
+          semKey
+        ]
+    ) {
+
+      state
+        .timetableBySemester[
+          semKey
+        ] =
+        state.timetable;
+
+    }
+
+
     delete state.timetable;
   }
 
-  // holidays antigo (não usamos mais)
-  if (Array.isArray(state.holidays)) {
-    delete state.holidays;
-  }
+
+  saveState();
 }
 
+
+// =====================================================
+// CONFIGURAÇÃO
+// =====================================================
+
 function ensureConfigState() {
-  if (!state.totalSemesters || Number(state.totalSemesters) < 1) {
+
+  if (
+    !state.totalSemesters ||
+    state.totalSemesters < 1
+  ) {
     state.totalSemesters = 5;
   }
 
-  if (typeof state.courseName !== "string") {
+
+  if (
+    typeof state.courseName !==
+    "string"
+  ) {
     state.courseName = "";
   }
 
-  state.totalSemesters = Number(state.totalSemesters);
 
-  if (currentSemester > state.totalSemesters) {
-    currentSemester = state.totalSemesters;
-    state.currentSemester = currentSemester;
+  if (!state.currentSemester) {
+    state.currentSemester =
+      currentSemester || 1;
   }
 }
+
 
 function renderSemesterOptions() {
+
   ensureConfigState();
 
-  if (globalSemesterSelect) {
-    const previousValue = String(currentSemester);
-    globalSemesterSelect.innerHTML = "";
 
-    for (let i = 1; i <= state.totalSemesters; i++) {
-      const option = document.createElement("option");
-      option.value = String(i);
-      option.textContent = `${i}º semestre`;
-      globalSemesterSelect.appendChild(option);
+  if (globalSemesterSelect) {
+
+    const previousValue =
+      String(
+        currentSemester ||
+        state.currentSemester ||
+        1
+      );
+
+
+    globalSemesterSelect.innerHTML =
+      "";
+
+
+    for (
+      let i = 1;
+      i <= state.totalSemesters;
+      i++
+    ) {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        String(i);
+
+      option.textContent =
+        `${i}º semestre`;
+
+      globalSemesterSelect.appendChild(
+        option
+      );
     }
 
-    const allowed = [...globalSemesterSelect.options].some(opt => opt.value === previousValue);
-    globalSemesterSelect.value = allowed ? previousValue : "1";
+
+    const allowed =
+      [
+        ...globalSemesterSelect.options
+      ].some(
+        opt =>
+          opt.value ===
+          previousValue
+      );
+
+
+    globalSemesterSelect.value =
+      allowed
+        ? previousValue
+        : "1";
   }
 
-  if (subjectSemesterInput) {
-    const previousValue = subjectSemesterInput.value;
-    subjectSemesterInput.innerHTML = `<option value="">Semestre</option>`;
 
-    for (let i = 1; i <= state.totalSemesters; i++) {
-      const option = document.createElement("option");
-      option.value = String(i);
-      option.textContent = `${i}º`;
-      subjectSemesterInput.appendChild(option);
+  if (subjectSemesterInput) {
+
+    const previousValue =
+      subjectSemesterInput.value;
+
+
+    subjectSemesterInput.innerHTML =
+      `<option value="">Semestre</option>`;
+
+
+    for (
+      let i = 1;
+      i <= state.totalSemesters;
+      i++
+    ) {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        String(i);
+
+      option.textContent =
+        `${i}º`;
+
+      subjectSemesterInput.appendChild(
+        option
+      );
     }
 
-    const allowed = [...subjectSemesterInput.options].some(opt => opt.value === previousValue);
+
+    const allowed =
+      [
+        ...subjectSemesterInput.options
+      ].some(
+        opt =>
+          opt.value ===
+          previousValue
+      );
+
+
     if (allowed) {
-      subjectSemesterInput.value = previousValue;
+      subjectSemesterInput.value =
+        previousValue;
     }
   }
 }
 
+
 function ensureMaterialsState() {
-  if (!state.materialsBySubject || typeof state.materialsBySubject !== "object") {
+
+  if (
+    !state.materialsBySubject ||
+    typeof state.materialsBySubject !==
+      "object"
+  ) {
+
     state.materialsBySubject = {};
   }
 }
 
+
 function renderConfigFields() {
-  if (courseNameInput) courseNameInput.value = state.courseName || "";
-  if (totalSemestersInput) totalSemestersInput.value = String(state.totalSemesters || 5);
-}
 
-// --------- ELEMENTOS GERAIS ---------
-const globalSemesterSelect = document.getElementById("globalSemesterSelect");
-const navButtons = document.querySelectorAll(".nav-btn");
-const views = {
-  capa: document.getElementById("view-capa"),
-  notas: document.getElementById("view-notas"),
-  trabalhos: document.getElementById("view-trabalhos"),
-  provas: document.getElementById("view-provas"),
-  materias: document.getElementById("view-materias"),
-  noticias: document.getElementById("view-noticias"),
-  config: document.getElementById("view-config")
-};
+  if (courseNameInput) {
 
-const themeToggleBtn = document.getElementById("themeToggleBtn");
-const courseNameInput = document.getElementById("courseNameInput");
-const totalSemestersInput = document.getElementById("totalSemestersInput");
-const saveConfigBtn = document.getElementById("saveConfigBtn");
-const configStatus = document.getElementById("configStatus");
-
-const newsCenter = document.getElementById("newsCenter");
-const newsSubjects = document.getElementById("newsSubjects");
-const newsPanel = document.getElementById("newsPanel");
-
-const materialSubjectSelect = document.getElementById("materialSubjectSelect");
-const materialNameInput = document.getElementById("materialNameInput");
-const materialUrlInput = document.getElementById("materialUrlInput");
-const saveMaterialBtn = document.getElementById("saveMaterialBtn");
-const materialStatus = document.getElementById("materialStatus");
-const materialsListConfig = document.getElementById("materialsListConfig");
-
-// --------- RESUMO DO SEMESTRE ---------
-const summarySemesterSelect =
-  document.getElementById("summarySemesterSelect");
-
-const generateSemesterSummaryBtn =
-  document.getElementById("generateSemesterSummaryBtn");
-
-const printSemesterSummaryBtn =
-  document.getElementById("printSemesterSummaryBtn");
-
-const semesterSummaryPage =
-  document.getElementById("semesterSummaryPage");
-
-const semesterSummaryTitle =
-  document.getElementById("semesterSummaryTitle");
-
-const semesterSummaryCourse =
-  document.getElementById("semesterSummaryCourse");
-
-const semesterSummaryStats =
-  document.getElementById("semesterSummaryStats");
-
-const semesterSummaryContent =
-  document.getElementById("semesterSummaryContent");
-
-const closeSemesterSummaryBtn =
-  document.getElementById("closeSemesterSummaryBtn");
-
-const semesterPrintReport =
-  document.getElementById("semesterPrintReport");
-
-const semesterSummaryTabs =
-  document.querySelectorAll(".semester-summary-tab");
+    courseNameInput.value =
+      state.courseName || "";
+  }
 
 
-// --------- NOVOS FILTROS ---------
-const gradeFilterPart = document.getElementById("gradePartFilter");
-const examFilterSubject = document.getElementById("examFilterSubject");
-const examFilterStatus = document.getElementById("examFilterDone");
-const subjectFilterInput = document.getElementById("subjectsFilterInput");
+  if (totalSemestersInput) {
 
-// --------- TEMA (CLARO / ESCURO) ---------
-function applyTheme() {
-  const theme = state.theme || "dark";
-  if (theme === "light") {
-    document.body.classList.add("light");
-    themeToggleBtn.textContent = "Modo claro";
-  } else {
-    document.body.classList.remove("light");
-    themeToggleBtn.textContent = "Modo escuro";
+    totalSemestersInput.value =
+      String(
+        state.totalSemesters || 5
+      );
   }
 }
 
-themeToggleBtn.addEventListener("click", () => {
-  state.theme = state.theme === "light" ? "dark" : "light";
-  saveState();
-  applyTheme();
-});
-
-if (saveConfigBtn) {
-  saveConfigBtn.addEventListener("click", () => {
-    const courseName = courseNameInput ? courseNameInput.value.trim() : "";
-    const totalSemesters = totalSemestersInput ? Number(totalSemestersInput.value) : 0;
-
-    if (!totalSemesters || totalSemesters < 1 || totalSemesters > 20) {
-      if (configStatus) {
-        configStatus.textContent = "Informe uma quantidade válida de semestres entre 1 e 20.";
-      }
-      return;
-    }
-
-    state.courseName = courseName;
-    state.totalSemesters = totalSemesters;
-
-    if (currentSemester > state.totalSemesters) {
-      currentSemester = state.totalSemesters;
-      state.currentSemester = currentSemester;
-    }
-
-    state.subjects.forEach(subject => {
-      if (subject.semester > state.totalSemesters) {
-        subject.semester = state.totalSemesters;
-      }
-    });
-
-    saveState();
-    renderSemesterOptions();
-    renderConfigFields();
-    renderAll();
-
-    if (configStatus) {
-      configStatus.textContent = "Configuração salva com sucesso.";
-    }
-  });
-}
-
-function renderNews() {
-  if (!newsCenter || !newsSubjects || !newsPanel) return;
-
-  const subjects = getSubjectsForCurrentSemester();
-
-  newsCenter.textContent = state.courseName && state.courseName.trim()
-    ? state.courseName
-    : "Curso";
-
-  newsSubjects.innerHTML = "";
-
-  if (!subjects.length) {
-    newsPanel.innerHTML = `
-      <h3>Nenhuma matéria neste semestre</h3>
-      <p>Não há matérias cadastradas para o semestre selecionado.</p>
-      <p>Selecione outro semestre ou adicione matérias primeiro.</p>
-    `;
-    return;
-  }
-
-  newsPanel.innerHTML = `
-    <p>Selecione uma matéria para visualizar conteúdos.</p>
-  `;
-
-  const total = subjects.length;
-
-// raio dinâmico baseado na quantidade
-const radius = Math.max(180, total * 30);
-
-  subjects.forEach((subject, index) => {
-    const angle = (index / total) * (2 * Math.PI) - Math.PI / 2;
-    const x = radius * Math.cos(angle);
-    const y = radius * Math.sin(angle);
-
-    const div = document.createElement("div");
-    div.className = "news-subject";
-    div.textContent = subject.name;
-
-    div.style.position = "absolute";
-    div.style.left = `calc(50% + ${x}px - 80px)`;
-    div.style.top = `calc(45% + ${y}px - 25px)`;
-
-    div.addEventListener("click", () => {
-      renderNewsPanel(subject);
-    });
-
-    newsSubjects.appendChild(div);
-  });
-}
-
-function renderNewsPanel(subject) {
-  if (!newsPanel) return;
-
-  ensureMaterialsState();
-
-  const materials = state.materialsBySubject[subject.id] || [];
-
-  let materialsHtml = "";
-
-  if (materials.length) {
-    materialsHtml = `
-      <h4 style="margin-top:10px;">Materiais em PDF</h4>
-      <ul style="margin-top:8px; padding-left:18px;">
-        ${materials.map(material => `
-          <li style="margin-bottom:6px;">
-            <a href="${material.url}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">
-              ${material.name}
-            </a>
-          </li>
-        `).join("")}
-      </ul>
-    `;
-  } else {
-    materialsHtml = `
-      <h4 style="margin-top:10px;">Materiais em PDF</h4>
-      <p style="margin-top:6px;">Nenhum PDF cadastrado para esta matéria ainda.</p>
-    `;
-  }
-
-  newsPanel.innerHTML = `
-    <h3>${subject.name}</h3>
-    <p>Conteúdos disponíveis para esta matéria:</p>
-    ${materialsHtml}
-    <div style="margin-top:12px;">
-      <p>Em breve você verá aqui também:</p>
-      <ul style="padding-left:18px; margin-top:6px;">
-        <li>Links e artigos</li>
-        <li>Vídeos</li>
-        <li>Notícias</li>
-      </ul>
-    </div>
-  `;
-}
-
-function populateMaterialSubjectSelect() {
-  if (!materialSubjectSelect) return;
-
-  const previousValue = materialSubjectSelect.value || "";
-  materialSubjectSelect.innerHTML = `<option value="">Selecione a matéria</option>`;
-
-  const sortedSubjects = [...state.subjects].sort((a, b) => {
-    if (a.semester !== b.semester) return a.semester - b.semester;
-    return a.name.localeCompare(b.name);
-  });
-
-  sortedSubjects.forEach(subject => {
-    const option = document.createElement("option");
-    option.value = subject.id;
-    option.textContent = `${subject.name} (${subject.semester}º semestre)`;
-    materialSubjectSelect.appendChild(option);
-  });
-
-  const exists = [...materialSubjectSelect.options].some(opt => opt.value === previousValue);
-  if (exists) {
-    materialSubjectSelect.value = previousValue;
-  }
-}
-
-function renderMaterialsListConfig() {
-  if (!materialsListConfig) return;
-
-  materialsListConfig.innerHTML = "";
-
-  ensureMaterialsState();
-
-  const allSubjects = [...state.subjects];
-
-  let hasAny = false;
-
-  allSubjects.forEach(subject => {
-    const materials = state.materialsBySubject[subject.id] || [];
-    if (!materials.length) return;
-
-    hasAny = true;
-
-    const titleLi = document.createElement("li");
-    titleLi.style.marginTop = "8px";
-    titleLi.innerHTML = `<strong>${subject.name}</strong>`;
-    materialsListConfig.appendChild(titleLi);
-
-    materials.forEach(material => {
-      const li = document.createElement("li");
-      li.style.marginLeft = "12px";
-
-      const link = document.createElement("a");
-      link.href = material.url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = material.name;
-      link.style.color = "inherit";
-      link.style.textDecoration = "underline";
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "inline-delete-btn";
-      deleteBtn.textContent = "Excluir";
-
-      deleteBtn.addEventListener("click", () => {
-        state.materialsBySubject[subject.id] =
-          (state.materialsBySubject[subject.id] || []).filter(item => item.id !== material.id);
-
-        saveState();
-        renderMaterialsListConfig();
-
-        if (newsPanel && newsPanel.querySelector("h3")?.textContent === subject.name) {
-          renderNewsPanel(subject);
-        }
-      });
-
-      li.appendChild(link);
-      li.appendChild(deleteBtn);
-      materialsListConfig.appendChild(li);
-    });
-  });
-
-  if (!hasAny) {
-    materialsListConfig.innerHTML = `<li>Nenhum material cadastrado ainda.</li>`;
-  }
-}
-
-if (saveMaterialBtn) {
-  saveMaterialBtn.addEventListener("click", () => {
-    ensureMaterialsState();
-
-    const subjectId = materialSubjectSelect ? materialSubjectSelect.value : "";
-    const materialName = materialNameInput ? materialNameInput.value.trim() : "";
-    const materialUrl = materialUrlInput ? materialUrlInput.value.trim() : "";
-
-    if (!subjectId || !materialName || !materialUrl) {
-      if (materialStatus) {
-        materialStatus.textContent = "Preencha a matéria, o nome do material e o link do PDF.";
-      }
-      return;
-    }
-
-    if (!state.materialsBySubject[subjectId]) {
-      state.materialsBySubject[subjectId] = [];
-    }
-
-    state.materialsBySubject[subjectId].push({
-      id: "mat_" + Date.now(),
-      name: materialName,
-      url: materialUrl
-    });
-
-    saveState();
-
-    if (materialNameInput) materialNameInput.value = "";
-    if (materialUrlInput) materialUrlInput.value = "";
-
-    renderMaterialsListConfig();
-
-    if (materialStatus) {
-      materialStatus.textContent = "Material salvo com sucesso.";
-    }
-  });
-}
 
 // =====================================================
-// RESUMO COMPLETO DO SEMESTRE
+// ELEMENTOS GERAIS
 // =====================================================
 
-function populateSummarySemesterSelect() {
-  if (!summarySemesterSelect) {
-    console.error("summarySemesterSelect não foi encontrado no HTML.");
-    return;
-  }
-
-  // garante que exista uma quantidade válida de semestres
-  const total = Number(state.totalSemesters) || 5;
-
-  // guarda o valor que estava selecionado
-  const previousValue = summarySemesterSelect.value;
-
-  // limpa o select
-  summarySemesterSelect.innerHTML = `
-    <option value="">Selecione o semestre</option>
-  `;
-
-  // cria os semestres
-  for (let i = 1; i <= total; i++) {
-    const option = document.createElement("option");
-
-    option.value = String(i);
-    option.textContent = `${i}º semestre`;
-
-    summarySemesterSelect.appendChild(option);
-  }
-
-  // tenta manter o semestre selecionado anteriormente
-  if (
-    previousValue &&
-    Number(previousValue) >= 1 &&
-    Number(previousValue) <= total
-  ) {
-    summarySemesterSelect.value = previousValue;
-  }
-}
-
-  // =====================================================
-  // DADOS DO SEMESTRE
-  // =====================================================
-
-  const subjects = state.subjects.filter(
-    subject => Number(subject.semester) === semester
+const globalSemesterSelect =
+  document.getElementById(
+    "globalSemesterSelect"
   );
 
-  const semesterKey = String(semester);
 
-  const importantDates =
-    state.importantDatesBySemester?.[semesterKey] || [];
-
-  const timetable =
-    state.timetableBySemester?.[semesterKey] || {};
+const navButtons =
+  document.querySelectorAll(
+    ".nav-btn"
+  );
 
 
-  // =====================================================
-  // ESTATÍSTICAS
-  // =====================================================
+const views = {
 
-  let totalWorks = 0;
-  let doneWorks = 0;
-  let deliveredWorks = 0;
+  capa:
+    document.getElementById(
+      "view-capa"
+    ),
 
-  let totalExams = 0;
-  let doneExams = 0;
+  notas:
+    document.getElementById(
+      "view-notas"
+    ),
 
-  let totalLessons = 0;
-  let doneLessons = 0;
+  trabalhos:
+    document.getElementById(
+      "view-trabalhos"
+    ),
+
+  provas:
+    document.getElementById(
+      "view-provas"
+    ),
+
+  materias:
+    document.getElementById(
+      "view-materias"
+    ),
+
+  noticias:
+    document.getElementById(
+      "view-noticias"
+    ),
+
+  config:
+    document.getElementById(
+      "view-config"
+    )
+
+};
 
 
-  subjects.forEach(subject => {
-
-    const works = subject.works || [];
-    const exams = subject.exams || [];
-    const lessons = subject.lessons || [];
-
-    totalWorks += works.length;
-    doneWorks += works.filter(work => work.done).length;
-    deliveredWorks += works.filter(work => work.delivered).length;
-
-    totalExams += exams.length;
-    doneExams += exams.filter(exam => exam.done).length;
-
-    totalLessons += lessons.length;
-    doneLessons += lessons.filter(lesson => lesson.done).length;
-  });
+const themeToggleBtn =
+  document.getElementById(
+    "themeToggleBtn"
+  );
 
 
-  const studyProgress =
-    totalLessons > 0
-      ? Math.round((doneLessons / totalLessons) * 100)
-      : 0;
+const courseNameInput =
+  document.getElementById(
+    "courseNameInput"
+  );
 
 
-  // =====================================================
-  // NOTAS
-  // =====================================================
+const totalSemestersInput =
+  document.getElementById(
+    "totalSemestersInput"
+  );
 
-  let gradesHtml = "";
 
-  if (subjects.length) {
+const saveConfigBtn =
+  document.getElementById(
+    "saveConfigBtn"
+  );
 
-    subjects.forEach(subject => {
 
-      const grades = subject.grades || {
-        t1: null,
-        p1: null,
-        t2: null,
-        p2: null
-      };
+const configStatus =
+  document.getElementById(
+    "configStatus"
+  );
 
-      const grade = computeFinalGrade(grades);
 
-      const gradeText =
-        grade !== null && !isNaN(grade)
-          ? grade.toFixed(2)
-          : "-";
+const newsCenter =
+  document.getElementById(
+    "newsCenter"
+  );
 
-      gradesHtml += `
-        <div class="semester-summary-subject-row">
 
-          <strong>${subject.name}</strong>
+const newsSubjects =
+  document.getElementById(
+    "newsSubjects"
+  );
 
-          <div class="summary-grade-values">
-            <span>T1: ${grades.t1 ?? "-"}</span>
-            <span>P1: ${grades.p1 ?? "-"}</span>
-            <span>T2: ${grades.t2 ?? "-"}</span>
-            <span>P2: ${grades.p2 ?? "-"}</span>
-          </div>
 
-          <span class="semester-summary-final-grade">
-            Média: ${gradeText}
-          </span>
+const newsPanel =
+  document.getElementById(
+    "newsPanel"
+  );
 
-        </div>
-      `;
-    });
+
+const materialSubjectSelect =
+  document.getElementById(
+    "materialSubjectSelect"
+  );
+
+
+const materialNameInput =
+  document.getElementById(
+    "materialNameInput"
+  );
+
+
+const materialUrlInput =
+  document.getElementById(
+    "materialUrlInput"
+  );
+
+
+const saveMaterialBtn =
+  document.getElementById(
+    "saveMaterialBtn"
+  );
+
+
+const materialStatus =
+  document.getElementById(
+    "materialStatus"
+  );
+
+
+const materialsListConfig =
+  document.getElementById(
+    "materialsListConfig"
+  );
+
+
+// =====================================================
+// NOVO RESUMO DOS SEMESTRES
+// =====================================================
+
+const summarySemesterSelect =
+  document.getElementById(
+    "summarySemesterSelect"
+  );
+
+
+const generateSemesterSummaryBtn =
+  document.getElementById(
+    "generateSemesterSummaryBtn"
+  );
+
+
+const printSemesterSummaryBtn =
+  document.getElementById(
+    "printSemesterSummaryBtn"
+  );
+
+
+const semesterSummaryPage =
+  document.getElementById(
+    "semesterSummaryPage"
+  );
+
+
+const semesterSummaryTitle =
+  document.getElementById(
+    "semesterSummaryTitle"
+  );
+
+
+const semesterSummaryCourse =
+  document.getElementById(
+    "semesterSummaryCourse"
+  );
+
+
+const semesterSummaryStats =
+  document.getElementById(
+    "semesterSummaryStats"
+  );
+
+
+const semesterSummaryContent =
+  document.getElementById(
+    "semesterSummaryContent"
+  );
+
+
+const closeSemesterSummaryBtn =
+  document.getElementById(
+    "closeSemesterSummaryBtn"
+  );
+
+
+const semesterPrintReport =
+  document.getElementById(
+    "semesterPrintReport"
+  );
+
+
+const semesterSummaryTabs =
+  document.querySelectorAll(
+    ".semester-summary-tab"
+  );
+
+
+// =====================================================
+// FILTROS
+// =====================================================
+
+const gradeFilterPart =
+  document.getElementById(
+    "gradePartFilter"
+  );
+
+
+const examFilterSubject =
+  document.getElementById(
+    "examFilterSubject"
+  );
+
+
+const examFilterStatus =
+  document.getElementById(
+    "examFilterDone"
+  );
+
+
+const subjectFilterInput =
+  document.getElementById(
+    "subjectsFilterInput"
+  );
+
+
+// =====================================================
+// TEMA
+// =====================================================
+
+function applyTheme() {
+
+  const theme =
+    state.theme || "dark";
+
+
+  if (theme === "light") {
+
+    document.body.classList.add(
+      "light"
+    );
+
+
+    if (themeToggleBtn) {
+      themeToggleBtn.textContent =
+        "Modo claro";
+    }
 
   } else {
 
-    gradesHtml = `
-      <p class="semester-summary-muted">
-        Nenhuma matéria cadastrada.
-      </p>
-    `;
+    document.body.classList.remove(
+      "light"
+    );
+
+
+    if (themeToggleBtn) {
+      themeToggleBtn.textContent =
+        "Modo escuro";
+    }
   }
+}
 
 
-  // =====================================================
-  // TRABALHOS
-  // =====================================================
+if (themeToggleBtn) {
 
-  let worksHtml = "";
+  themeToggleBtn.addEventListener(
+    "click",
+    () => {
 
-  subjects.forEach(subject => {
-
-    const works = subject.works || [];
-
-    works.forEach((work, index) => {
-
-      const date = work.dueDate
-        ? formatSummaryDate(work.dueDate)
-        : "Sem data";
-
-      worksHtml += `
-        <div class="semester-summary-item">
-
-          <div>
-            <strong>
-              ${subject.name} — Trabalho ${index + 1}
-            </strong>
-
-            <p>
-              ${work.description || "Sem descrição cadastrada."}
-            </p>
-          </div>
-
-          <div class="semester-summary-tags">
-
-            <span>📅 ${date}</span>
-
-            <span>
-              ${work.done ? "✅ Concluído" : "⏳ Pendente"}
-            </span>
-
-            <span>
-              ${work.delivered ? "📤 Entregue" : "📥 Não entregue"}
-            </span>
-
-            <span>
-              Dificuldade: ${getDifficultyLabel(work.difficulty)}
-            </span>
-
-          </div>
-
-        </div>
-      `;
-    });
-  });
+      state.theme =
+        state.theme === "light"
+          ? "dark"
+          : "light";
 
 
-  if (!worksHtml) {
-    worksHtml = `
-      <p class="semester-summary-muted">
-        Nenhum trabalho cadastrado.
-      </p>
-    `;
-  }
+      saveState();
+
+      applyTheme();
+    }
+  );
+}
 
 
-  // =====================================================
-  // PROVAS
-  // =====================================================
+// =====================================================
+// SALVAR CONFIGURAÇÃO
+// =====================================================
 
-  let examsHtml = "";
+if (saveConfigBtn) {
 
-  subjects.forEach(subject => {
+  saveConfigBtn.addEventListener(
+    "click",
+    () => {
 
-    const exams = subject.exams || [];
-
-    exams.forEach((exam, index) => {
-
-      const date = exam.date
-        ? formatSummaryDate(exam.date)
-        : "Sem data";
-
-      examsHtml += `
-        <div class="semester-summary-item">
-
-          <div>
-            <strong>
-              ${subject.name} — Prova ${index + 1}
-            </strong>
-
-            <p>
-              ${exam.description || "Sem conteúdo cadastrado."}
-            </p>
-          </div>
-
-          <div class="semester-summary-tags">
-
-            <span>📅 ${date}</span>
-
-            <span>
-              ${exam.done ? "✅ Realizada" : "⏳ Pendente"}
-            </span>
-
-          </div>
-
-        </div>
-      `;
-    });
-  });
+      const courseName =
+        courseNameInput
+          ? courseNameInput.value.trim()
+          : "";
 
 
-  if (!examsHtml) {
-    examsHtml = `
-      <p class="semester-summary-muted">
-        Nenhuma prova cadastrada.
-      </p>
-    `;
-  }
-
-
-  // =====================================================
-  // MATÉRIAS / CONTEÚDOS
-  // =====================================================
-
-  let subjectsHtml = "";
-
-  if (subjects.length) {
-
-    subjects.forEach(subject => {
-
-      const lessons = subject.lessons || [];
-
-      const completed =
-        lessons.filter(lesson => lesson.done).length;
-
-      const percent =
-        lessons.length > 0
-          ? Math.round(
-              (completed / lessons.length) * 100
+      const totalSemesters =
+        totalSemestersInput
+          ? Number(
+              totalSemestersInput.value
             )
           : 0;
 
 
-      let lessonsHtml = "";
+      if (
+        !totalSemesters ||
+        totalSemesters < 1 ||
+        totalSemesters > 20
+      ) {
 
-      if (lessons.length) {
+        if (configStatus) {
 
-        lessons.forEach(lesson => {
+          configStatus.textContent =
+            "Informe uma quantidade válida de semestres entre 1 e 20.";
+        }
 
-          lessonsHtml += `
-            <li class="${lesson.done ? "summary-lesson-done" : ""}">
-              ${lesson.done ? "✓" : "○"}
-              ${lesson.title}
-            </li>
-          `;
-        });
-
-      } else {
-
-        lessonsHtml = `
-          <li>Nenhum conteúdo cadastrado.</li>
-        `;
+        return;
       }
 
 
-      subjectsHtml += `
-        <div class="semester-summary-subject">
+      state.courseName =
+        courseName;
 
-          <div class="semester-summary-subject-header">
 
-            <strong>${subject.name}</strong>
+      state.totalSemesters =
+        totalSemesters;
 
-            <span>
-              ${completed}/${lessons.length}
-              aulas — ${percent}%
-            </span>
 
-          </div>
+      if (
+        currentSemester >
+        state.totalSemesters
+      ) {
 
-          <div class="progress-bar-track">
+        currentSemester =
+          state.totalSemesters;
 
-            <div
-              class="progress-bar-fill"
-              style="width:${percent}%;">
-            </div>
 
-          </div>
+        state.currentSemester =
+          currentSemester;
+      }
 
-          <ul class="semester-summary-lessons">
-            ${lessonsHtml}
-          </ul>
 
-        </div>
-      `;
-    });
+      state.subjects.forEach(
+        subject => {
 
-  } else {
+          if (
+            subject.semester >
+            state.totalSemesters
+          ) {
 
-    subjectsHtml = `
-      <p class="semester-summary-muted">
-        Nenhuma matéria cadastrada.
+            subject.semester =
+              state.totalSemesters;
+          }
+        }
+      );
+
+
+      saveState();
+
+      renderSemesterOptions();
+
+      renderConfigFields();
+
+      renderAll();
+
+
+      if (configStatus) {
+
+        configStatus.textContent =
+          "Configuração salva com sucesso.";
+      }
+    }
+  );
+}
+
+
+// =====================================================
+// NOTÍCIAS E CONTEÚDOS
+// =====================================================
+
+function renderNews() {
+
+  if (
+    !newsCenter ||
+    !newsSubjects ||
+    !newsPanel
+  ) {
+    return;
+  }
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  newsCenter.textContent =
+    state.courseName &&
+    state.courseName.trim()
+      ? state.courseName
+      : "Curso";
+
+
+  newsSubjects.innerHTML = "";
+
+
+  if (!subjects.length) {
+
+    newsPanel.innerHTML = `
+
+      <h3>
+        Nenhuma matéria neste semestre
+      </h3>
+
+      <p>
+        Não há matérias cadastradas
+        para o semestre selecionado.
       </p>
+
+      <p>
+        Selecione outro semestre ou
+        adicione matérias primeiro.
+      </p>
+
     `;
+
+    return;
   }
 
 
-  // =====================================================
-  // DATAS IMPORTANTES
-  // =====================================================
+  newsPanel.innerHTML = `
 
-  let datesHtml = "";
+    <p>
+      Selecione uma matéria para
+      visualizar conteúdos.
+    </p>
 
-  if (importantDates.length) {
+  `;
 
-    [...importantDates]
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .forEach(item => {
 
-        datesHtml += `
-          <li>
-            <strong>
-              ${formatSummaryDate(item.date)}
-            </strong>
-            — ${item.label}
-          </li>
-        `;
-      });
+  const total =
+    subjects.length;
+
+
+  const radius =
+    Math.max(
+      180,
+      total * 30
+    );
+
+
+  subjects.forEach(
+    (subject, index) => {
+
+      const angle =
+        (index / total) *
+          (2 * Math.PI) -
+        Math.PI / 2;
+
+
+      const x =
+        radius *
+        Math.cos(angle);
+
+
+      const y =
+        radius *
+        Math.sin(angle);
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "news-subject";
+
+
+      div.textContent =
+        subject.name;
+
+
+      div.style.position =
+        "absolute";
+
+
+      div.style.left =
+        `calc(50% + ${x}px - 80px)`;
+
+
+      div.style.top =
+        `calc(45% + ${y}px - 25px)`;
+
+
+      div.addEventListener(
+        "click",
+        () => {
+
+          renderNewsPanel(
+            subject
+          );
+        }
+      );
+
+
+      newsSubjects.appendChild(
+        div
+      );
+    }
+  );
+}
+
+
+function renderNewsPanel(subject) {
+
+  if (!newsPanel) return;
+
+
+  ensureMaterialsState();
+
+
+  const materials =
+    state.materialsBySubject[
+      subject.id
+    ] || [];
+
+
+  let materialsHtml = "";
+
+
+  if (materials.length) {
+
+    materialsHtml = `
+
+      <h4 style="margin-top:10px;">
+        Materiais em PDF
+      </h4>
+
+      <ul
+        style="
+          margin-top:6px;
+          padding-left:18px;
+        "
+      >
+
+        ${materials
+          .map(
+            material => `
+
+              <li
+                style="
+                  margin-bottom:6px;
+                "
+              >
+
+                <a
+                  href="${material.url}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="
+                    color:inherit;
+                    text-decoration:underline;
+                  "
+                >
+                  ${material.name}
+                </a>
+
+              </li>
+
+            `
+          )
+          .join("")}
+
+      </ul>
+
+    `;
 
   } else {
 
-    datesHtml = `
-      <li>Nenhuma data importante cadastrada.</li>
+    materialsHtml = `
+
+      <h4 style="margin-top:10px;">
+        Materiais em PDF
+      </h4>
+
+      <p style="margin-top:6px;">
+        Nenhum PDF cadastrado para
+        esta matéria ainda.
+      </p>
+
     `;
   }
 
 
-  // =====================================================
-  // HORÁRIO DAS AULAS
-  // =====================================================
+  newsPanel.innerHTML = `
 
-  const dayNames = {
-    monday: "Segunda",
-    tuesday: "Terça",
-    wednesday: "Quarta",
-    thursday: "Quinta",
-    friday: "Sexta"
-  };
+    <h3>
+      ${subject.name}
+    </h3>
 
-
-  let timetableHtml = "";
+    <p>
+      Conteúdos disponíveis para
+      esta matéria:
+    </p>
 
 
-  Object.keys(dayNames).forEach(day => {
-
-    const classes = timetable[day] || [];
-
-    classes.forEach(item => {
-
-      timetableHtml += `
-        <tr>
-          <td>${dayNames[day]}</td>
-          <td>${item.time}</td>
-          <td>${item.subject}</td>
-        </tr>
-      `;
-    });
-  });
+    ${materialsHtml}
 
 
-  if (!timetableHtml) {
+    <div style="margin-top:12px;">
 
-    timetableHtml = `
-      <tr>
-        <td colspan="3">
-          Nenhum horário cadastrado.
-        </td>
-      </tr>
-    `;
-  }
+      <p>
+        Em breve você verá aqui também:
+      </p>
 
+      <ul
+        style="
+          padding-left:18px;
+          margin-top:6px;
+        "
+      >
 
-  // =====================================================
-  // MONTA O RESUMO NA TELA
-  // =====================================================
+        <li>Links e artigos</li>
 
-  semesterSummaryResult.innerHTML = `
+        <li>Vídeos</li>
 
-    <div class="semester-summary-header">
+        <li>Notícias</li>
 
-      <div>
-
-        <span class="semester-summary-eyebrow">
-          RESUMO ACADÊMICO
-        </span>
-
-        <h2>
-          ${semester}º Semestre
-        </h2>
-
-        <p>
-          ${state.courseName || "Curso não informado"}
-        </p>
-
-      </div>
+      </ul>
 
     </div>
 
-
-    <section class="semester-summary-section">
-
-      <h3>📊 Visão geral</h3>
-
-      <div class="semester-summary-stat-grid">
-
-        <div class="semester-summary-stat">
-          <span>Matérias</span>
-          <strong>${subjects.length}</strong>
-        </div>
-
-        <div class="semester-summary-stat">
-          <span>Trabalhos</span>
-          <strong>${doneWorks}/${totalWorks}</strong>
-        </div>
-
-        <div class="semester-summary-stat">
-          <span>Entregues</span>
-          <strong>${deliveredWorks}/${totalWorks}</strong>
-        </div>
-
-        <div class="semester-summary-stat">
-          <span>Provas</span>
-          <strong>${doneExams}/${totalExams}</strong>
-        </div>
-
-        <div class="semester-summary-stat">
-          <span>Estudo</span>
-          <strong>${studyProgress}%</strong>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>⭐ Notas</h3>
-
-      <div class="semester-summary-list">
-        ${gradesHtml}
-      </div>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>📋 Trabalhos</h3>
-
-      <div class="semester-summary-list">
-        ${worksHtml}
-      </div>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>📝 Provas</h3>
-
-      <div class="semester-summary-list">
-        ${examsHtml}
-      </div>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>📚 Matérias e conteúdo estudado</h3>
-
-      <div class="semester-summary-list">
-        ${subjectsHtml}
-      </div>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>📅 Datas importantes</h3>
-
-      <ul class="semester-summary-dates">
-        ${datesHtml}
-      </ul>
-
-    </section>
-
-
-    <section class="semester-summary-section">
-
-      <h3>🕐 Horário das aulas</h3>
-
-      <div class="semester-summary-table-wrapper">
-
-        <table class="semester-summary-table">
-
-          <thead>
-            <tr>
-              <th>Dia</th>
-              <th>Horário</th>
-              <th>Matéria</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${timetableHtml}
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </section>
   `;
 }
 
 
 // =====================================================
-// BOTÃO GERAR RESUMO
+// SELECT DE MATERIAIS
 // =====================================================
 
-if (generateSemesterSummaryBtn) {
+function populateMaterialSubjectSelect() {
 
-  generateSemesterSummaryBtn.addEventListener("click", () => {
+  if (!materialSubjectSelect) {
+    return;
+  }
 
-    const semester =
-      summarySemesterSelect
-        ? summarySemesterSelect.value
-        : "";
 
-    if (!semester) {
+  const previousValue =
+    materialSubjectSelect.value ||
+    "";
 
-      semesterSummaryResult.innerHTML = `
-        <div class="semester-summary-empty">
-          Escolha um semestre primeiro.
-        </div>
-      `;
 
-      return;
+  materialSubjectSelect.innerHTML =
+    `<option value="">
+      Selecione a matéria
+    </option>`;
+
+
+  const sortedSubjects =
+    [...state.subjects].sort(
+      (a, b) => {
+
+        if (
+          a.semester !==
+          b.semester
+        ) {
+
+          return (
+            a.semester -
+            b.semester
+          );
+        }
+
+
+        return a.name.localeCompare(
+          b.name
+        );
+      }
+    );
+
+
+  sortedSubjects.forEach(
+    subject => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        subject.id;
+
+
+      option.textContent =
+        `${subject.name} (${subject.semester}º semestre)`;
+
+
+      materialSubjectSelect.appendChild(
+        option
+      );
     }
+  );
 
-    renderSemesterSummary(semester);
-  });
+
+  const exists =
+    [
+      ...materialSubjectSelect.options
+    ].some(
+      opt =>
+        opt.value ===
+        previousValue
+    );
+
+
+  if (exists) {
+
+    materialSubjectSelect.value =
+      previousValue;
+  }
 }
+
+
+// =====================================================
+// LISTA DE MATERIAIS NA CONFIGURAÇÃO
+// =====================================================
+
+function renderMaterialsListConfig() {
+
+  if (!materialsListConfig) {
+    return;
+  }
+
+
+  materialsListConfig.innerHTML =
+    "";
+
+
+  ensureMaterialsState();
+
+
+  const allSubjects =
+    [...state.subjects];
+
+
+  let hasAny =
+    false;
+
+
+  allSubjects.forEach(
+    subject => {
+
+      const materials =
+        state.materialsBySubject[
+          subject.id
+        ] || [];
+
+
+      if (!materials.length) {
+        return;
+      }
+
+
+      hasAny =
+        true;
+
+
+      const titleLi =
+        document.createElement(
+          "li"
+        );
+
+
+      titleLi.style.marginTop =
+        "8px";
+
+
+      titleLi.innerHTML =
+        `<strong>${subject.name}</strong>`;
+
+
+      materialsListConfig.appendChild(
+        titleLi
+      );
+
+
+      materials.forEach(
+        material => {
+
+          const li =
+            document.createElement(
+              "li"
+            );
+
+
+          li.style.marginLeft =
+            "12px";
+
+
+          const link =
+            document.createElement(
+              "a"
+            );
+
+
+          link.href =
+            material.url;
+
+
+          link.target =
+            "_blank";
+
+
+          link.rel =
+            "noopener noreferrer";
+
+
+          link.textContent =
+            material.name;
+
+
+          link.style.color =
+            "inherit";
+
+
+          link.style.textDecoration =
+            "underline";
+
+
+          const deleteBtn =
+            document.createElement(
+              "button"
+            );
+
+
+          deleteBtn.type =
+            "button";
+
+
+          deleteBtn.className =
+            "inline-delete-btn";
+
+
+          deleteBtn.textContent =
+            "Excluir";
+
+
+          deleteBtn.addEventListener(
+            "click",
+            () => {
+
+              state
+                .materialsBySubject[
+                  subject.id
+                ] =
+                (
+                  state
+                    .materialsBySubject[
+                      subject.id
+                    ] || []
+                ).filter(
+                  item =>
+                    item.id !==
+                    material.id
+                );
+
+
+              saveState();
+
+              renderMaterialsListConfig();
+
+              renderNews();
+            }
+          );
+
+
+          li.appendChild(link);
+
+          li.appendChild(
+            document.createTextNode(
+              " "
+            )
+          );
+
+          li.appendChild(
+            deleteBtn
+          );
+
+
+          materialsListConfig.appendChild(
+            li
+          );
+        }
+      );
+    }
+  );
+
+
+  if (!hasAny) {
+
+    const li =
+      document.createElement(
+        "li"
+      );
+
+
+    li.textContent =
+      "Nenhum material em PDF cadastrado ainda.";
+
+
+    materialsListConfig.appendChild(
+      li
+    );
+  }
+}
+
+
+// =====================================================
+// SALVAR MATERIAL
+// =====================================================
+
+if (saveMaterialBtn) {
+
+  saveMaterialBtn.addEventListener(
+    "click",
+    () => {
+
+      ensureMaterialsState();
+
+
+      const subjectId =
+        materialSubjectSelect
+          ? materialSubjectSelect.value
+          : "";
+
+
+      const materialName =
+        materialNameInput
+          ? materialNameInput.value.trim()
+          : "";
+
+
+      const materialUrl =
+        materialUrlInput
+          ? materialUrlInput.value.trim()
+          : "";
+
+
+      if (
+        !subjectId ||
+        !materialName ||
+        !materialUrl
+      ) {
+
+        if (materialStatus) {
+
+          materialStatus.textContent =
+            "Preencha a matéria, o nome do material e o link do PDF.";
+        }
+
+        return;
+      }
+
+
+      if (
+        !state.materialsBySubject[
+          subjectId
+        ]
+      ) {
+
+        state.materialsBySubject[
+          subjectId
+        ] = [];
+      }
+
+
+      state.materialsBySubject[
+        subjectId
+      ].push({
+
+        id:
+          "mat_" +
+          Date.now(),
+
+        name:
+          materialName,
+
+        url:
+          materialUrl
+
+      });
+
+
+      saveState();
+
+
+      if (materialNameInput) {
+
+        materialNameInput.value =
+          "";
+      }
+
+
+      if (materialUrlInput) {
+
+        materialUrlInput.value =
+          "";
+      }
+
+
+      renderMaterialsListConfig();
+
+
+      if (materialStatus) {
+
+        materialStatus.textContent =
+          "Material salvo com sucesso.";
+      }
+    }
+  );
+}
+
 
 // =====================================================
 // RESUMO DOS SEMESTRES
+// VERSÃO NOVA — ÚNICA
 // =====================================================
 
-let selectedSummarySemester = null;
-let currentSummaryTab = "overview";
+let selectedSummarySemester =
+  null;
+
+
+let currentSummaryTab =
+  "overview";
 
 
 function populateSummarySemesterSelect() {
 
-  if (!summarySemesterSelect) return;
+  if (!summarySemesterSelect) {
+    return;
+  }
 
-  const previousValue = summarySemesterSelect.value;
 
-  const total = Number(state.totalSemesters) || 5;
+  const previousValue =
+    summarySemesterSelect.value;
+
+
+  const total =
+    Number(
+      state.totalSemesters
+    ) || 5;
+
 
   summarySemesterSelect.innerHTML = `
-    <option value="">Selecione o semestre</option>
+
+    <option value="">
+      Selecione o semestre
+    </option>
+
   `;
 
-  for (let i = 1; i <= total; i++) {
 
-    const option = document.createElement("option");
+  for (
+    let i = 1;
+    i <= total;
+    i++
+  ) {
 
-    option.value = String(i);
-    option.textContent = `${i}º semestre`;
+    const option =
+      document.createElement(
+        "option"
+      );
 
-    summarySemesterSelect.appendChild(option);
+
+    option.value =
+      String(i);
+
+
+    option.textContent =
+      `${i}º semestre`;
+
+
+    summarySemesterSelect.appendChild(
+      option
+    );
   }
+
 
   if (
     previousValue &&
     Number(previousValue) <= total
   ) {
-    summarySemesterSelect.value = previousValue;
+
+    summarySemesterSelect.value =
+      previousValue;
   }
 }
 
 
 function formatSummaryDate(date) {
 
-  if (!date) return "-";
+  if (!date) {
+    return "-";
+  }
 
-  const [year, month, day] = date.split("-");
 
-  return `${day}/${month}/${year}`;
+  const [
+    year,
+    month,
+    day
+  ] =
+    date.split("-");
+
+
+  return (
+    `${day}/${month}/${year}`
+  );
 }
 
 
 function getDifficultyLabel(value) {
 
-  if (value === "facil") return "Fácil";
+  if (value === "facil") {
+    return "Fácil";
+  }
 
-  if (value === "dificil") return "Difícil";
+
+  if (value === "dificil") {
+    return "Difícil";
+  }
+
 
   return "Médio";
 }
 
 
-function getSemesterSummaryData(semesterNumber) {
+function getSemesterSummaryData(
+  semesterNumber
+) {
 
-  const semester = Number(semesterNumber);
+  const semester =
+    Number(
+      semesterNumber
+    );
 
-  const subjects = state.subjects.filter(
-    subject =>
-      Number(subject.semester) === semester
-  );
 
-  const key = String(semester);
+  const subjects =
+    state.subjects.filter(
+      subject =>
+        Number(
+          subject.semester
+        ) === semester
+    );
+
+
+  const key =
+    String(
+      semester
+    );
+
 
   const importantDates =
-    state.importantDatesBySemester?.[key] || [];
+    state
+      .importantDatesBySemester?.[
+        key
+      ] || [];
+
 
   const timetable =
-    state.timetableBySemester?.[key] || {};
+    state
+      .timetableBySemester?.[
+        key
+      ] || {};
 
 
   let totalWorks = 0;
+
   let doneWorks = 0;
+
   let deliveredWorks = 0;
 
   let totalExams = 0;
+
   let doneExams = 0;
 
   let totalLessons = 0;
+
   let doneLessons = 0;
 
 
-  subjects.forEach(subject => {
+  subjects.forEach(
+    subject => {
 
-    const works = subject.works || [];
-    const exams = subject.exams || [];
-    const lessons = subject.lessons || [];
-
-    totalWorks += works.length;
-
-    doneWorks +=
-      works.filter(work => work.done).length;
-
-    deliveredWorks +=
-      works.filter(work => work.delivered).length;
+      const works =
+        subject.works || [];
 
 
-    totalExams += exams.length;
-
-    doneExams +=
-      exams.filter(exam => exam.done).length;
+      const exams =
+        subject.exams || [];
 
 
-    totalLessons += lessons.length;
+      const lessons =
+        subject.lessons || [];
 
-    doneLessons +=
-      lessons.filter(lesson => lesson.done).length;
 
-  });
+      totalWorks +=
+        works.length;
+
+
+      doneWorks +=
+        works.filter(
+          work =>
+            work.done
+        ).length;
+
+
+      deliveredWorks +=
+        works.filter(
+          work =>
+            work.delivered
+        ).length;
+
+
+      totalExams +=
+        exams.length;
+
+
+      doneExams +=
+        exams.filter(
+          exam =>
+            exam.done
+        ).length;
+
+
+      totalLessons +=
+        lessons.length;
+
+
+      doneLessons +=
+        lessons.filter(
+          lesson =>
+            lesson.done
+        ).length;
+    }
+  );
 
 
   const studyProgress =
     totalLessons
       ? Math.round(
-          (doneLessons / totalLessons) * 100
+          (
+            doneLessons /
+            totalLessons
+          ) * 100
         )
       : 0;
 
@@ -1311,145 +1811,278 @@ function getSemesterSummaryData(semesterNumber) {
   };
 }
 
+
+// =====================================================
+// CARDS DE ESTATÍSTICAS DO RESUMO
+// =====================================================
+
 function renderSummaryStats(data) {
+
+  if (!semesterSummaryStats) {
+    return;
+  }
+
 
   semesterSummaryStats.innerHTML = `
 
     <div class="semester-summary-stat">
-      <span>Matérias</span>
-      <strong>${data.subjects.length}</strong>
+
+      <span>
+        Matérias
+      </span>
+
+      <strong>
+        ${data.subjects.length}
+      </strong>
+
     </div>
 
+
     <div class="semester-summary-stat">
-      <span>Trabalhos concluídos</span>
+
+      <span>
+        Trabalhos concluídos
+      </span>
+
       <strong>
         ${data.doneWorks}/${data.totalWorks}
       </strong>
+
     </div>
 
+
     <div class="semester-summary-stat">
-      <span>Trabalhos entregues</span>
+
+      <span>
+        Trabalhos entregues
+      </span>
+
       <strong>
         ${data.deliveredWorks}/${data.totalWorks}
       </strong>
+
     </div>
 
+
     <div class="semester-summary-stat">
-      <span>Provas realizadas</span>
+
+      <span>
+        Provas realizadas
+      </span>
+
       <strong>
         ${data.doneExams}/${data.totalExams}
       </strong>
+
     </div>
 
+
     <div class="semester-summary-stat">
-      <span>Progresso de estudo</span>
+
+      <span>
+        Progresso de estudo
+      </span>
+
       <strong>
         ${data.studyProgress}%
       </strong>
+
     </div>
 
   `;
 }
 
+
+// =====================================================
+// VISÃO GERAL DO RESUMO
+// =====================================================
+
 function renderSummaryOverview(data) {
+
+  if (!semesterSummaryContent) {
+    return;
+  }
+
 
   const subjectNames =
     data.subjects.length
       ? data.subjects
-          .map(subject => `
-            <span class="summary-subject-chip">
-              ${subject.name}
-            </span>
-          `)
+          .map(
+            subject => `
+
+              <span
+                class="summary-subject-chip"
+              >
+                ${subject.name}
+              </span>
+
+            `
+          )
           .join("")
       : `
-        <p class="semester-summary-muted">
+
+        <p
+          class="semester-summary-muted"
+        >
           Nenhuma matéria cadastrada.
         </p>
+
       `;
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
+
         <div>
-          <h3>Visão geral</h3>
+
+          <h3>
+            Visão geral
+          </h3>
+
           <p>
-            Acompanhamento acadêmico do semestre.
+            Acompanhamento acadêmico
+            do semestre.
           </p>
+
         </div>
+
       </div>
 
 
-      <div class="summary-progress-card">
+      <div
+        class="summary-progress-card"
+      >
 
-        <div class="summary-progress-header">
+        <div
+          class="summary-progress-header"
+        >
 
-          <strong>Progresso de estudo</strong>
+          <strong>
+            Progresso de estudo
+          </strong>
 
           <span>
-            ${data.doneLessons}/${data.totalLessons}
+
+            ${data.doneLessons}/
+            ${data.totalLessons}
             conteúdos
+
           </span>
 
         </div>
 
-        <div class="summary-big-progress">
+
+        <div
+          class="summary-big-progress"
+        >
 
           <div
-            style="width:${data.studyProgress}%">
+            style="
+              width:
+              ${data.studyProgress}%;
+            "
+          >
           </div>
 
         </div>
 
-        <span class="summary-progress-percent">
+
+        <span
+          class="summary-progress-percent"
+        >
+
           ${data.studyProgress}%
+
         </span>
 
       </div>
 
 
-      <div class="summary-overview-grid">
+      <div
+        class="summary-overview-grid"
+      >
 
-        <div class="summary-overview-card">
+        <div
+          class="summary-overview-card"
+        >
 
-          <h4>📚 Matérias</h4>
+          <h4>
+            📚 Matérias
+          </h4>
 
-          <div class="summary-subject-chips">
+          <div
+            class="summary-subject-chips"
+          >
+
             ${subjectNames}
+
           </div>
 
         </div>
 
 
-        <div class="summary-overview-card">
+        <div
+          class="summary-overview-card"
+        >
 
-          <h4>📋 Trabalhos</h4>
+          <h4>
+            📋 Trabalhos
+          </h4>
 
           <p>
-            <strong>${data.doneWorks}</strong>
+
+            <strong>
+              ${data.doneWorks}
+            </strong>
+
             concluídos de
-            <strong>${data.totalWorks}</strong>
+
+            <strong>
+              ${data.totalWorks}
+            </strong>
+
           </p>
 
           <p>
-            <strong>${data.deliveredWorks}</strong>
+
+            <strong>
+              ${data.deliveredWorks}
+            </strong>
+
             entregues
+
           </p>
 
         </div>
 
 
-        <div class="summary-overview-card">
+        <div
+          class="summary-overview-card"
+        >
 
-          <h4>📝 Provas</h4>
+          <h4>
+            📝 Provas
+          </h4>
 
           <p>
-            <strong>${data.doneExams}</strong>
+
+            <strong>
+              ${data.doneExams}
+            </strong>
+
             realizadas de
-            <strong>${data.totalExams}</strong>
+
+            <strong>
+              ${data.totalExams}
+            </strong>
+
           </p>
 
         </div>
@@ -1461,10 +2094,17 @@ function renderSummaryOverview(data) {
   `;
 }
 
+// =====================================================
+// NOTAS DO RESUMO
+// =====================================================
+
 function renderSummaryGrades(data) {
 
-  let html = "";
+  if (!semesterSummaryContent) {
+    return;
+  }
 
+  let html = "";
 
   data.subjects.forEach(subject => {
 
@@ -1474,19 +2114,18 @@ function renderSummaryGrades(data) {
     const finalGrade =
       computeFinalGrade(grades);
 
-
     const finalText =
       finalGrade !== null &&
       !isNaN(finalGrade)
         ? finalGrade.toFixed(2)
         : "-";
 
-
     const gradeClass =
+      finalGrade !== null &&
+      !isNaN(finalGrade) &&
       finalGrade >= 6
         ? "summary-grade-approved"
         : "summary-grade-warning";
-
 
     html += `
 
@@ -1494,9 +2133,16 @@ function renderSummaryGrades(data) {
 
         <div class="summary-grade-header">
 
-          <h4>${subject.name}</h4>
+          <h4>
+            ${subject.name}
+          </h4>
 
-          <div class="summary-grade-final ${gradeClass}">
+          <div
+            class="
+              summary-grade-final
+              ${gradeClass}
+            "
+          >
             ${finalText}
           </div>
 
@@ -1506,23 +2152,46 @@ function renderSummaryGrades(data) {
         <div class="summary-grade-grid">
 
           <div>
-            <span>Trabalho 1</span>
-            <strong>${grades.t1 ?? "-"}</strong>
+            <span>
+              Trabalho 1
+            </span>
+
+            <strong>
+              ${grades.t1 ?? "-"}
+            </strong>
           </div>
 
-          <div>
-            <span>Prova 1</span>
-            <strong>${grades.p1 ?? "-"}</strong>
-          </div>
 
           <div>
-            <span>Trabalho 2</span>
-            <strong>${grades.t2 ?? "-"}</strong>
+            <span>
+              Prova 1
+            </span>
+
+            <strong>
+              ${grades.p1 ?? "-"}
+            </strong>
           </div>
 
+
           <div>
-            <span>Prova 2</span>
-            <strong>${grades.p2 ?? "-"}</strong>
+            <span>
+              Trabalho 2
+            </span>
+
+            <strong>
+              ${grades.t2 ?? "-"}
+            </strong>
+          </div>
+
+
+          <div>
+            <span>
+              Prova 2
+            </span>
+
+            <strong>
+              ${grades.p2 ?? "-"}
+            </strong>
           </div>
 
         </div>
@@ -1530,22 +2199,28 @@ function renderSummaryGrades(data) {
       </div>
 
     `;
-
   });
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
 
         <div>
 
-          <h3>Notas</h3>
+          <h3>
+            Notas
+          </h3>
 
           <p>
-            Resultado das avaliações do semestre.
+            Resultado das avaliações
+            do semestre.
           </p>
 
         </div>
@@ -1553,14 +2228,18 @@ function renderSummaryGrades(data) {
       </div>
 
 
-      <div class="summary-content-list">
+      <div
+        class="summary-content-list"
+      >
 
         ${
           html ||
           `
-          <p class="semester-summary-muted">
-            Nenhuma matéria cadastrada.
-          </p>
+            <p
+              class="semester-summary-muted"
+            >
+              Nenhuma matéria cadastrada.
+            </p>
           `
         }
 
@@ -1571,25 +2250,42 @@ function renderSummaryGrades(data) {
   `;
 }
 
+
+// =====================================================
+// TRABALHOS DO RESUMO
+// =====================================================
+
 function renderSummaryWorks(data) {
+
+  if (!semesterSummaryContent) {
+    return;
+  }
 
   let html = "";
 
-
   data.subjects.forEach(subject => {
 
-    (subject.works || []).forEach(
+    const works =
+      subject.works || [];
+
+    works.forEach(
       (work, index) => {
 
         html += `
 
-          <div class="summary-task-card">
+          <div
+            class="summary-task-card"
+          >
 
-            <div class="summary-task-header">
+            <div
+              class="summary-task-header"
+            >
 
               <div>
 
-                <span class="summary-task-subject">
+                <span
+                  class="summary-task-subject"
+                >
                   ${subject.name}
                 </span>
 
@@ -1600,12 +2296,16 @@ function renderSummaryWorks(data) {
               </div>
 
 
-              <span class="
-                summary-status-badge
-                ${work.done
-                  ? "summary-status-done"
-                  : "summary-status-pending"}
-              ">
+              <span
+                class="
+                  summary-status-badge
+                  ${
+                    work.done
+                      ? "summary-status-done"
+                      : "summary-status-pending"
+                  }
+                "
+              >
 
                 ${
                   work.done
@@ -1618,7 +2318,9 @@ function renderSummaryWorks(data) {
             </div>
 
 
-            <p class="summary-description">
+            <p
+              class="summary-description"
+            >
 
               ${
                 work.description ||
@@ -1628,10 +2330,14 @@ function renderSummaryWorks(data) {
             </p>
 
 
-            <div class="summary-task-footer">
+            <div
+              class="summary-task-footer"
+            >
 
               <span>
+
                 📅
+
                 ${
                   work.dueDate
                     ? formatSummaryDate(
@@ -1639,25 +2345,31 @@ function renderSummaryWorks(data) {
                       )
                     : "Sem data"
                 }
+
               </span>
 
 
               <span>
+
                 ${
                   work.delivered
                     ? "📤 Entregue"
                     : "📥 Não entregue"
                 }
+
               </span>
 
 
               <span>
+
                 Dificuldade:
+
                 ${
                   getDifficultyLabel(
                     work.difficulty
                   )
                 }
+
               </span>
 
             </div>
@@ -1665,25 +2377,30 @@ function renderSummaryWorks(data) {
           </div>
 
         `;
-
       }
     );
-
   });
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
 
         <div>
 
-          <h3>Trabalhos</h3>
+          <h3>
+            Trabalhos
+          </h3>
 
           <p>
-            Atividades e entregas do semestre.
+            Atividades e entregas
+            do semestre.
           </p>
 
         </div>
@@ -1691,14 +2408,18 @@ function renderSummaryWorks(data) {
       </div>
 
 
-      <div class="summary-content-list">
+      <div
+        class="summary-content-list"
+      >
 
         ${
           html ||
           `
-          <p class="semester-summary-muted">
-            Nenhum trabalho cadastrado.
-          </p>
+            <p
+              class="semester-summary-muted"
+            >
+              Nenhum trabalho cadastrado.
+            </p>
           `
         }
 
@@ -1709,25 +2430,42 @@ function renderSummaryWorks(data) {
   `;
 }
 
+
+// =====================================================
+// PROVAS DO RESUMO
+// =====================================================
+
 function renderSummaryExams(data) {
+
+  if (!semesterSummaryContent) {
+    return;
+  }
 
   let html = "";
 
-
   data.subjects.forEach(subject => {
 
-    (subject.exams || []).forEach(
+    const exams =
+      subject.exams || [];
+
+    exams.forEach(
       (exam, index) => {
 
         html += `
 
-          <div class="summary-task-card">
+          <div
+            class="summary-task-card"
+          >
 
-            <div class="summary-task-header">
+            <div
+              class="summary-task-header"
+            >
 
               <div>
 
-                <span class="summary-task-subject">
+                <span
+                  class="summary-task-subject"
+                >
                   ${subject.name}
                 </span>
 
@@ -1738,12 +2476,16 @@ function renderSummaryExams(data) {
               </div>
 
 
-              <span class="
-                summary-status-badge
-                ${exam.done
-                  ? "summary-status-done"
-                  : "summary-status-pending"}
-              ">
+              <span
+                class="
+                  summary-status-badge
+                  ${
+                    exam.done
+                      ? "summary-status-done"
+                      : "summary-status-pending"
+                  }
+                "
+              >
 
                 ${
                   exam.done
@@ -1756,7 +2498,9 @@ function renderSummaryExams(data) {
             </div>
 
 
-            <p class="summary-description">
+            <p
+              class="summary-description"
+            >
 
               ${
                 exam.description ||
@@ -1766,10 +2510,14 @@ function renderSummaryExams(data) {
             </p>
 
 
-            <div class="summary-task-footer">
+            <div
+              class="summary-task-footer"
+            >
 
               <span>
+
                 📅
+
                 ${
                   exam.date
                     ? formatSummaryDate(
@@ -1777,6 +2525,7 @@ function renderSummaryExams(data) {
                       )
                     : "Sem data"
                 }
+
               </span>
 
             </div>
@@ -1784,34 +2533,48 @@ function renderSummaryExams(data) {
           </div>
 
         `;
-
       }
     );
-
   });
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
 
         <div>
-          <h3>Provas</h3>
-          <p>Avaliações do semestre.</p>
+
+          <h3>
+            Provas
+          </h3>
+
+          <p>
+            Avaliações do semestre.
+          </p>
+
         </div>
 
       </div>
 
-      <div class="summary-content-list">
+
+      <div
+        class="summary-content-list"
+      >
 
         ${
           html ||
           `
-          <p class="semester-summary-muted">
-            Nenhuma prova cadastrada.
-          </p>
+            <p
+              class="semester-summary-muted"
+            >
+              Nenhuma prova cadastrada.
+            </p>
           `
         }
 
@@ -1822,10 +2585,18 @@ function renderSummaryExams(data) {
   `;
 }
 
+
+// =====================================================
+// MATÉRIAS DO RESUMO
+// =====================================================
+
 function renderSummarySubjects(data) {
 
-  let html = "";
+  if (!semesterSummaryContent) {
+    return;
+  }
 
+  let html = "";
 
   data.subjects.forEach(subject => {
 
@@ -1834,54 +2605,79 @@ function renderSummarySubjects(data) {
 
     const done =
       lessons.filter(
-        lesson => lesson.done
+        lesson =>
+          lesson.done
       ).length;
 
     const percent =
       lessons.length
         ? Math.round(
-            (done / lessons.length) * 100
+            (
+              done /
+              lessons.length
+            ) * 100
           )
         : 0;
 
 
     const lessonHtml =
       lessons.length
-        ? lessons.map(
-            lesson => `
+        ? lessons
+            .map(
+              lesson => `
 
-              <li class="
-                ${lesson.done
-                  ? "summary-lesson-done"
-                  : ""}
-              ">
+                <li
+                  class="
+                    ${
+                      lesson.done
+                        ? "summary-lesson-done"
+                        : ""
+                    }
+                  "
+                >
 
-                <span>
-                  ${lesson.done ? "✓" : "○"}
-                </span>
+                  <span>
+                    ${
+                      lesson.done
+                        ? "✓"
+                        : "○"
+                    }
+                  </span>
 
-                ${lesson.title}
+                  ${lesson.title}
 
-              </li>
+                </li>
 
-            `
-          ).join("")
+              `
+            )
+            .join("")
         : `
+
           <li>
             Nenhum conteúdo cadastrado.
           </li>
+
         `;
 
 
     html += `
 
-      <div class="summary-subject-card">
+      <div
+        class="summary-subject-card"
+      >
 
-        <div class="summary-subject-header">
+        <div
+          class="summary-subject-header"
+        >
 
           <div>
-            <h4>${subject.name}</h4>
+
+            <h4>
+              ${subject.name}
+            </h4>
+
           </div>
+
 
           <strong>
             ${percent}%
@@ -1890,16 +2686,23 @@ function renderSummarySubjects(data) {
         </div>
 
 
-        <div class="summary-small-progress">
+        <div
+          class="summary-small-progress"
+        >
 
           <div
-            style="width:${percent}%">
+            style="
+              width:${percent}%;
+            "
+          >
           </div>
 
         </div>
 
 
-        <p class="summary-subject-progress-text">
+        <p
+          class="summary-subject-progress-text"
+        >
 
           ${done}/${lessons.length}
           conteúdos estudados
@@ -1907,29 +2710,39 @@ function renderSummarySubjects(data) {
         </p>
 
 
-        <ul class="summary-lessons-list">
+        <ul
+          class="summary-lessons-list"
+        >
+
           ${lessonHtml}
+
         </ul>
 
       </div>
 
     `;
-
   });
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
 
         <div>
 
-          <h3>Matérias</h3>
+          <h3>
+            Matérias
+          </h3>
 
           <p>
-            Conteúdos estudados durante o semestre.
+            Conteúdos estudados
+            durante o semestre.
           </p>
 
         </div>
@@ -1937,14 +2750,18 @@ function renderSummarySubjects(data) {
       </div>
 
 
-      <div class="summary-content-list">
+      <div
+        class="summary-content-list"
+      >
 
         ${
           html ||
           `
-          <p class="semester-summary-muted">
-            Nenhuma matéria cadastrada.
-          </p>
+            <p
+              class="semester-summary-muted"
+            >
+              Nenhuma matéria cadastrada.
+            </p>
           `
         }
 
@@ -1955,7 +2772,16 @@ function renderSummarySubjects(data) {
   `;
 }
 
+
+// =====================================================
+// CALENDÁRIO DO RESUMO
+// =====================================================
+
 function renderSummaryCalendar(data) {
+
+  if (!semesterSummaryContent) {
+    return;
+  }
 
   let datesHtml = "";
 
@@ -1963,53 +2789,70 @@ function renderSummaryCalendar(data) {
   [...data.importantDates]
     .sort(
       (a, b) =>
-        a.date.localeCompare(b.date)
+        a.date.localeCompare(
+          b.date
+        )
     )
     .forEach(item => {
 
       datesHtml += `
 
-        <div class="summary-date-item">
+        <div
+          class="summary-date-item"
+        >
 
-          <div class="summary-date-box">
+          <div
+            class="summary-date-box"
+          >
+
             ${
               formatSummaryDate(
                 item.date
               )
             }
+
           </div>
 
-          <span>${item.label}</span>
+          <span>
+            ${item.label}
+          </span>
 
         </div>
 
       `;
-
     });
 
 
   if (!datesHtml) {
 
     datesHtml = `
-      <p class="semester-summary-muted">
+
+      <p
+        class="semester-summary-muted"
+      >
         Nenhuma data importante cadastrada.
       </p>
-    `;
 
+    `;
   }
 
 
   const dayNames = {
 
-    monday: "Segunda",
+    monday:
+      "Segunda",
 
-    tuesday: "Terça",
+    tuesday:
+      "Terça",
 
-    wednesday: "Quarta",
+    wednesday:
+      "Quarta",
 
-    thursday: "Quinta",
+    thursday:
+      "Quinta",
 
-    friday: "Sexta"
+    friday:
+      "Sexta"
 
   };
 
@@ -2017,7 +2860,9 @@ function renderSummaryCalendar(data) {
   let timetableHtml = "";
 
 
-  Object.keys(dayNames).forEach(day => {
+  Object.keys(
+    dayNames
+  ).forEach(day => {
 
     const classes =
       data.timetable[day] || [];
@@ -2044,9 +2889,7 @@ function renderSummaryCalendar(data) {
         </tr>
 
       `;
-
     });
-
   });
 
 
@@ -2063,22 +2906,28 @@ function renderSummaryCalendar(data) {
       </tr>
 
     `;
-
   }
 
 
   semesterSummaryContent.innerHTML = `
 
-    <section class="summary-tab-section">
+    <section
+      class="summary-tab-section"
+    >
 
-      <div class="summary-section-title">
+      <div
+        class="summary-section-title"
+      >
 
         <div>
 
-          <h3>Calendário</h3>
+          <h3>
+            Calendário
+          </h3>
 
           <p>
-            Datas importantes e horário das aulas.
+            Datas importantes e
+            horário das aulas.
           </p>
 
         </div>
@@ -2086,39 +2935,76 @@ function renderSummaryCalendar(data) {
       </div>
 
 
-      <div class="summary-calendar-grid">
+      <div
+        class="summary-calendar-grid"
+      >
 
-        <div class="summary-overview-card">
+        <div
+          class="summary-overview-card"
+        >
 
-          <h4>📅 Datas importantes</h4>
+          <h4>
+            📅 Datas importantes
+          </h4>
 
-          <div class="summary-dates-list">
+
+          <div
+            class="summary-dates-list"
+          >
+
             ${datesHtml}
+
           </div>
 
         </div>
 
 
-        <div class="summary-overview-card">
+        <div
+          class="summary-overview-card"
+        >
 
-          <h4>🕐 Horário das aulas</h4>
+          <h4>
+            🕐 Horário das aulas
+          </h4>
 
-          <div class="semester-summary-table-wrapper">
 
-            <table class="semester-summary-table">
+          <div
+            class="
+              semester-summary-table-wrapper
+            "
+          >
+
+            <table
+              class="
+                semester-summary-table
+              "
+            >
 
               <thead>
 
                 <tr>
-                  <th>Dia</th>
-                  <th>Horário</th>
-                  <th>Matéria</th>
+
+                  <th>
+                    Dia
+                  </th>
+
+                  <th>
+                    Horário
+                  </th>
+
+                  <th>
+                    Matéria
+                  </th>
+
                 </tr>
 
               </thead>
 
+
               <tbody>
+
                 ${timetableHtml}
+
               </tbody>
 
             </table>
@@ -2134,9 +3020,18 @@ function renderSummaryCalendar(data) {
   `;
 }
 
+
+// =====================================================
+// CONTROLE DAS ABAS DO RESUMO
+// =====================================================
+
 function renderCurrentSummaryTab() {
 
-  if (!selectedSummarySemester) return;
+  if (
+    !selectedSummarySemester
+  ) {
+    return;
+  }
 
 
   const data =
@@ -2145,174 +3040,244 @@ function renderCurrentSummaryTab() {
     );
 
 
-  if (currentSummaryTab === "grades") {
-
-    renderSummaryGrades(data);
-
-  }
-
-  else if (
-    currentSummaryTab === "works"
+  if (
+    currentSummaryTab ===
+    "grades"
   ) {
 
-    renderSummaryWorks(data);
+    renderSummaryGrades(
+      data
+    );
 
-  }
-
-  else if (
-    currentSummaryTab === "exams"
+  } else if (
+    currentSummaryTab ===
+    "works"
   ) {
 
-    renderSummaryExams(data);
+    renderSummaryWorks(
+      data
+    );
 
-  }
-
-  else if (
-    currentSummaryTab === "subjects"
+  } else if (
+    currentSummaryTab ===
+    "exams"
   ) {
 
-    renderSummarySubjects(data);
+    renderSummaryExams(
+      data
+    );
 
-  }
-
-  else if (
-    currentSummaryTab === "calendar"
+  } else if (
+    currentSummaryTab ===
+    "subjects"
   ) {
 
-    renderSummaryCalendar(data);
+    renderSummarySubjects(
+      data
+    );
 
-  }
+  } else if (
+    currentSummaryTab ===
+    "calendar"
+  ) {
 
-  else {
+    renderSummaryCalendar(
+      data
+    );
 
-    renderSummaryOverview(data);
+  } else {
 
+    renderSummaryOverview(
+      data
+    );
   }
 }
 
 
-semesterSummaryTabs.forEach(button => {
+semesterSummaryTabs.forEach(
+  button => {
 
-  button.addEventListener(
-    "click",
-    () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      semesterSummaryTabs.forEach(tab =>
-        tab.classList.remove("active")
-      );
+        semesterSummaryTabs.forEach(
+          tab => {
 
-
-      button.classList.add("active");
-
-
-      currentSummaryTab =
-        button.dataset.summaryTab;
-
-
-      renderCurrentSummaryTab();
-
-    }
-  );
-
-});
-
-if (generateSemesterSummaryBtn) {
-
-  generateSemesterSummaryBtn.addEventListener(
-    "click",
-    () => {
-
-      const semester =
-        Number(
-          summarySemesterSelect.value
+            tab.classList.remove(
+              "active"
+            );
+          }
         );
 
 
-      if (!semester) {
-
-        alert(
-          "Selecione um semestre primeiro."
+        button.classList.add(
+          "active"
         );
 
-        return;
 
+        currentSummaryTab =
+          button.dataset.summaryTab;
+
+
+        renderCurrentSummaryTab();
       }
+    );
+  }
+);
 
 
-      selectedSummarySemester =
-        semester;
+// =====================================================
+// BOTÃO VISUALIZAR RESUMO
+// =====================================================
+
+if (
+  generateSemesterSummaryBtn
+) {
+
+  generateSemesterSummaryBtn
+    .addEventListener(
+      "click",
+      () => {
+
+        const semester =
+          Number(
+            summarySemesterSelect
+              ? summarySemesterSelect.value
+              : 0
+          );
 
 
-      currentSummaryTab =
-        "overview";
+        if (!semester) {
+
+          alert(
+            "Selecione um semestre primeiro."
+          );
+
+          return;
+        }
 
 
-      semesterSummaryTabs.forEach(
-        tab =>
-          tab.classList.toggle(
-            "active",
-            tab.dataset.summaryTab ===
-              "overview"
-          )
-      );
+        selectedSummarySemester =
+          semester;
 
 
-      const data =
-        getSemesterSummaryData(
-          semester
+        currentSummaryTab =
+          "overview";
+
+
+        semesterSummaryTabs.forEach(
+          tab => {
+
+            tab.classList.toggle(
+              "active",
+              tab.dataset.summaryTab ===
+                "overview"
+            );
+          }
         );
 
 
-      semesterSummaryTitle.textContent =
-        `${semester}º Semestre`;
+        const data =
+          getSemesterSummaryData(
+            semester
+          );
 
 
-      semesterSummaryCourse.textContent =
-        state.courseName ||
-        "Curso não informado";
+        if (
+          semesterSummaryTitle
+        ) {
+
+          semesterSummaryTitle.textContent =
+            `${semester}º Semestre`;
+        }
 
 
-      renderSummaryStats(data);
+        if (
+          semesterSummaryCourse
+        ) {
 
-      renderSummaryOverview(data);
+          semesterSummaryCourse.textContent =
+            state.courseName ||
+            "Curso não informado";
+        }
 
 
-      semesterSummaryPage.classList.remove(
-        "hidden"
-      );
+        renderSummaryStats(
+          data
+        );
 
 
-      semesterSummaryPage.scrollIntoView({
+        renderSummaryOverview(
+          data
+        );
 
-        behavior: "smooth",
 
-        block: "start"
+        if (
+          semesterSummaryPage
+        ) {
 
-      });
+          semesterSummaryPage
+            .classList.remove(
+              "hidden"
+            );
 
-    }
-  );
 
+          semesterSummaryPage
+            .scrollIntoView({
+
+              behavior:
+                "smooth",
+
+              block:
+                "start"
+
+            });
+        }
+      }
+    );
 }
 
-if (closeSemesterSummaryBtn) {
 
-  closeSemesterSummaryBtn.addEventListener(
-    "click",
-    () => {
+// =====================================================
+// BOTÃO FECHAR RESUMO
+// =====================================================
 
-      semesterSummaryPage.classList.add(
-        "hidden"
-      );
+if (
+  closeSemesterSummaryBtn
+) {
 
-    }
-  );
+  closeSemesterSummaryBtn
+    .addEventListener(
+      "click",
+      () => {
 
+        if (
+          semesterSummaryPage
+        ) {
+
+          semesterSummaryPage
+            .classList.add(
+              "hidden"
+            );
+        }
+      }
+    );
 }
+
+
+// =====================================================
+// RELATÓRIO PARA IMPRESSÃO / PDF
+// =====================================================
 
 function generatePrintReport(
   semesterNumber
 ) {
+
+  if (!semesterPrintReport) {
+    return;
+  }
+
 
   const data =
     getSemesterSummaryData(
@@ -2321,233 +3286,424 @@ function generatePrintReport(
 
 
   let gradesHtml = "";
+
   let worksHtml = "";
+
   let examsHtml = "";
+
   let subjectsHtml = "";
 
+  let datesHtml = "";
 
+  let timetableHtml = "";
+
+
+  // -------------------------
   // NOTAS
-  data.subjects.forEach(subject => {
+  // -------------------------
 
-    const grades =
-      subject.grades || {};
+  data.subjects.forEach(
+    subject => {
 
-    const final =
-      computeFinalGrade(grades);
-
-    gradesHtml += `
-
-      <div class="print-item">
-
-        <strong>
-          ${subject.name}
-        </strong>
-
-        <p>
-
-          Trabalho 1:
-          ${grades.t1 ?? "-"} |
-
-          Prova 1:
-          ${grades.p1 ?? "-"} |
-
-          Trabalho 2:
-          ${grades.t2 ?? "-"} |
-
-          Prova 2:
-          ${grades.p2 ?? "-"}
-
-        </p>
-
-        <p>
-
-          Média:
-          ${
-            final !== null &&
-            !isNaN(final)
-              ? final.toFixed(2)
-              : "-"
-          }
-
-        </p>
-
-      </div>
-
-    `;
-
-  });
+      const grades =
+        subject.grades || {};
 
 
+      const final =
+        computeFinalGrade(
+          grades
+        );
+
+
+      gradesHtml += `
+
+        <div
+          class="print-item"
+        >
+
+          <strong>
+            ${subject.name}
+          </strong>
+
+          <p>
+
+            Trabalho 1:
+            ${grades.t1 ?? "-"}
+
+            |
+
+            Prova 1:
+            ${grades.p1 ?? "-"}
+
+            |
+
+            Trabalho 2:
+            ${grades.t2 ?? "-"}
+
+            |
+
+            Prova 2:
+            ${grades.p2 ?? "-"}
+
+          </p>
+
+          <p>
+
+            Média:
+
+            ${
+              final !== null &&
+              !isNaN(final)
+                ? final.toFixed(2)
+                : "-"
+            }
+
+          </p>
+
+        </div>
+
+      `;
+    }
+  );
+
+
+  // -------------------------
   // TRABALHOS
-  data.subjects.forEach(subject => {
+  // -------------------------
 
-    (subject.works || [])
-      .forEach((work, index) => {
+  data.subjects.forEach(
+    subject => {
 
-        worksHtml += `
-
-          <div class="print-item">
-
-            <strong>
-
-              ${subject.name}
-              — Trabalho ${index + 1}
-
-            </strong>
-
-            <p>
-              ${
-                work.description ||
-                "Sem descrição."
-              }
-            </p>
-
-            <p>
-
-              Data:
-              ${
-                work.dueDate
-                  ? formatSummaryDate(
-                      work.dueDate
-                    )
-                  : "Sem data"
-              }
-
-              ·
-
-              ${
-                work.done
-                  ? "Concluído"
-                  : "Pendente"
-              }
-
-              ·
-
-              ${
-                work.delivered
-                  ? "Entregue"
-                  : "Não entregue"
-              }
-
-            </p>
-
-          </div>
-
-        `;
-
-      });
-
-  });
+      const works =
+        subject.works || [];
 
 
+      works.forEach(
+        (work, index) => {
+
+          worksHtml += `
+
+            <div
+              class="print-item"
+            >
+
+              <strong>
+
+                ${subject.name}
+                —
+                Trabalho ${index + 1}
+
+              </strong>
+
+
+              <p>
+
+                ${
+                  work.description ||
+                  "Sem descrição."
+                }
+
+              </p>
+
+
+              <p>
+
+                Data:
+
+                ${
+                  work.dueDate
+                    ? formatSummaryDate(
+                        work.dueDate
+                      )
+                    : "Sem data"
+                }
+
+                ·
+
+                ${
+                  work.done
+                    ? "Concluído"
+                    : "Pendente"
+                }
+
+                ·
+
+                ${
+                  work.delivered
+                    ? "Entregue"
+                    : "Não entregue"
+                }
+
+              </p>
+
+            </div>
+
+          `;
+        }
+      );
+    }
+  );
+
+
+  // -------------------------
   // PROVAS
-  data.subjects.forEach(subject => {
+  // -------------------------
 
-    (subject.exams || [])
-      .forEach((exam, index) => {
+  data.subjects.forEach(
+    subject => {
 
-        examsHtml += `
-
-          <div class="print-item">
-
-            <strong>
-
-              ${subject.name}
-              — Prova ${index + 1}
-
-            </strong>
-
-            <p>
-              ${
-                exam.description ||
-                "Sem conteúdo cadastrado."
-              }
-            </p>
-
-            <p>
-
-              ${
-                exam.date
-                  ? formatSummaryDate(
-                      exam.date
-                    )
-                  : "Sem data"
-              }
-
-              ·
-
-              ${
-                exam.done
-                  ? "Realizada"
-                  : "Pendente"
-              }
-
-            </p>
-
-          </div>
-
-        `;
-
-      });
-
-  });
+      const exams =
+        subject.exams || [];
 
 
+      exams.forEach(
+        (exam, index) => {
+
+          examsHtml += `
+
+            <div
+              class="print-item"
+            >
+
+              <strong>
+
+                ${subject.name}
+                —
+                Prova ${index + 1}
+
+              </strong>
+
+
+              <p>
+
+                ${
+                  exam.description ||
+                  "Sem conteúdo cadastrado."
+                }
+
+              </p>
+
+
+              <p>
+
+                ${
+                  exam.date
+                    ? formatSummaryDate(
+                        exam.date
+                      )
+                    : "Sem data"
+                }
+
+                ·
+
+                ${
+                  exam.done
+                    ? "Realizada"
+                    : "Pendente"
+                }
+
+              </p>
+
+            </div>
+
+          `;
+        }
+      );
+    }
+  );
+
+
+  // -------------------------
   // MATÉRIAS
-  data.subjects.forEach(subject => {
+  // -------------------------
 
-    const lessons =
-      subject.lessons || [];
+  data.subjects.forEach(
+    subject => {
+
+      const lessons =
+        subject.lessons || [];
 
 
-    subjectsHtml += `
+      subjectsHtml += `
 
-      <div class="print-item">
+        <div
+          class="print-item"
+        >
 
-        <strong>
-          ${subject.name}
-        </strong>
+          <strong>
+            ${subject.name}
+          </strong>
 
-        <ul>
 
-          ${
-            lessons.length
-              ? lessons.map(
-                  lesson => `
+          <ul>
 
-                    <li>
+            ${
+              lessons.length
+                ? lessons
+                    .map(
+                      lesson => `
 
-                      ${
-                        lesson.done
-                          ? "✓"
-                          : "○"
-                      }
+                        <li>
 
-                      ${lesson.title}
+                          ${
+                            lesson.done
+                              ? "✓"
+                              : "○"
+                          }
 
-                    </li>
+                          ${lesson.title}
 
-                  `
-                ).join("")
-              : `
-                <li>
-                  Nenhum conteúdo cadastrado.
-                </li>
-              `
-          }
+                        </li>
 
-        </ul>
+                      `
+                    )
+                    .join("")
+                : `
 
-      </div>
+                  <li>
+                    Nenhum conteúdo cadastrado.
+                  </li>
+
+                `
+            }
+
+          </ul>
+
+        </div>
+
+      `;
+    }
+  );
+
+
+  // -------------------------
+  // DATAS IMPORTANTES
+  // -------------------------
+
+  [...data.importantDates]
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(
+          b.date
+        )
+    )
+    .forEach(item => {
+
+      datesHtml += `
+
+        <li>
+
+          <strong>
+            ${
+              formatSummaryDate(
+                item.date
+              )
+            }
+          </strong>
+
+          —
+          ${item.label}
+
+        </li>
+
+      `;
+    });
+
+
+  if (!datesHtml) {
+
+    datesHtml = `
+
+      <li>
+        Nenhuma data importante cadastrada.
+      </li>
 
     `;
+  }
 
+
+  // -------------------------
+  // HORÁRIO
+  // -------------------------
+
+  const printDayNames = {
+
+    monday:
+      "Segunda",
+
+    tuesday:
+      "Terça",
+
+    wednesday:
+      "Quarta",
+
+    thursday:
+      "Quinta",
+
+    friday:
+      "Sexta"
+
+  };
+
+
+  Object.keys(
+    printDayNames
+  ).forEach(day => {
+
+    const classes =
+      data.timetable[day] || [];
+
+
+    classes.forEach(item => {
+
+      timetableHtml += `
+
+        <tr>
+
+          <td>
+            ${printDayNames[day]}
+          </td>
+
+          <td>
+            ${item.time}
+          </td>
+
+          <td>
+            ${item.subject}
+          </td>
+
+        </tr>
+
+      `;
+    });
   });
 
+
+  if (!timetableHtml) {
+
+    timetableHtml = `
+
+      <tr>
+
+        <td colspan="3">
+          Nenhum horário cadastrado.
+        </td>
+
+      </tr>
+
+    `;
+  }
+
+
+  // -------------------------
+  // MONTA O RELATÓRIO
+  // -------------------------
 
   semesterPrintReport.innerHTML = `
 
-    <div class="print-report-header">
+    <div
+      class="print-report-header"
+    >
 
       <h1>
         Organizador da Faculdade
@@ -2558,10 +3714,12 @@ function generatePrintReport(
       </h2>
 
       <p>
+
         ${
           state.courseName ||
           "Curso não informado"
         }
+
       </p>
 
     </div>
@@ -2569,26 +3727,43 @@ function generatePrintReport(
 
     <section>
 
-      <h2>Visão geral</h2>
+      <h2>
+        Visão geral
+      </h2>
 
       <p>
+
         Matérias:
         ${data.subjects.length}
+
       </p>
 
       <p>
+
         Trabalhos concluídos:
         ${data.doneWorks}/${data.totalWorks}
+
       </p>
 
       <p>
+
+        Trabalhos entregues:
+        ${data.deliveredWorks}/${data.totalWorks}
+
+      </p>
+
+      <p>
+
         Provas realizadas:
         ${data.doneExams}/${data.totalExams}
+
       </p>
 
       <p>
+
         Progresso de estudo:
         ${data.studyProgress}%
+
       </p>
 
     </section>
@@ -2596,27 +3771,42 @@ function generatePrintReport(
 
     <section>
 
-      <h2>Notas</h2>
+      <h2>
+        Notas
+      </h2>
 
-      ${gradesHtml || "<p>Nenhuma nota cadastrada.</p>"}
-
-    </section>
-
-
-    <section>
-
-      <h2>Trabalhos</h2>
-
-      ${worksHtml || "<p>Nenhum trabalho cadastrado.</p>"}
+      ${
+        gradesHtml ||
+        "<p>Nenhuma nota cadastrada.</p>"
+      }
 
     </section>
 
 
     <section>
 
-      <h2>Provas</h2>
+      <h2>
+        Trabalhos
+      </h2>
 
-      ${examsHtml || "<p>Nenhuma prova cadastrada.</p>"}
+      ${
+        worksHtml ||
+        "<p>Nenhum trabalho cadastrado.</p>"
+      }
+
+    </section>
+
+
+    <section>
+
+      <h2>
+        Provas
+      </h2>
+
+      ${
+        examsHtml ||
+        "<p>Nenhuma prova cadastrada.</p>"
+      }
 
     </section>
 
@@ -2627,1293 +3817,1146 @@ function generatePrintReport(
         Matérias e conteúdos
       </h2>
 
-      ${subjectsHtml}
+      ${
+        subjectsHtml ||
+        "<p>Nenhuma matéria cadastrada.</p>"
+      }
+
+    </section>
+
+
+    <section>
+
+      <h2>
+        Datas importantes
+      </h2>
+
+      <ul>
+        ${datesHtml}
+      </ul>
+
+    </section>
+
+
+    <section>
+
+      <h2>
+        Horário das aulas
+      </h2>
+
+      <table
+        class="semester-summary-table"
+      >
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Dia
+            </th>
+
+            <th>
+              Horário
+            </th>
+
+            <th>
+              Matéria
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+          ${timetableHtml}
+        </tbody>
+
+      </table>
 
     </section>
 
   `;
-
 }
 
-if (printSemesterSummaryBtn) {
 
-  printSemesterSummaryBtn.addEventListener(
-    "click",
-    () => {
+// =====================================================
+// BOTÃO GERAR PDF
+// =====================================================
 
-      const semester =
-        Number(
-          summarySemesterSelect.value
+if (
+  printSemesterSummaryBtn
+) {
+
+  printSemesterSummaryBtn
+    .addEventListener(
+      "click",
+      () => {
+
+        const semester =
+          Number(
+            summarySemesterSelect
+              ? summarySemesterSelect.value
+              : 0
+          );
+
+
+        if (!semester) {
+
+          alert(
+            "Selecione o semestre que deseja gerar em PDF."
+          );
+
+          return;
+        }
+
+
+        generatePrintReport(
+          semester
         );
 
 
-      if (!semester) {
-
-        alert(
-          "Selecione o semestre que deseja gerar em PDF."
-        );
-
-        return;
-
+        window.print();
       }
+    );
+}
 
 
-      generatePrintReport(
-        semester
+// =====================================================
+// ELEMENTOS DA CAPA
+// =====================================================
+
+const progressCircle =
+  document.getElementById(
+    "progressCircle"
+  );
+
+
+const progressText =
+  document.getElementById(
+    "progressText"
+  );
+
+
+const progressLabel =
+  document.getElementById(
+    "progressLabel"
+  );
+
+
+const subjectCount =
+  document.getElementById(
+    "subjectCount"
+  );
+
+
+const workCount =
+  document.getElementById(
+    "workCount"
+  );
+
+
+const examCount =
+  document.getElementById(
+    "examCount"
+  );
+
+
+const gradeSummary =
+  document.getElementById(
+    "gradeSummary"
+  );
+
+
+const semesterStatusList =
+  document.getElementById(
+    "semesterStatusList"
+  );
+
+
+const importantDatesList =
+  document.getElementById(
+    "importantDatesList"
+  );
+
+
+const importantDateInput =
+  document.getElementById(
+    "importantDateInput"
+  );
+
+
+const importantDateLabel =
+  document.getElementById(
+    "importantDateLabel"
+  );
+
+
+const addImportantDateBtn =
+  document.getElementById(
+    "addImportantDateBtn"
+  );
+
+
+const upcomingDeadlines =
+  document.getElementById(
+    "upcomingDeadlines"
+  );
+
+
+// =====================================================
+// CALENDÁRIO
+// =====================================================
+
+const calendarGrid =
+  document.getElementById(
+    "calendarGrid"
+  );
+
+
+const calendarMonthLabel =
+  document.getElementById(
+    "calendarMonthLabel"
+  );
+
+
+const calendarYearSelect =
+  document.getElementById(
+    "calendarYearSelect"
+  );
+
+
+const prevMonthBtn =
+  document.getElementById(
+    "prevMonthBtn"
+  );
+
+
+const nextMonthBtn =
+  document.getElementById(
+    "nextMonthBtn"
+  );
+
+
+let calendarDate =
+  new Date();
+
+
+// =====================================================
+// HORÁRIO
+// =====================================================
+
+const timetableBody =
+  document.getElementById(
+    "timetableBody"
+  );
+
+
+const timetableDayInput =
+  document.getElementById(
+    "timetableDayInput"
+  );
+
+
+const timetableTimeInput =
+  document.getElementById(
+    "timetableTimeInput"
+  );
+
+
+const timetableSubjectInput =
+  document.getElementById(
+    "timetableSubjectInput"
+  );
+
+
+const addTimetableBtn =
+  document.getElementById(
+    "addTimetableBtn"
+  );
+
+
+// =====================================================
+// NOTAS
+// =====================================================
+
+const gradesTableBody =
+  document.getElementById(
+    "gradesTableBody"
+  );
+
+
+// =====================================================
+// TRABALHOS
+// =====================================================
+
+const worksList =
+  document.getElementById(
+    "worksList"
+  );
+
+
+// =====================================================
+// PROVAS
+// =====================================================
+
+const examsList =
+  document.getElementById(
+    "examsList"
+  );
+
+
+// =====================================================
+// MATÉRIAS
+// =====================================================
+
+const subjectsList =
+  document.getElementById(
+    "subjectsList"
+  );
+
+
+const subjectNameInput =
+  document.getElementById(
+    "subjectNameInput"
+  );
+
+
+const subjectSemesterInput =
+  document.getElementById(
+    "subjectSemesterInput"
+  );
+
+
+const addSubjectBtn =
+  document.getElementById(
+    "addSubjectBtn"
+  );
+
+
+// =====================================================
+// BACKUP
+// =====================================================
+
+const exportBtn =
+  document.getElementById(
+    "exportBtn"
+  );
+
+
+const importInput =
+  document.getElementById(
+    "importInput"
+  );
+
+
+const backupStatus =
+  document.getElementById(
+    "backupStatus"
+  );
+
+
+// =====================================================
+// NAVEGAÇÃO
+// =====================================================
+
+navButtons.forEach(
+  btn => {
+
+    btn.addEventListener(
+      "click",
+      () => {
+
+        const viewName =
+          btn.dataset.view;
+
+
+        navButtons.forEach(
+          button =>
+            button.classList.remove(
+              "active"
+            )
+        );
+
+
+        btn.classList.add(
+          "active"
+        );
+
+
+        Object.values(
+          views
+        ).forEach(
+          view => {
+
+            if (view) {
+
+              view.classList.remove(
+                "active"
+              );
+            }
+          }
+        );
+
+
+        if (
+          views[viewName]
+        ) {
+
+          views[
+            viewName
+          ].classList.add(
+            "active"
+          );
+        }
+
+
+        if (
+          viewName ===
+          "noticias"
+        ) {
+
+          renderNews();
+        }
+
+
+        if (
+          viewName ===
+          "config"
+        ) {
+
+          populateMaterialSubjectSelect();
+
+          renderMaterialsListConfig();
+
+          populateSummarySemesterSelect();
+        }
+      }
+    );
+  }
+);
+
+
+// =====================================================
+// TROCA DE SEMESTRE GLOBAL
+// =====================================================
+
+if (
+  globalSemesterSelect
+) {
+
+  globalSemesterSelect
+    .addEventListener(
+      "change",
+      () => {
+
+        const selected =
+          Number(
+            globalSemesterSelect.value
+          );
+
+
+        if (
+          !selected ||
+          selected < 1
+        ) {
+
+          return;
+        }
+
+
+        currentSemester =
+          selected;
+
+
+        state.currentSemester =
+          selected;
+
+
+        saveState();
+
+
+        renderAll();
+      }
+    );
+}
+
+
+// =====================================================
+// HELPERS DE MATÉRIAS
+// =====================================================
+
+function getSubjectsForCurrentSemester() {
+
+  return state.subjects.filter(
+    subject =>
+      Number(
+        subject.semester
+      ) ===
+      Number(
+        currentSemester
+      )
+  );
+}
+
+
+function getSubjectById(id) {
+
+  return state.subjects.find(
+    subject =>
+      subject.id === id
+  );
+}
+
+
+function makeId(prefix) {
+
+  return (
+    prefix +
+    "_" +
+    Date.now() +
+    "_" +
+    Math.floor(
+      Math.random() * 10000
+    )
+  );
+}
+
+
+// =====================================================
+// CÁLCULO DA MÉDIA
+// =====================================================
+
+function computeFinalGrade(
+  grades
+) {
+
+  if (!grades) {
+    return null;
+  }
+
+
+  const values = [
+    grades.t1,
+    grades.p1,
+    grades.t2,
+    grades.p2
+  ];
+
+
+  const valid =
+    values.filter(
+      value =>
+        value !== null &&
+        value !== "" &&
+        !isNaN(
+          Number(value)
+        )
+    );
+
+
+  if (!valid.length) {
+    return null;
+  }
+
+
+  const sum =
+    valid.reduce(
+      (acc, value) =>
+        acc +
+        Number(value),
+      0
+    );
+
+
+  return (
+    sum /
+    valid.length
+  );
+}
+
+
+// =====================================================
+// RESUMO DA CAPA
+// =====================================================
+
+function updateSummary() {
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  let totalLessons =
+    0;
+
+
+  let doneLessons =
+    0;
+
+
+  let totalWorks =
+    0;
+
+
+  let doneWorks =
+    0;
+
+
+  let totalExams =
+    0;
+
+
+  let doneExams =
+    0;
+
+
+  subjects.forEach(
+    subject => {
+
+      const lessons =
+        subject.lessons || [];
+
+
+      const works =
+        subject.works || [];
+
+
+      const exams =
+        subject.exams || [];
+
+
+      totalLessons +=
+        lessons.length;
+
+
+      doneLessons +=
+        lessons.filter(
+          lesson =>
+            lesson.done
+        ).length;
+
+
+      totalWorks +=
+        works.length;
+
+
+      doneWorks +=
+        works.filter(
+          work =>
+            work.done
+        ).length;
+
+
+      totalExams +=
+        exams.length;
+
+
+      doneExams +=
+        exams.filter(
+          exam =>
+            exam.done
+        ).length;
+    }
+  );
+
+
+  const progress =
+    totalLessons
+      ? Math.round(
+          (
+            doneLessons /
+            totalLessons
+          ) * 100
+        )
+      : 0;
+
+
+  if (progressText) {
+
+    progressText.textContent =
+      `${progress}%`;
+  }
+
+
+  if (progressLabel) {
+
+    progressLabel.textContent =
+      `${doneLessons} de ${totalLessons} aulas estudadas`;
+  }
+
+
+  if (progressCircle) {
+
+    progressCircle.style.setProperty(
+      "--progress",
+      `${progress * 3.6}deg`
+    );
+  }
+
+
+  if (subjectCount) {
+
+    subjectCount.textContent =
+      String(
+        subjects.length
+      );
+  }
+
+
+  if (workCount) {
+
+    workCount.textContent =
+      `${doneWorks}/${totalWorks}`;
+  }
+
+
+  if (examCount) {
+
+    examCount.textContent =
+      `${doneExams}/${totalExams}`;
+  }
+
+
+  const grades =
+    subjects
+      .map(
+        subject =>
+          computeFinalGrade(
+            subject.grades
+          )
+      )
+      .filter(
+        grade =>
+          grade !== null &&
+          !isNaN(grade)
       );
 
 
-      window.print();
+  if (gradeSummary) {
 
+    if (!grades.length) {
+
+      gradeSummary.textContent =
+        "-";
+
+    } else {
+
+      const average =
+        grades.reduce(
+          (acc, grade) =>
+            acc + grade,
+          0
+        ) /
+        grades.length;
+
+
+      gradeSummary.textContent =
+        average.toFixed(2);
     }
-  );
-
+  }
 }
 
-// --------- RESUMO (CAPA) ---------
-const summarySubjectsEl = document.getElementById("summarySubjects");
-const summaryWorksEl = document.getElementById("summaryWorks");
-const summaryExamsEl = document.getElementById("summaryExams");
-const summaryLessonsEl = document.getElementById("summaryLessons");
-const semesterStatusContainer = document.getElementById("semesterStatusContainer");
 
-function getSubjectsForCurrentSemester() {
-  return state.subjects.filter(s => s.semester === currentSemester);
-}
-
-function computeSemesterStats() {
-  const subjects = getSubjectsForCurrentSemester();
-  let totalWorks = 0;
-  let doneWorks = 0;
-  let totalExams = 0;
-  let doneExams = 0;
-  let totalLessons = 0;
-  let doneLessons = 0;
-
-  subjects.forEach(s => {
-    totalWorks += s.works.length;
-    doneWorks += s.works.filter(w => w.done).length;
-
-    totalExams += s.exams.length;
-    doneExams += s.exams.filter(e => e.done).length;
-
-    totalLessons += s.lessons.length;
-    doneLessons += s.lessons.filter(l => l.done).length;
-  });
-
-  return { subjectsCount: subjects.length, totalWorks, doneWorks, totalExams, doneExams, totalLessons, doneLessons };
-}
-
-function updateSummary() {
-  const stats = computeSemesterStats();
-  summarySubjectsEl.textContent = stats.subjectsCount || "0";
-  summaryWorksEl.textContent = `${stats.doneWorks}/${stats.totalWorks}`;
-  summaryExamsEl.textContent = `${stats.doneExams}/${stats.totalExams}`;
-  const progress = stats.totalLessons ? Math.round((stats.doneLessons / stats.totalLessons) * 100) : 0;
-  summaryLessonsEl.textContent = `${progress}%`;
-}
+// =====================================================
+// STATUS DO SEMESTRE
+// =====================================================
 
 function renderSemesterStatus() {
-  const stats = computeSemesterStats();
-  const progressLessons = stats.totalLessons ? Math.round((stats.doneLessons / stats.totalLessons) * 100) : 0;
-  const progressWorks = stats.totalWorks ? Math.round((stats.doneWorks / stats.totalWorks) * 100) : 0;
-  const progressExams = stats.totalExams ? Math.round((stats.doneExams / stats.totalExams) * 100) : 0;
 
-  semesterStatusContainer.innerHTML = `
-    <div class="semester-status-row">
-      <strong>Aulas estudadas:</strong> ${stats.doneLessons}/${stats.totalLessons} (${progressLessons}%)
-      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressLessons}%;"></div></div>
-    </div>
-    <div class="semester-status-row">
-      <strong>Trabalhos concluídos:</strong> ${stats.doneWorks}/${stats.totalWorks} (${progressWorks}%)
-      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressWorks}%;"></div></div>
-    </div>
-    <div class="semester-status-row">
-      <strong>Provas realizadas:</strong> ${stats.doneExams}/${stats.totalExams} (${progressExams}%)
-      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progressExams}%;"></div></div>
-    </div>
-  `;
-}
+  if (!semesterStatusList) {
+    return;
+  }
 
-// --------- CALENDÁRIO / CAPA ---------
-const calendarBody = document.getElementById("calendarBody");
-const calendarMonthLabel = document.getElementById("calendarMonthLabel");
-const calendarSelectedInfo = document.getElementById("calendarSelectedInfo");
-const prevMonthBtn = document.getElementById("prevMonthBtn");
-const nextMonthBtn = document.getElementById("nextMonthBtn");
-const holidayList = document.getElementById("holidayList");
-const importantDatesList = document.getElementById("importantDatesList");
-const timetableBody = document.getElementById("timetableBody");
-const addImportantDateForm = document.getElementById("addImportantDateForm");
-const importantDateInput = document.getElementById("importantDateInput");
-const importantLabelInput = document.getElementById("importantLabelInput");
-const addTimetableForm = document.getElementById("addTimetableForm");
-const timetableDayInput = document.getElementById("timetableDayInput");
-const timetableTimeInput = document.getElementById("timetableTimeInput");
-const timetableSubjectInput = document.getElementById("timetableSubjectInput");
-const upcomingList = document.getElementById("upcomingList");
 
-let calendarYear;
-let calendarMonth; // 0-11
-let selectedDate = null;
+  semesterStatusList.innerHTML =
+    "";
 
-function initCalendar() {
-  const today = new Date();
-  calendarYear = today.getFullYear();
-  calendarMonth = today.getMonth();
-  renderCalendar();
-}
 
-function dateToIso(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+  const subjects =
+    getSubjectsForCurrentSemester();
 
-// ---- FERIADOS BR (auto por ano) ----
-function easterDate(year) {
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return new Date(year, month, day);
-}
 
-function getBrazilHolidays(year) {
-  const fixed = [
-    { date: `${year}-01-01`, label: "Ano Novo" },
-    { date: `${year}-04-21`, label: "Tiradentes" },
-    { date: `${year}-05-01`, label: "Dia do Trabalhador" },
-    { date: `${year}-09-07`, label: "Independência do Brasil" },
-    { date: `${year}-10-12`, label: "Nossa Senhora Aparecida" },
-    { date: `${year}-11-02`, label: "Finados" },
-    { date: `${year}-11-15`, label: "Proclamação da República" },
-    { date: `${year}-12-25`, label: "Natal" }
-  ];
+  if (!subjects.length) {
 
-  const easter = easterDate(year);
-  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
-  const carnival = new Date(easter); carnival.setDate(easter.getDate() - 47);
-  const corpusChristi = new Date(easter); corpusChristi.setDate(easter.getDate() + 60);
+    const li =
+      document.createElement(
+        "li"
+      );
 
-  const movable = [
-    { date: dateToIso(carnival), label: "Carnaval" },
-    { date: dateToIso(goodFriday), label: "Sexta-feira Santa" },
-    { date: dateToIso(easter), label: "Páscoa" },
-    { date: dateToIso(corpusChristi), label: "Corpus Christi" }
-  ];
 
-  return [...fixed, ...movable].sort((a, b) => a.date.localeCompare(b.date));
-}
+    li.textContent =
+      "Nenhuma matéria cadastrada neste semestre.";
 
-function hasEventsOnDate(iso) {
-  const year = Number(iso.slice(0, 4));
-  const holidays = getBrazilHolidays(year);
-  const hasHoliday = holidays.some(h => h.date === iso);
 
-  const important = getImportantDatesForCurrentSemester();
-  const hasImportant = important.some(d => d.date === iso);
+    semesterStatusList.appendChild(
+      li
+    );
 
-  const works = state.subjects.flatMap(s => s.works);
-  const exams = state.subjects.flatMap(s => s.exams);
-  const hasWork = works.some(w => w.dueDate === iso);
-  const hasExam = exams.some(e => e.date === iso);
 
-  return hasHoliday || hasImportant || hasWork || hasExam;
-}
+    return;
+  }
 
-function renderCalendar() {
-  const firstDay = new Date(calendarYear, calendarMonth, 1);
-  const startDayOfWeek = firstDay.getDay();
-  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-  const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
 
-  const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-  calendarMonthLabel.textContent = `${monthNames[calendarMonth]} de ${calendarYear}`;
+  subjects.forEach(
+    subject => {
 
-  calendarBody.innerHTML = "";
+      const lessons =
+        subject.lessons || [];
 
-  let day = 1;
-  let nextMonthDay = 1;
 
-  for (let week = 0; week < 6; week++) {
-    const tr = document.createElement("tr");
+      const works =
+        subject.works || [];
 
-    for (let dow = 0; dow < 7; dow++) {
-      const td = document.createElement("td");
-      const div = document.createElement("div");
-      div.className = "calendar-day";
 
-      let displayDay;
-      let dateObj;
+      const exams =
+        subject.exams || [];
 
-      if (week === 0 && dow < startDayOfWeek) {
-        displayDay = prevMonthDays - (startDayOfWeek - dow - 1);
-        dateObj = new Date(calendarYear, calendarMonth - 1, displayDay);
-        div.classList.add("other-month");
-      } else if (day > daysInMonth) {
-        displayDay = nextMonthDay++;
-        dateObj = new Date(calendarYear, calendarMonth + 1, displayDay);
-        div.classList.add("other-month");
-      } else {
-        displayDay = day++;
-        dateObj = new Date(calendarYear, calendarMonth, displayDay);
-      }
 
-      div.textContent = displayDay;
+      const total =
+        lessons.length +
+        works.length +
+        exams.length;
 
-      const iso = dateToIso(dateObj);
-      div.dataset.date = iso;
 
-      const todayIso = dateToIso(new Date());
-      if (iso === todayIso) div.classList.add("today");
-      if (hasEventsOnDate(iso)) div.classList.add("has-event");
+      const done =
+        lessons.filter(
+          item =>
+            item.done
+        ).length +
+        works.filter(
+          item =>
+            item.done
+        ).length +
+        exams.filter(
+          item =>
+            item.done
+        ).length;
 
-      div.addEventListener("click", () => {
-        selectedDate = iso;
-        renderSelectedDateInfo();
-      });
 
-      td.appendChild(div);
-      tr.appendChild(td);
+      const percent =
+        total
+          ? Math.round(
+              (
+                done /
+                total
+              ) * 100
+            )
+          : 0;
+
+
+      const li =
+        document.createElement(
+          "li"
+        );
+
+
+      li.innerHTML = `
+
+        <span>
+          ${subject.name}
+        </span>
+
+        <span>
+          ${percent}%
+        </span>
+
+      `;
+
+
+      semesterStatusList.appendChild(
+        li
+      );
     }
-
-    calendarBody.appendChild(tr);
-  }
-
-  renderSelectedDateInfo();
-  renderHolidayList();
+  );
 }
 
-function renderSelectedDateInfo() {
-  if (!selectedDate) {
-    calendarSelectedInfo.innerHTML = "<strong>Selecione um dia para ver detalhes.</strong>";
-    return;
-  }
 
-  const parts = selectedDate.split("-");
-  const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-
-  const events = [];
-
-  getBrazilHolidays(Number(selectedDate.slice(0, 4))).forEach(h => {
-    if (h.date === selectedDate) events.push({ type: "Feriado", label: h.label });
-  });
-
-  getImportantDatesForCurrentSemester().forEach(d => {
-    if (d.date === selectedDate) events.push({ type: "Importante", label: d.label });
-  });
-
-  state.subjects.forEach(s => {
-    s.works.forEach(w => {
-      if (w.dueDate === selectedDate) events.push({ type: "Trabalho", label: `${s.name} - Trabalho` });
-    });
-    s.exams.forEach(e => {
-      if (e.date === selectedDate) events.push({ type: "Prova", label: `${s.name} - Prova` });
-    });
-  });
-
-  if (events.length === 0) {
-    calendarSelectedInfo.innerHTML = `<strong>${formatted}</strong><br>Nenhum evento cadastrado.`;
-    return;
-  }
-
-  const listItems = events.map(ev => `<li><strong>${ev.type}:</strong> ${ev.label}</li>`).join("");
-  calendarSelectedInfo.innerHTML = `<strong>${formatted}</strong><ul>${listItems}</ul>`;
-}
-
-prevMonthBtn.addEventListener("click", () => {
-  if (calendarMonth === 0) { calendarMonth = 11; calendarYear--; }
-  else calendarMonth--;
-  renderCalendar();
-});
-
-nextMonthBtn.addEventListener("click", () => {
-  if (calendarMonth === 11) { calendarMonth = 0; calendarYear++; }
-  else calendarMonth++;
-  renderCalendar();
-});
-
-function renderHolidayList() {
-  holidayList.innerHTML = "";
-  const holidays = getBrazilHolidays(calendarYear);
-  holidays.forEach(h => {
-    const [, m, d] = h.date.split("-");
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="date">${d}/${m}</span>${h.label}`;
-    holidayList.appendChild(li);
-  });
-}
+// =====================================================
+// DATAS IMPORTANTES
+// =====================================================
 
 function renderImportantDatesList() {
-  importantDatesList.innerHTML = "";
-  const sorted = [...getImportantDatesForCurrentSemester()].sort((a, b) => a.date.localeCompare(b.date));
 
-  sorted.forEach(d => {
-    const li = document.createElement("li");
-
-    const [, m, day] = d.date.split("-");
-    const dateSpan = document.createElement("span");
-    dateSpan.className = "date";
-    dateSpan.textContent = `${day}/${m}`;
-
-    const labelSpan = document.createElement("span");
-    labelSpan.textContent = d.label;
-
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "inline-delete-btn";
-    delBtn.textContent = "Excluir";
-
-    delBtn.addEventListener("click", () => {
-      const sem = getSemesterKey();
-      state.importantDatesBySemester[sem] =
-        (state.importantDatesBySemester[sem] || []).filter(item => !(item.date === d.date && item.label === d.label));
-      saveState();
-      renderImportantDatesList();
-      renderUpcomingDeadlines();
-      renderCalendar();
-    });
-
-    li.appendChild(dateSpan);
-    li.appendChild(labelSpan);
-    li.appendChild(delBtn);
-    importantDatesList.appendChild(li);
-  });
-}
-
-addImportantDateForm.addEventListener("submit", evt => {
-  evt.preventDefault();
-  const date = importantDateInput.value;
-  const label = importantLabelInput.value.trim();
-  if (!date || !label) return;
-
-  const sem = getSemesterKey();
-  if (!state.importantDatesBySemester[sem]) state.importantDatesBySemester[sem] = [];
-  state.importantDatesBySemester[sem].push({ date, label });
-
-  saveState();
-  importantDateInput.value = "";
-  importantLabelInput.value = "";
-  renderImportantDatesList();
-  renderCalendar();
-  renderUpcomingDeadlines();
-});
-
-function renderTimetable() {
-  timetableBody.innerHTML = "";
-
-  const mapping = {
-    monday: "Segunda",
-    tuesday: "Terça",
-    wednesday: "Quarta",
-    thursday: "Quinta",
-    friday: "Sexta"
-  };
-
-  const table = getTimetableForCurrentSemester();
-
-  Object.keys(mapping).forEach(key => {
-    const dayName = mapping[key];
-    const slots = table[key] || [];
-    if (!slots.length) return;
-
-    slots.forEach((slot, index) => {
-      const tr = document.createElement("tr");
-
-      const dayTd = document.createElement("td");
-      dayTd.textContent = index === 0 ? dayName : "";
-
-      const timeTd = document.createElement("td");
-      timeTd.textContent = slot.time;
-
-      const subjTd = document.createElement("td");
-      const subjSpan = document.createElement("span");
-      subjSpan.textContent = slot.subject;
-
-      const delBtn = document.createElement("button");
-      delBtn.type = "button";
-      delBtn.className = "inline-delete-btn";
-      delBtn.textContent = "Excluir";
-
-      delBtn.addEventListener("click", () => {
-        const updated = getTimetableForCurrentSemester();
-        updated[key].splice(index, 1);
-        setTimetableForCurrentSemester(updated);
-        saveState();
-        renderTimetable();
-      });
-
-      subjTd.appendChild(subjSpan);
-      subjTd.appendChild(delBtn);
-
-      tr.appendChild(dayTd);
-      tr.appendChild(timeTd);
-      tr.appendChild(subjTd);
-      timetableBody.appendChild(tr);
-    });
-  });
-
-  if (!timetableBody.hasChildNodes()) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 3;
-    td.textContent = "Nenhum horário cadastrado.";
-    tr.appendChild(td);
-    timetableBody.appendChild(tr);
-  }
-}
-
-addTimetableForm.addEventListener("submit", evt => {
-  evt.preventDefault();
-  const dayKey = timetableDayInput.value;
-  const time = timetableTimeInput.value.trim();
-  const subj = timetableSubjectInput.value.trim();
-  if (!dayKey || !time || !subj) return;
-
-  const updated = getTimetableForCurrentSemester();
-  updated[dayKey].push({ time, subject: subj });
-  setTimetableForCurrentSemester(updated);
-
-  saveState();
-  timetableDayInput.value = "";
-  timetableTimeInput.value = "";
-  timetableSubjectInput.value = "";
-  renderTimetable();
-});
-
-// --------- PRÓXIMOS PRAZOS ---------
-function renderUpcomingDeadlines() {
-  upcomingList.innerHTML = "";
-  const items = [];
-  const todayIso = dateToIso(new Date());
-
-  getImportantDatesForCurrentSemester().forEach(d => {
-    if (d.date >= todayIso) items.push({ date: d.date, label: d.label, type: "Importante" });
-  });
-
-  state.subjects.forEach(s => {
-    s.works.forEach(w => {
-      if (w.dueDate && w.dueDate >= todayIso) {
-        items.push({ date: w.dueDate, label: `${s.name} - Trabalho`, type: "Trabalho" });
-      }
-    });
-  });
-
-  state.subjects.forEach(s => {
-    s.exams.forEach(e => {
-      if (e.date && e.date >= todayIso) {
-        items.push({ date: e.date, label: `${s.name} - Prova`, type: "Prova" });
-      }
-    });
-  });
-
-  items.sort((a, b) => a.date.localeCompare(b.date));
-  const limited = items.slice(0, 8);
-
-  if (!limited.length) {
-    upcomingList.innerHTML = "<li>Nenhum prazo cadastrado a partir de hoje.</li>";
+  if (!importantDatesList) {
     return;
   }
 
-  limited.forEach(it => {
-    const [, m, d] = it.date.split("-");
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="date">${d}/${m}</span><strong>${it.type}:</strong> ${it.label}`;
-    upcomingList.appendChild(li);
-  });
-}
 
-// --------- NOTAS ---------
-const gradesContainer = document.getElementById("gradesContainer");
+  importantDatesList.innerHTML =
+    "";
 
-function toNumber(val) {
-  if (val === null || val === undefined || val === "") return 0;
-  const num = Number(String(val).replace(",", "."));
-  return isNaN(num) ? 0 : num;
-}
 
-function computeFinalGrade(grades) {
-  const t1 = toNumber(grades.t1);
-  const p1 = toNumber(grades.p1);
-  const t2 = toNumber(grades.t2);
-  const p2 = toNumber(grades.p2);
-  const result = ((t1 + p1) * 2 + (t2 + p2) * 3) / 5;
-  if (isNaN(result)) return null;
-  return result;
-}
+  const dates =
+    [
+      ...getImportantDatesForCurrentSemester()
+    ].sort(
+      (a, b) =>
+        a.date.localeCompare(
+          b.date
+        )
+    );
 
-function renderGrades() {
-  gradesContainer.innerHTML = "";
-  const subjects = getSubjectsForCurrentSemester();
-  const gradePartFilter = gradeFilterPart ? gradeFilterPart.value : "all";
 
-  if (!subjects.length) {
-    gradesContainer.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre.</p>";
+  if (!dates.length) {
+
+    const li =
+      document.createElement(
+        "li"
+      );
+
+
+    li.textContent =
+      "Nenhuma data importante cadastrada.";
+
+
+    importantDatesList.appendChild(
+      li
+    );
+
+
     return;
   }
 
-  subjects.forEach(subject => {
-    const card = document.createElement("div");
-    card.className = "subject-card";
 
-    const header = document.createElement("div");
-    header.className = "subject-card-header";
+  dates.forEach(item => {
 
-    const nameSpan = document.createElement("div");
-    nameSpan.className = "subject-name";
-    nameSpan.textContent = subject.name;
+    const li =
+      document.createElement(
+        "li"
+      );
 
-    const badge = document.createElement("span");
-    badge.className = "badge badge-semester";
-    badge.textContent = `${subject.semester}º sem.`;
 
-    header.appendChild(nameSpan);
-    header.appendChild(badge);
+    li.innerHTML = `
 
-    const gradesGrid = document.createElement("div");
-    gradesGrid.className = "grades-grid";
+      <span>
 
-    const fields = [
-      { key: "t1", label: "Trabalho 1", part: "part1" },
-      { key: "p1", label: "Prova 1", part: "part1" },
-      { key: "t2", label: "Trabalho 2", part: "part2" },
-      { key: "p2", label: "Prova 2", part: "part2" }
-    ];
+        <strong>
+          ${formatSummaryDate(item.date)}
+        </strong>
 
-    fields.forEach(f => {
-      if (gradePartFilter !== "all" && gradePartFilter !== f.part) return;
+        — ${item.label}
 
-      const fieldDiv = document.createElement("div");
-      fieldDiv.className = "grade-field";
+      </span>
 
-      const label = document.createElement("label");
-      label.textContent = f.label;
-
-      const input = document.createElement("input");
-      input.type = "number";
-      input.step = "0.1";
-      input.min = "0";
-      input.max = "10";
-      input.value = subject.grades[f.key] ?? "";
-      input.addEventListener("input", () => {
-        subject.grades[f.key] = input.value;
-        saveState();
-        renderGrades();
-        updateSummary();
-        renderSemesterStatus();
-      });
-
-      fieldDiv.appendChild(label);
-      fieldDiv.appendChild(input);
-      gradesGrid.appendChild(fieldDiv);
-    });
-
-    const finalGrade = computeFinalGrade(subject.grades);
-    const finalDiv = document.createElement("div");
-    finalDiv.className = "final-grade";
-
-    if (finalGrade === null || isNaN(finalGrade)) {
-      finalDiv.textContent = "Média final: -";
-    } else {
-      const rounded = finalGrade.toFixed(2);
-      finalDiv.textContent = `Média final: ${rounded}`;
-      const statusBadge = document.createElement("span");
-      statusBadge.className = "badge " + (finalGrade >= 6 ? "badge-status-ok" : "badge-status-bad");
-      statusBadge.textContent = finalGrade >= 6 ? "Aprovado (parcial)" : "Atenção";
-      finalDiv.appendChild(statusBadge);
-    }
-
-    card.appendChild(header);
-    card.appendChild(gradesGrid);
-    card.appendChild(finalDiv);
-    gradesContainer.appendChild(card);
-  });
-}
-
-// controla as cores do seletor de dificuldade
-function applyDifficultyClass(selectEl, difficulty) {
-  selectEl.classList.remove("difficulty-facil", "difficulty-medio", "difficulty-dificil");
-  if (difficulty === "facil") selectEl.classList.add("difficulty-facil");
-  else if (difficulty === "medio") selectEl.classList.add("difficulty-medio");
-  else if (difficulty === "dificil") selectEl.classList.add("difficulty-dificil");
-}
-
-// --------- TRABALHOS ---------
-const worksPageContainer = document.getElementById("worksPageContainer");
-
-// filtros da aba de trabalhos
-const workFilterIndex = document.getElementById("workFilterIndex");
-const workFilterDifficulty = document.getElementById("workFilterDifficulty");
-const workFilterDone = document.getElementById("workFilterDone");
-const workFilterDelivered = document.getElementById("workFilterDelivered");
-
-function getWorkFilters() {
-  return {
-    index: workFilterIndex ? workFilterIndex.value : "all",
-    difficulty: workFilterDifficulty ? workFilterDifficulty.value : "all",
-    done: workFilterDone ? workFilterDone.value : "all",
-    delivered: workFilterDelivered ? workFilterDelivered.value : "all"
-  };
-}
-
-[workFilterIndex, workFilterDifficulty, workFilterDone, workFilterDelivered]
-  .filter(Boolean)
-  .forEach(el => el.addEventListener("change", () => renderWorksPage()));
-
-function renderWorksPage() {
-  worksPageContainer.innerHTML = "";
-  const subjects = getSubjectsForCurrentSemester();
-
-  if (!subjects.length) {
-    worksPageContainer.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre.</p>";
-    return;
-  }
-
-  const filters = getWorkFilters();
-
-  subjects.forEach(subject => {
-    const card = document.createElement("div");
-    card.className = "subject-card";
-
-    const header = document.createElement("div");
-    header.className = "subject-card-header";
-
-    const nameSpan = document.createElement("div");
-    nameSpan.className = "subject-name";
-    nameSpan.textContent = subject.name;
-
-    const badge = document.createElement("span");
-    badge.className = "badge badge-semester";
-    badge.textContent = `${subject.semester}º sem.`;
-
-    header.appendChild(nameSpan);
-    header.appendChild(badge);
-
-    const blocks = document.createElement("div");
-    blocks.className = "two-columns";
-
-    subject.works.forEach((work, index) => {
-      if (!work.difficulty) work.difficulty = "medio";
-      if (work.delivered === undefined) work.delivered = false;
-
-      if (filters.index !== "all" && Number(filters.index) !== index) return;
-      const diff = work.difficulty || "medio";
-      if (filters.difficulty !== "all" && filters.difficulty !== diff) return;
-      const isDone = !!work.done;
-      if (filters.done === "done" && !isDone) return;
-      if (filters.done === "not" && isDone) return;
-      const isDelivered = !!work.delivered;
-      if (filters.delivered === "delivered" && !isDelivered) return;
-      if (filters.delivered === "not" && isDelivered) return;
-
-      const wb = document.createElement("div");
-      wb.className = "work-block";
-
-      const title = document.createElement("h3");
-      title.textContent = `Trabalho ${index + 1}`;
-
-      const textarea = document.createElement("textarea");
-      textarea.className = "textarea-small";
-      textarea.placeholder = "O que o professor pediu?";
-      textarea.value = work.description || "";
-      textarea.addEventListener("input", () => {
-        work.description = textarea.value;
-        saveState();
-      });
-
-      const smallRow = document.createElement("div");
-      smallRow.className = "small-row";
-
-      const dateInput = document.createElement("input");
-      dateInput.type = "date";
-      dateInput.value = work.dueDate || "";
-      dateInput.addEventListener("change", () => {
-        work.dueDate = dateInput.value || null;
-        saveState();
-        renderCalendar();
-        renderUpcomingDeadlines();
-      });
-
-      const diffSelect = document.createElement("select");
-      diffSelect.className = "difficulty-select";
-      [
-        { value: "facil", label: "Fácil" },
-        { value: "medio", label: "Médio" },
-        { value: "dificil", label: "Difícil" }
-      ].forEach(d => {
-        const opt = document.createElement("option");
-        opt.value = d.value;
-        opt.textContent = d.label;
-        diffSelect.appendChild(opt);
-      });
-
-      diffSelect.value = work.difficulty || "medio";
-      applyDifficultyClass(diffSelect, diffSelect.value);
-
-      diffSelect.addEventListener("change", () => {
-        work.difficulty = diffSelect.value;
-        applyDifficultyClass(diffSelect, diffSelect.value);
-        saveState();
-      });
-
-      const checkboxLabel = document.createElement("label");
-      checkboxLabel.className = "checkbox-label";
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = !!work.done;
-      cb.addEventListener("change", () => {
-        work.done = cb.checked;
-        saveState();
-        updateSummary();
-        renderSemesterStatus();
-      });
-      const span = document.createElement("span");
-      span.textContent = "Concluído";
-      checkboxLabel.appendChild(cb);
-      checkboxLabel.appendChild(span);
-
-      const deliveredLabel = document.createElement("label");
-      deliveredLabel.className = "checkbox-label";
-      const deliveredCb = document.createElement("input");
-      deliveredCb.type = "checkbox";
-      deliveredCb.checked = !!work.delivered;
-      deliveredCb.addEventListener("change", () => {
-        work.delivered = deliveredCb.checked;
-        saveState();
-      });
-      const deliveredSpan = document.createElement("span");
-      deliveredSpan.textContent = "Entregue";
-      deliveredLabel.appendChild(deliveredCb);
-      deliveredLabel.appendChild(deliveredSpan);
-
-      smallRow.appendChild(dateInput);
-      smallRow.appendChild(diffSelect);
-      smallRow.appendChild(checkboxLabel);
-      smallRow.appendChild(deliveredLabel);
-
-      wb.appendChild(title);
-      wb.appendChild(textarea);
-      wb.appendChild(smallRow);
-      blocks.appendChild(wb);
-    });
-
-    if (blocks.hasChildNodes()) {
-      card.appendChild(header);
-      card.appendChild(blocks);
-      worksPageContainer.appendChild(card);
-    }
-  });
-
-  if (!worksPageContainer.hasChildNodes()) {
-    worksPageContainer.innerHTML = "<p>Nenhum trabalho encontrado com os filtros selecionados.</p>";
-  }
-}
-
-// --------- PROVAS ---------
-const examsPageContainer = document.getElementById("examsPageContainer");
-
-function populateExamSubjectFilter() {
-  if (!examFilterSubject) return;
-
-  const subjects = getSubjectsForCurrentSemester();
-  const previousValue = examFilterSubject.value || "all";
-
-  examFilterSubject.innerHTML = "";
-
-  const allOption = document.createElement("option");
-  allOption.value = "all";
-  allOption.textContent = "Todas as matérias";
-  examFilterSubject.appendChild(allOption);
-
-  subjects.forEach(subject => {
-    const option = document.createElement("option");
-    option.value = subject.id;
-    option.textContent = subject.name;
-    examFilterSubject.appendChild(option);
-  });
-
-  const stillExists = [...examFilterSubject.options].some(opt => opt.value === previousValue);
-  examFilterSubject.value = stillExists ? previousValue : "all";
-}
-
-function renderExamsPage() {
-  examsPageContainer.innerHTML = "";
-  const subjects = getSubjectsForCurrentSemester();
-
-  const selectedSubjectId = examFilterSubject ? examFilterSubject.value : "all";
-  const selectedStatus = examFilterStatus ? examFilterStatus.value : "all";
-
-  if (!subjects.length) {
-    examsPageContainer.innerHTML = "<p>Nenhuma matéria cadastrada para este semestre.</p>";
-    return;
-  }
-
-  subjects.forEach(subject => {
-    if (selectedSubjectId !== "all" && subject.id !== selectedSubjectId) return;
-
-    const filteredExams = subject.exams.filter(exam => {
-      if (selectedStatus === "done") return !!exam.done;
-      if (selectedStatus === "not") return !exam.done;
-      return true;
-    });
-
-    if (!filteredExams.length) return;
-
-    const card = document.createElement("div");
-    card.className = "subject-card";
-
-    const header = document.createElement("div");
-    header.className = "subject-card-header";
-
-    const nameSpan = document.createElement("div");
-    nameSpan.className = "subject-name";
-    nameSpan.textContent = subject.name;
-
-    const badge = document.createElement("span");
-    badge.className = "badge badge-semester";
-    badge.textContent = `${subject.semester}º sem.`;
-
-    header.appendChild(nameSpan);
-    header.appendChild(badge);
-
-    const blocks = document.createElement("div");
-    blocks.className = "two-columns";
-
-    subject.exams.forEach((exam, index) => {
-      if (selectedStatus === "done" && !exam.done) return;
-      if (selectedStatus === "not" && exam.done) return;
-
-      const eb = document.createElement("div");
-      eb.className = "exam-block";
-
-      const title = document.createElement("h3");
-      title.textContent = `Prova ${index + 1}`;
-
-      const textarea = document.createElement("textarea");
-      textarea.className = "textarea-small";
-      textarea.placeholder = "Conteúdo da prova";
-      textarea.value = exam.description || "";
-      textarea.addEventListener("input", () => {
-        exam.description = textarea.value;
-        saveState();
-      });
-
-      const smallRow = document.createElement("div");
-      smallRow.className = "small-row";
-
-      const dateInput = document.createElement("input");
-      dateInput.type = "date";
-      dateInput.value = exam.date || "";
-      dateInput.addEventListener("change", () => {
-        exam.date = dateInput.value || null;
-        saveState();
-        renderCalendar();
-        renderUpcomingDeadlines();
-      });
-
-      const checkboxLabel = document.createElement("label");
-      checkboxLabel.className = "checkbox-label";
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = !!exam.done;
-      cb.addEventListener("change", () => {
-        exam.done = cb.checked;
-        saveState();
-        updateSummary();
-        renderSemesterStatus();
-        renderExamsPage();
-      });
-      const span = document.createElement("span");
-      span.textContent = "Realizada";
-
-      checkboxLabel.appendChild(cb);
-      checkboxLabel.appendChild(span);
-
-      smallRow.appendChild(dateInput);
-      smallRow.appendChild(checkboxLabel);
-
-      eb.appendChild(title);
-      eb.appendChild(textarea);
-      eb.appendChild(smallRow);
-      blocks.appendChild(eb);
-    });
-
-    if (blocks.hasChildNodes()) {
-      card.appendChild(header);
-      card.appendChild(blocks);
-      examsPageContainer.appendChild(card);
-    }
-  });
-
-  if (!examsPageContainer.hasChildNodes()) {
-    examsPageContainer.innerHTML = "<p>Nenhuma prova encontrada com os filtros selecionados.</p>";
-  }
-}
-
-// --------- MATÉRIAS / AULAS ---------
-const addSubjectForm = document.getElementById("addSubjectForm");
-const subjectNameInput = document.getElementById("subjectNameInput");
-const subjectSemesterInput = document.getElementById("subjectSemesterInput");
-const subjectsManager = document.getElementById("subjectsManager");
-
-addSubjectForm.addEventListener("submit", evt => {
-  evt.preventDefault();
-  const name = subjectNameInput.value.trim();
-  const sem = Number(subjectSemesterInput.value);
-  if (!name || !sem) return;
-
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now();
-
-  state.subjects.push({
-    id,
-    name,
-    semester: sem,
-    grades: { t1: null, p1: null, t2: null, p2: null },
-    works: [
-      { id: id + "_w1", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null },
-      { id: id + "_w2", description: "", done: false, delivered: false, difficulty: "medio", dueDate: null }
-    ],
-    exams: [
-      { id: id + "_e1", description: "", done: false, date: null },
-      { id: id + "_e2", description: "", done: false, date: null }
-    ],
-    lessons: []
-  });
-
-  saveState();
-  subjectNameInput.value = "";
-  subjectSemesterInput.value = "";
-  renderSubjectsManager();
-  renderAll();
-});
-
-function renderSubjectsManager() {
-  subjectsManager.innerHTML = "";
-  const subjects = getSubjectsForCurrentSemester();
-
-  const nameFilter = subjectFilterInput ? subjectFilterInput.value.trim().toLowerCase() : "";
-  const filteredSubjects = subjects.filter(subject =>
-    !nameFilter || subject.name.toLowerCase().includes(nameFilter)
-  );
-
-  if (!filteredSubjects.length) {
-    subjectsManager.innerHTML = "<p>Nenhuma matéria encontrada com o filtro selecionado.</p>";
-    return;
-  }
-
-  const sorted = [...filteredSubjects].sort((a, b) => a.name.localeCompare(b.name));
-
-  sorted.forEach(subject => {
-    const card = document.createElement("div");
-    card.className = "subject-card";
-
-    const header = document.createElement("div");
-    header.className = "subject-card-header";
-
-    const left = document.createElement("div");
-    left.className = "subject-name";
-    left.textContent = subject.name;
-
-    const right = document.createElement("div");
-    right.className = "subject-actions";
-
-    const badge = document.createElement("span");
-    badge.className = "badge badge-semester";
-    badge.textContent = `${subject.semester}º sem.`;
-    right.appendChild(badge);
-
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "Editar";
-    editBtn.addEventListener("click", () => {
-      const newName = prompt("Novo nome da matéria:", subject.name);
-      if (newName === null) return;
-      const trimmed = newName.trim();
-      if (!trimmed) return;
-
-      const newSemStr = prompt("Novo semestre (ex.: 1, 2, 3, 4, 5):", String(subject.semester));
-      if (newSemStr === null) return;
-
-      const newSem = Number(newSemStr);
-      if (!newSem || newSem < 1 || newSem > 10) {
-        alert("Semestre inválido. Use um número entre 1 e 10.");
-        return;
-      }
-
-      subject.name = trimmed;
-      subject.semester = newSem;
-      saveState();
-      renderAll();
-    });
-    right.appendChild(editBtn);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Excluir";
-    deleteBtn.addEventListener("click", () => {
-      const ok = confirm(`Tem certeza que deseja excluir a matéria "${subject.name}" e TODOS os dados ligados a ela?`);
-      if (!ok) return;
-
-      state.subjects = state.subjects.filter(s => s.id !== subject.id);
-      saveState();
-      renderAll();
-    });
-    right.appendChild(deleteBtn);
-
-    header.appendChild(left);
-    header.appendChild(right);
-
-    const lessonsList = document.createElement("ul");
-    lessonsList.className = "lessons-list";
-
-    const total = subject.lessons.length;
-    const done = subject.lessons.filter(l => l.done).length;
-    const percent = total ? Math.round((done / total) * 100) : 0;
-
-    const progressWrapper = document.createElement("div");
-    progressWrapper.className = "progress-bar-wrapper";
-    progressWrapper.innerHTML = `
-      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${percent}%;"></div></div>
-      <div style="font-size:0.78rem;margin-top:2px;color:var(--text-muted);">
-        Progresso: ${done}/${total} (${percent}%)
-      </div>
     `;
 
-    subject.lessons.forEach(lesson => {
-      const li = document.createElement("li");
 
-      const main = document.createElement("div");
-      main.className = "lesson-main";
+    const deleteBtn =
+      document.createElement(
+        "button"
+      );
 
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = !!lesson.done;
-      cb.addEventListener("change", () => {
-        lesson.done = cb.checked;
+
+    deleteBtn.type =
+      "button";
+
+
+    deleteBtn.className =
+      "inline-delete-btn";
+
+
+    deleteBtn.textContent =
+      "Excluir";
+
+
+    deleteBtn.addEventListener(
+      "click",
+      () => {
+
+        const sem =
+          getSemesterKey();
+
+
+        state
+          .importantDatesBySemester[
+            sem
+          ] =
+          getImportantDatesForCurrentSemester()
+            .filter(
+              date =>
+                date.id !==
+                item.id
+            );
+
+
         saveState();
-        renderSubjectsManager();
-        updateSummary();
-        renderSemesterStatus();
-      });
 
-      const span = document.createElement("span");
-      span.textContent = lesson.title;
+        renderImportantDatesList();
 
-      main.appendChild(cb);
-      main.appendChild(span);
+        renderCalendar();
 
-      const actions = document.createElement("div");
-      actions.className = "lesson-actions";
+        renderUpcomingDeadlines();
+      }
+    );
 
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "Excluir";
-      delBtn.addEventListener("click", () => {
-        subject.lessons = subject.lessons.filter(l => l.id !== lesson.id);
-        saveState();
-        renderSubjectsManager();
-        updateSummary();
-        renderSemesterStatus();
-      });
 
-      actions.appendChild(delBtn);
-      li.appendChild(main);
-      li.appendChild(actions);
-      lessonsList.appendChild(li);
-    });
+    li.appendChild(
+      deleteBtn
+    );
 
-    const addRow = document.createElement("div");
-    addRow.className = "add-lesson-row";
 
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = "Título da aula/unidade";
-
-    const btn = document.createElement("button");
-    btn.textContent = "Adicionar";
-    btn.addEventListener("click", () => {
-      const title = input.value.trim();
-      if (!title) return;
-      const id = subject.id + "_l_" + Date.now();
-      subject.lessons.push({ id, title, done: false });
-      input.value = "";
-      saveState();
-      renderSubjectsManager();
-      updateSummary();
-      renderSemesterStatus();
-    });
-
-    addRow.appendChild(input);
-    addRow.appendChild(btn);
-
-    card.appendChild(header);
-    card.appendChild(progressWrapper);
-    card.appendChild(lessonsList);
-    card.appendChild(addRow);
-
-    subjectsManager.appendChild(card);
+    importantDatesList.appendChild(
+      li
+    );
   });
 }
 
-// --------- BACKUP ---------
-const downloadBackupBtn = document.getElementById("downloadBackupBtn");
-const restoreBackupBtn = document.getElementById("restoreBackupBtn");
-const backupFileInput = document.getElementById("backupFileInput");
-const backupStatus = document.getElementById("backupStatus");
 
-downloadBackupBtn.addEventListener("click", () => {
-  try {
-    const dataStr = JSON.stringify(state, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    a.href = url;
-    a.download = `backup_faculdade_${y}-${m}-${d}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    backupStatus.textContent = "Backup baixado com sucesso. Guarde esse arquivo em um lugar seguro.";
-  } catch (e) {
-    console.error(e);
-    backupStatus.textContent = "Erro ao gerar backup.";
-  }
-});
+if (
+  addImportantDateBtn
+) {
 
-restoreBackupBtn.addEventListener("click", () => {
-  const file = backupFileInput.files[0];
-  if (!file) {
-    backupStatus.textContent = "Selecione um arquivo de backup (.json) primeiro.";
+  addImportantDateBtn
+    .addEventListener(
+      "click",
+      () => {
+
+        const date =
+          importantDateInput
+            ? importantDateInput.value
+            : "";
+
+
+        const label =
+          importantDateLabel
+            ? importantDateLabel.value.trim()
+            : "";
+
+
+        if (
+          !date ||
+          !label
+        ) {
+
+          alert(
+            "Informe a data e a descrição."
+          );
+
+          return;
+        }
+
+
+        const sem =
+          getSemesterKey();
+
+
+        if (
+          !state
+            .importantDatesBySemester[
+              sem
+            ]
+        ) {
+
+          state
+            .importantDatesBySemester[
+              sem
+            ] = [];
+        }
+
+
+        state
+          .importantDatesBySemester[
+            sem
+          ].push({
+
+            id:
+              makeId(
+                "important"
+              ),
+
+            date,
+
+            label
+
+          });
+
+
+        saveState();
+
+
+        if (
+          importantDateInput
+        ) {
+
+          importantDateInput.value =
+            "";
+        }
+
+
+        if (
+          importantDateLabel
+        ) {
+
+          importantDateLabel.value =
+            "";
+        }
+
+
+        renderImportantDatesList();
+
+        renderCalendar();
+
+        renderUpcomingDeadlines();
+      }
+    );
+}
+
+
+// =====================================================
+// INICIALIZAÇÃO DO CALENDÁRIO
+// =====================================================
+
+function initCalendar() {
+
+  if (
+    !calendarYearSelect
+  ) {
     return;
   }
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      if (!parsed || typeof parsed !== "object" || !parsed.subjects) {
-        backupStatus.textContent = "Arquivo inválido. Parece que não é um backup deste site.";
-        return;
-      }
-      state = parsed;
-      ensureSemesterMaps();
-      currentSemester = Number(state.currentSemester || 5);
-      migrateLegacyDataIfNeeded();
-      saveState();
-      applyTheme();
-      renderAll();
-      backupStatus.textContent = "Backup restaurado com sucesso!";
-    } catch (err) {
-      console.error(err);
-      backupStatus.textContent = "Erro ao ler arquivo de backup.";
-    }
-  };
-  reader.readAsText(file, "utf-8");
-});
 
-// --------- EVENTOS DOS NOVOS FILTROS ---------
-if (gradeFilterPart) {
-  gradeFilterPart.addEventListener("change", renderGrades);
-}
 
-if (examFilterSubject) {
-  examFilterSubject.addEventListener("change", renderExamsPage);
-}
+  const currentYear =
+    new Date().getFullYear();
 
-if (examFilterStatus) {
-  examFilterStatus.addEventListener("change", renderExamsPage);
-}
 
-if (subjectFilterInput) {
-  subjectFilterInput.addEventListener("input", renderSubjectsManager);
-}
+  calendarYearSelect.innerHTML =
+    "";
 
-// --------- NAVEGAÇÃO / ALTERAÇÃO DE SEMESTRE ---------
-navButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const viewName = btn.dataset.view;
 
-    navButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+  for (
+    let year =
+      currentYear - 5;
 
-    Object.keys(views).forEach(name => {
-      if (views[name]) {
-        views[name].classList.toggle("active", name === viewName);
-      }
-    });
+    year <=
+      currentYear + 10;
 
-    if (viewName === "noticias") {
-      renderNews();
-    }
-  });
-});
+    year++
+  ) {
 
-globalSemesterSelect.addEventListener("change", () => {
-  currentSemester = Number(globalSemesterSelect.value);
-  state.currentSemester = currentSemester;
-  saveState();
-  renderAll();
-});
+    const option =
+      document.createElement(
+        "option"
+      );
 
-// --------- RENDERIZAÇÃO GERAL ---------
-function renderAll() {
-  ensureConfigState();
-  ensureMaterialsState();
 
-  renderSemesterOptions();
-  renderConfigFields();
+    option.value =
+      String(year);
 
-  // PREENCHE OS SEMESTRES DO RESUMO
-  populateSummarySemesterSelect();
 
-  if (globalSemesterSelect) {
-    globalSemesterSelect.value = String(currentSemester);
+    option.textContent =
+      String(year);
+
+
+    calendarYearSelect.appendChild(
+      option
+    );
   }
 
-  populateExamSubjectFilter();
-  populateMaterialSubjectSelect();
 
-  updateSummary();
-  renderSemesterStatus();
-  renderCalendar();
-  renderImportantDatesList();
-  renderTimetable();
-  renderUpcomingDeadlines();
-  renderGrades();
-  renderWorksPage();
-  renderExamsPage();
-  renderSubjectsManager();
-  renderMaterialsListConfig();
-  renderNews();
+  calendarYearSelect.value =
+    String(
+      calendarDate.getFullYear()
+    );
 }
 
-// --------- INICIALIZAÇÃO ---------
-ensureSemesterMaps();
-migrateLegacyDataIfNeeded();
-ensureConfigState();
-ensureMaterialsState();
 
-currentSemester = Number(state.currentSemester || currentSemester || 5);
-if (currentSemester > state.totalSemesters) {
-  currentSemester = state.totalSemesters;
-}
-
-state.currentSemester = currentSemester;
-saveState();
-
-applyTheme();
-initCalendar();
-renderAll();
