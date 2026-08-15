@@ -800,7 +800,6 @@ body.light .news-center {
   color: #ffffff;
 }
 
-
 /* ==================================================
    RESUMO DOS SEMESTRES
 ================================================== */
@@ -809,7 +808,705 @@ body.light .news-center {
   display: none !important;
 }
 
-/* ... todo o CSS novo ... */
+/* Card de configuração */
+
+.semester-summary-config {
+  margin-top: 12px;
+}
+
+.semester-summary-config-header h3 {
+  font-size: 1rem;
+}
+
+.semester-summary-config-header p {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.semester-summary-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.semester-summary-actions select {
+  min-width: 180px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid #374151;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+.semester-summary-actions button {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: none;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.semester-summary-actions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.secondary-summary-btn {
+  background: transparent !important;
+  border: 1px solid #6366f1 !important;
+  color: var(--text-main) !important;
+}
+
+.secondary-summary-btn:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+
+/* ==================================================
+   PAINEL DO RESUMO
+================================================== */
+
+.semester-summary-page {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+}
+
+body.light .semester-summary-page {
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.semester-summary-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.semester-summary-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+
+  color: #818cf8;
+}
+
+.semester-summary-page-header h2 {
+  font-size: 1.65rem;
+}
+
+.semester-summary-page-header p {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.summary-close-btn {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+
+  background: var(--bg-main);
+  color: var(--text-muted);
+
+  cursor: pointer;
+}
+
+.summary-close-btn:hover {
+  color: var(--text-main);
+  border-color: #6366f1;
+}
+
+
+/* ==================================================
+   INDICADORES
+================================================== */
+
+.semester-summary-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.semester-summary-stat {
+  min-height: 88px;
+
+  padding: 13px 14px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-main);
+}
+
+.semester-summary-stat span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.semester-summary-stat strong {
+  margin-top: 4px;
+  font-size: 1.35rem;
+}
+
+
+/* ==================================================
+   ABAS
+================================================== */
+
+.semester-summary-tabs {
+  display: flex;
+  gap: 6px;
+
+  overflow-x: auto;
+
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.semester-summary-tab {
+  flex: 0 0 auto;
+
+  padding: 7px 12px;
+
+  border: 1px solid transparent;
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--text-muted);
+
+  font-size: 0.8rem;
+
+  cursor: pointer;
+}
+
+.semester-summary-tab:hover {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.semester-summary-tab.active {
+  background: #4f46e5;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+
+
+/* ==================================================
+   CONTEÚDO
+================================================== */
+
+.semester-summary-content {
+  margin-top: 18px;
+}
+
+.summary-section-title {
+  margin-bottom: 14px;
+}
+
+.summary-section-title h3 {
+  font-size: 1.15rem;
+}
+
+.summary-section-title p {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.summary-content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.semester-summary-muted {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+
+/* ==================================================
+   VISÃO GERAL
+================================================== */
+
+.summary-progress-card {
+  padding: 15px;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(79, 70, 229, 0.08),
+      rgba(139, 92, 246, 0.04)
+    );
+}
+
+.summary-progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+
+  font-size: 0.8rem;
+}
+
+.summary-progress-header span {
+  color: var(--text-muted);
+}
+
+.summary-big-progress {
+  width: 100%;
+  height: 9px;
+
+  margin-top: 10px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #111827;
+}
+
+body.light .summary-big-progress {
+  background: #e5e7eb;
+}
+
+.summary-big-progress > div {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #6366f1,
+      #8b5cf6
+    );
+}
+
+.summary-progress-percent {
+  display: block;
+
+  margin-top: 5px;
+
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.summary-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.summary-overview-card {
+  padding: 14px;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-main);
+}
+
+.summary-overview-card h4 {
+  margin-bottom: 9px;
+  font-size: 0.9rem;
+}
+
+.summary-overview-card p {
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+
+.summary-subject-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.summary-subject-chip {
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  border: 1px solid rgba(99, 102, 241, 0.4);
+
+  background: rgba(99, 102, 241, 0.1);
+
+  font-size: 0.7rem;
+}
+
+
+/* ==================================================
+   NOTAS
+================================================== */
+
+.summary-grade-card {
+  padding: 14px;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-main);
+}
+
+.summary-grade-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.summary-grade-final {
+  min-width: 52px;
+
+  padding: 6px 8px;
+
+  text-align: center;
+
+  border-radius: 8px;
+
+  font-weight: 700;
+}
+
+.summary-grade-approved {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.13);
+}
+
+.summary-grade-warning {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.13);
+}
+
+.summary-grade-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(80px, 1fr));
+
+  gap: 7px;
+
+  margin-top: 11px;
+}
+
+.summary-grade-grid > div {
+  padding: 9px;
+
+  border-radius: 9px;
+
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-card);
+}
+
+.summary-grade-grid span {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.summary-grade-grid strong {
+  display: block;
+  margin-top: 3px;
+}
+
+
+/* ==================================================
+   TRABALHOS E PROVAS
+================================================== */
+
+.summary-task-card {
+  padding: 14px;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-main);
+}
+
+.summary-task-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.summary-task-subject {
+  display: block;
+  margin-bottom: 3px;
+
+  font-size: 0.68rem;
+  font-weight: 600;
+
+  color: #818cf8;
+}
+
+.summary-status-badge {
+  height: fit-content;
+
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  font-size: 0.68rem;
+}
+
+.summary-status-done {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.summary-status-pending {
+  color: #fde68a;
+  background: rgba(234, 179, 8, 0.12);
+}
+
+.summary-description {
+  margin-top: 10px;
+
+  font-size: 0.8rem;
+  line-height: 1.5;
+
+  color: var(--text-muted);
+
+  white-space: pre-wrap;
+}
+
+.summary-task-footer {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-top: 10px;
+  padding-top: 9px;
+
+  border-top: 1px solid var(--border-subtle);
+
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+
+/* ==================================================
+   MATÉRIAS
+================================================== */
+
+.summary-subject-card {
+  padding: 14px;
+
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+
+  background: var(--bg-main);
+}
+
+.summary-subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-small-progress {
+  height: 6px;
+
+  margin-top: 9px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #111827;
+}
+
+body.light .summary-small-progress {
+  background: #e5e7eb;
+}
+
+.summary-small-progress > div {
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #22c55e,
+      #4ade80
+    );
+}
+
+.summary-subject-progress-text {
+  margin-top: 5px;
+
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.summary-lessons-list {
+  margin-top: 10px;
+
+  list-style: none;
+
+  font-size: 0.78rem;
+}
+
+.summary-lessons-list li {
+  padding: 4px 0;
+
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.summary-lessons-list li:last-child {
+  border-bottom: none;
+}
+
+.summary-lesson-done {
+  color: #6ee7b7;
+}
+
+
+/* ==================================================
+   CALENDÁRIO
+================================================== */
+
+.summary-calendar-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 1fr)
+    minmax(330px, 1.5fr);
+
+  gap: 10px;
+}
+
+.summary-date-item {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 7px 0;
+
+  border-bottom: 1px solid var(--border-subtle);
+
+  font-size: 0.78rem;
+}
+
+.summary-date-box {
+  padding: 4px 7px;
+
+  border-radius: 7px;
+
+  background: rgba(99, 102, 241, 0.1);
+
+  border: 1px solid rgba(99, 102, 241, 0.35);
+
+  font-size: 0.67rem;
+}
+
+.semester-summary-table-wrapper {
+  overflow-x: auto;
+}
+
+.semester-summary-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 0.76rem;
+}
+
+.semester-summary-table th,
+.semester-summary-table td {
+  padding: 7px 8px;
+
+  text-align: left;
+
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.semester-summary-table th {
+  color: var(--text-muted);
+  background: var(--table-header);
+}
+
+
+/* ==================================================
+   RESPONSIVO
+================================================== */
+
+@media (max-width: 800px) {
+
+  .semester-summary-page {
+    padding: 14px;
+  }
+
+  .semester-summary-stat-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-grade-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-calendar-grid {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+@media (max-width: 500px) {
+
+  .semester-summary-actions select,
+  .semester-summary-actions button {
+    width: 100%;
+  }
+
+  .semester-summary-stat-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .summary-task-header {
+    flex-direction: column;
+  }
+}
 
 
 /* ==================================================
@@ -822,7 +1519,96 @@ body.light .news-center {
 
 @media print {
 
-  /* ... estilos do PDF ... */
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #semesterPrintReport,
+  #semesterPrintReport * {
+    visibility: visible !important;
+  }
+
+  #semesterPrintReport {
+    display: block !important;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-report-header {
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+
+    text-align: center;
+
+    border-bottom: 2px solid #111827;
+  }
+
+  .print-report-header h1 {
+    font-size: 21px;
+  }
+
+  .print-report-header h2 {
+    margin-top: 7px;
+    font-size: 17px;
+  }
+
+  #semesterPrintReport section {
+    margin-top: 20px;
+  }
+
+  #semesterPrintReport section > h2 {
+    margin-bottom: 9px;
+    padding-bottom: 4px;
+
+    border-bottom: 1px solid #9ca3af;
+
+    font-size: 14px;
+  }
+
+  #semesterPrintReport p,
+  #semesterPrintReport li,
+  #semesterPrintReport td,
+  #semesterPrintReport th {
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .print-item {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #semesterPrintReport table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #semesterPrintReport th,
+  #semesterPrintReport td {
+    padding: 5px;
+
+    border: 1px solid #d1d5db;
+
+    color: #111827 !important;
+    background: #ffffff !important;
+  }
 
   @page {
     size: A4;
