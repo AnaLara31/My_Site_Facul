@@ -5,7 +5,10 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Temas */
+/* ==================================================
+   TEMAS
+================================================== */
+
 body {
   --bg-main: #020617;
   --bg-card: #020617;
@@ -32,7 +35,10 @@ body.light {
   --table-header: #e5e7eb;
 }
 
-/* HEADER */
+/* ==================================================
+   HEADER
+================================================== */
+
 .app-header {
   padding: 18px 18px 10px;
   display: flex;
@@ -82,7 +88,10 @@ body.light .theme-toggle-btn {
   color: #111827;
 }
 
-/* NAV */
+/* ==================================================
+   NAVEGAÇÃO
+================================================== */
+
 .top-nav {
   display: flex;
   justify-content: center;
@@ -101,7 +110,10 @@ body.light .theme-toggle-btn {
   border-radius: 999px;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.05s ease;
 }
 
 .nav-btn:hover {
@@ -113,7 +125,10 @@ body.light .theme-toggle-btn {
   border-color: #6366f1;
 }
 
-/* MAIN */
+/* ==================================================
+   MAIN
+================================================== */
+
 main {
   flex: 1;
   padding: 16px 18px 24px;
@@ -138,7 +153,10 @@ main {
   margin-bottom: 10px;
 }
 
-/* SUMMARY */
+/* ==================================================
+   RESUMO DA CAPA
+================================================== */
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -164,7 +182,10 @@ main {
   font-weight: 600;
 }
 
-/* CAPA LAYOUT */
+/* ==================================================
+   CAPA
+================================================== */
+
 .capa-layout {
   display: grid;
   grid-template-columns: minmax(260px, 1.8fr) minmax(260px, 1.2fr);
@@ -177,7 +198,8 @@ main {
   }
 }
 
-.calendar-column, .info-column {
+.calendar-column,
+.info-column {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -190,7 +212,10 @@ main {
   padding: 10px 12px;
 }
 
-/* CALENDÁRIO */
+/* ==================================================
+   CALENDÁRIO
+================================================== */
+
 .calendar-header {
   display: flex;
   justify-content: space-between;
@@ -277,7 +302,10 @@ body.light .calendar-day:hover {
   padding-top: 6px;
 }
 
-/* LISTAS SIMPLES */
+/* ==================================================
+   LISTAS SIMPLES
+================================================== */
+
 .simple-list {
   list-style: none;
   font-size: 0.82rem;
@@ -308,7 +336,10 @@ body.light .calendar-day:hover {
   background: #b91c1c;
 }
 
-/* INLINE FORM */
+/* ==================================================
+   FORMULÁRIOS INLINE
+================================================== */
+
 .inline-form {
   display: flex;
   flex-wrap: wrap;
@@ -336,7 +367,10 @@ body.light .calendar-day:hover {
   cursor: pointer;
 }
 
-/* TABELA HORÁRIOS */
+/* ==================================================
+   HORÁRIOS
+================================================== */
+
 .timetable-table {
   width: 100%;
   border-collapse: collapse;
@@ -354,7 +388,10 @@ body.light .calendar-day:hover {
   color: var(--text-muted);
 }
 
-/* COLUNAS DE CARDS */
+/* ==================================================
+   CARDS
+================================================== */
+
 .cards-column {
   display: flex;
   flex-direction: column;
@@ -362,7 +399,6 @@ body.light .calendar-day:hover {
   margin-top: 10px;
 }
 
-/* CARD DE MATÉRIA / NOTAS */
 .subject-card {
   background: var(--bg-card);
   border-radius: 12px;
@@ -379,7 +415,6 @@ body.light .calendar-day:hover {
   margin-bottom: 6px;
 }
 
-/* NOVO: área dos botões de ação da matéria */
 .subject-actions {
   display: flex;
   align-items: center;
@@ -408,6 +443,10 @@ body.light .subject-actions button:hover {
   font-weight: 600;
 }
 
+/* ==================================================
+   BADGES
+================================================== */
+
 .badge {
   display: inline-block;
   padding: 2px 6px;
@@ -434,7 +473,10 @@ body.light .subject-actions button:hover {
   color: #fecaca;
 }
 
-/* NOTAS */
+/* ==================================================
+   NOTAS
+================================================== */
+
 .grades-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -466,7 +508,10 @@ body.light .subject-actions button:hover {
   font-size: 0.85rem;
 }
 
-/* TRABALHOS / PROVAS */
+/* ==================================================
+   TRABALHOS E PROVAS
+================================================== */
+
 .two-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -474,7 +519,8 @@ body.light .subject-actions button:hover {
   margin-top: 4px;
 }
 
-.work-block, .exam-block {
+.work-block,
+.exam-block {
   border-radius: 10px;
   border: 1px solid #111827;
   padding: 6px 7px;
@@ -511,6 +557,7 @@ body.light .exam-block {
   margin-top: 4px;
   gap: 6px;
   font-size: 0.78rem;
+  flex-wrap: wrap;
 }
 
 .difficulty-select {
@@ -523,24 +570,24 @@ body.light .exam-block {
   min-width: 80px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
-/* Fácil = verde */
 .difficulty-select.difficulty-facil {
   background: #14532d;
   border-color: #22c55e;
   color: #bbf7d0;
 }
 
-/* Médio = amarelo */
 .difficulty-select.difficulty-medio {
   background: #854d0e;
   border-color: #eab308;
   color: #fef9c3;
 }
 
-/* Difícil = laranja/vermelho */
 .difficulty-select.difficulty-dificil {
   background: #7f1d1d;
   border-color: #f97316;
@@ -563,7 +610,10 @@ body.light .exam-block {
   cursor: pointer;
 }
 
-/* MATÉRIAS */
+/* ==================================================
+   MATÉRIAS
+================================================== */
+
 .subjects-header {
   display: flex;
   justify-content: space-between;
@@ -659,7 +709,10 @@ body.light .exam-block {
   cursor: pointer;
 }
 
-/* PROGRESS BAR */
+/* ==================================================
+   BARRA DE PROGRESSO
+================================================== */
+
 .progress-bar-wrapper {
   margin-top: 4px;
 }
@@ -681,7 +734,6 @@ body.light .progress-bar-track {
   background: linear-gradient(90deg, #22c55e, #4ade80);
 }
 
-/* ESTADO DO SEMESTRE */
 .semester-status {
   font-size: 0.85rem;
 }
@@ -690,14 +742,20 @@ body.light .progress-bar-track {
   margin-top: 4px;
 }
 
-/* BACKUP STATUS */
+/* ==================================================
+   BACKUP
+================================================== */
+
 .backup-status {
   margin-top: 6px;
   font-size: 0.78rem;
   color: var(--text-muted);
 }
 
-/* FOOTER */
+/* ==================================================
+   FOOTER
+================================================== */
+
 footer {
   text-align: center;
   padding: 6px 0 10px;
@@ -706,6 +764,10 @@ footer {
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
 }
+
+/* ==================================================
+   NOTÍCIAS / MAPA DE MATÉRIAS
+================================================== */
 
 .news-map-container {
   position: relative;
@@ -720,39 +782,55 @@ footer {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
   background: linear-gradient(135deg, #7b2ff7, #f107a3);
+
   min-width: 220px;
   max-width: 280px;
+
   padding: 22px 26px;
   border-radius: 22px;
+
   color: white;
   font-weight: 700;
   font-size: 1.4rem;
   text-align: center;
   line-height: 1.2;
-  box-shadow: 0 0 18px rgba(0,0,0,0.35);
+
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.35);
+
   z-index: 2;
 }
 
 .news-subject {
   position: absolute;
+
   width: 160px;
   min-height: 54px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   text-align: center;
+
   padding: 10px 12px;
+
   background: rgba(17, 24, 39, 0.96);
   border: 1px solid #374151;
   border-radius: 14px;
+
   cursor: pointer;
+
   transition: 0.25s ease;
+
   font-size: 0.82rem;
   line-height: 1.2;
+
   word-break: break-word;
   overflow-wrap: break-word;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .news-subject:hover {
@@ -762,11 +840,16 @@ footer {
 
 .news-panel {
   margin-top: 10px;
+
   padding: 16px 18px;
+
   background: rgba(17, 24, 39, 0.96);
+
   border: 1px solid #374151;
   border-radius: 14px;
+
   max-width: 900px;
+
   margin-left: auto;
   margin-right: auto;
 }
@@ -775,6 +858,7 @@ body.light .news-subject {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #111827;
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -800,6 +884,7 @@ body.light .news-center {
   color: #ffffff;
 }
 
+
 /* ==================================================
    RESUMO DOS SEMESTRES
 ================================================== */
@@ -808,7 +893,7 @@ body.light .news-center {
   display: none !important;
 }
 
-/* Card de configuração */
+/* Card que fica dentro de Configurações */
 
 .semester-summary-config {
   margin-top: 12px;
@@ -836,22 +921,33 @@ body.light .news-center {
 .semester-summary-actions select {
   min-width: 180px;
   padding: 7px 10px;
+
   border-radius: 9px;
   border: 1px solid #374151;
+
   background: var(--bg-main);
   color: var(--text-main);
+
   font-size: 0.82rem;
 }
 
 .semester-summary-actions button {
   padding: 7px 13px;
+
   border-radius: 999px;
   border: none;
+
   background: #4f46e5;
   color: #ffffff;
+
   font-size: 0.8rem;
+
   cursor: pointer;
-  transition: 0.15s ease;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .semester-summary-actions button:hover {
@@ -871,15 +967,18 @@ body.light .news-center {
 
 
 /* ==================================================
-   PAINEL DO RESUMO
+   PAINEL GRANDE DO RESUMO
 ================================================== */
 
 .semester-summary-page {
   margin-top: 16px;
   padding: 20px;
+
   border-radius: 16px;
   border: 1px solid var(--border-subtle);
+
   background: var(--bg-card);
+
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
 }
 
@@ -891,6 +990,7 @@ body.light .semester-summary-page {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+
   gap: 16px;
 
   padding-bottom: 16px;
@@ -901,6 +1001,7 @@ body.light .semester-summary-page {
 
 .semester-summary-eyebrow {
   display: block;
+
   margin-bottom: 4px;
 
   font-size: 0.67rem;
@@ -912,10 +1013,12 @@ body.light .semester-summary-page {
 
 .semester-summary-page-header h2 {
   font-size: 1.65rem;
+  line-height: 1.15;
 }
 
 .semester-summary-page-header p {
   margin-top: 4px;
+
   font-size: 0.85rem;
   color: var(--text-muted);
 }
@@ -923,6 +1026,8 @@ body.light .semester-summary-page {
 .summary-close-btn {
   width: 34px;
   height: 34px;
+
+  flex: 0 0 34px;
 
   display: flex;
   align-items: center;
@@ -944,13 +1049,17 @@ body.light .semester-summary-page {
 
 
 /* ==================================================
-   INDICADORES
+   INDICADORES DO RESUMO
 ================================================== */
 
 .semester-summary-stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(145px, 1fr));
+
   gap: 10px;
+
   margin-bottom: 18px;
 }
 
@@ -976,12 +1085,14 @@ body.light .semester-summary-page {
 
 .semester-summary-stat strong {
   margin-top: 4px;
+
   font-size: 1.35rem;
+  line-height: 1;
 }
 
 
 /* ==================================================
-   ABAS
+   ABAS DO RESUMO
 ================================================== */
 
 .semester-summary-tabs {
@@ -993,6 +1104,8 @@ body.light .semester-summary-page {
   padding-bottom: 10px;
 
   border-bottom: 1px solid var(--border-subtle);
+
+  scrollbar-width: thin;
 }
 
 .semester-summary-tab {
@@ -1009,6 +1122,11 @@ body.light .semester-summary-page {
   font-size: 0.8rem;
 
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .semester-summary-tab:hover {
@@ -1024,14 +1142,36 @@ body.light .semester-summary-page {
 
 
 /* ==================================================
-   CONTEÚDO
+   CONTEÚDO DO RESUMO
 ================================================== */
 
 .semester-summary-content {
   margin-top: 18px;
 }
 
+.summary-tab-section {
+  animation: summaryFade 0.18s ease;
+}
+
+@keyframes summaryFade {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .summary-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 12px;
+
   margin-bottom: 14px;
 }
 
@@ -1041,6 +1181,7 @@ body.light .semester-summary-page {
 
 .summary-section-title p {
   margin-top: 3px;
+
   font-size: 0.8rem;
   color: var(--text-muted);
 }
@@ -1058,7 +1199,7 @@ body.light .semester-summary-page {
 
 
 /* ==================================================
-   VISÃO GERAL
+   VISÃO GERAL DO RESUMO
 ================================================== */
 
 .summary-progress-card {
@@ -1078,6 +1219,7 @@ body.light .semester-summary-page {
 .summary-progress-header {
   display: flex;
   justify-content: space-between;
+
   gap: 10px;
 
   font-size: 0.8rem;
@@ -1115,6 +1257,8 @@ body.light .summary-big-progress {
       #6366f1,
       #8b5cf6
     );
+
+  transition: width 0.3s ease;
 }
 
 .summary-progress-percent {
@@ -1128,9 +1272,12 @@ body.light .summary-big-progress {
 
 .summary-overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(190px, 1fr));
 
   gap: 10px;
+
   margin-top: 10px;
 }
 
@@ -1145,11 +1292,13 @@ body.light .summary-big-progress {
 
 .summary-overview-card h4 {
   margin-bottom: 9px;
+
   font-size: 0.9rem;
 }
 
 .summary-overview-card p {
   margin-top: 4px;
+
   font-size: 0.8rem;
 }
 
@@ -1171,9 +1320,8 @@ body.light .summary-big-progress {
   font-size: 0.7rem;
 }
 
-
 /* ==================================================
-   NOTAS
+   NOTAS DO RESUMO
 ================================================== */
 
 .summary-grade-card {
@@ -1193,6 +1341,10 @@ body.light .summary-big-progress {
   gap: 10px;
 }
 
+.summary-grade-header h4 {
+  font-size: 0.9rem;
+}
+
 .summary-grade-final {
   min-width: 52px;
 
@@ -1202,6 +1354,7 @@ body.light .summary-big-progress {
 
   border-radius: 8px;
 
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -1218,7 +1371,8 @@ body.light .summary-big-progress {
 .summary-grade-grid {
   display: grid;
 
-  grid-template-columns: repeat(4, minmax(80px, 1fr));
+  grid-template-columns:
+    repeat(4, minmax(80px, 1fr));
 
   gap: 7px;
 
@@ -1237,18 +1391,22 @@ body.light .summary-big-progress {
 
 .summary-grade-grid span {
   display: block;
+
   font-size: 0.68rem;
   color: var(--text-muted);
 }
 
 .summary-grade-grid strong {
   display: block;
+
   margin-top: 3px;
+
+  font-size: 0.9rem;
 }
 
 
 /* ==================================================
-   TRABALHOS E PROVAS
+   TRABALHOS E PROVAS DO RESUMO
 ================================================== */
 
 .summary-task-card {
@@ -1263,11 +1421,18 @@ body.light .summary-big-progress {
 .summary-task-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+
   gap: 10px;
+}
+
+.summary-task-header h4 {
+  font-size: 0.9rem;
 }
 
 .summary-task-subject {
   display: block;
+
   margin-bottom: 3px;
 
   font-size: 0.68rem;
@@ -1284,6 +1449,8 @@ body.light .summary-big-progress {
   border-radius: 999px;
 
   font-size: 0.68rem;
+
+  white-space: nowrap;
 }
 
 .summary-status-done {
@@ -1324,7 +1491,7 @@ body.light .summary-big-progress {
 
 
 /* ==================================================
-   MATÉRIAS
+   MATÉRIAS DO RESUMO
 ================================================== */
 
 .summary-subject-card {
@@ -1340,6 +1507,17 @@ body.light .summary-big-progress {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  gap: 10px;
+}
+
+.summary-subject-header h4 {
+  font-size: 0.9rem;
+}
+
+.summary-subject-header strong {
+  font-size: 0.82rem;
+  color: #6ee7b7;
 }
 
 .summary-small-progress {
@@ -1360,6 +1538,8 @@ body.light .summary-small-progress {
 
 .summary-small-progress > div {
   height: 100%;
+
+  border-radius: inherit;
 
   background:
     linear-gradient(
@@ -1400,7 +1580,7 @@ body.light .summary-small-progress {
 
 
 /* ==================================================
-   CALENDÁRIO
+   CALENDÁRIO DO RESUMO
 ================================================== */
 
 .summary-calendar-grid {
@@ -1411,6 +1591,15 @@ body.light .summary-small-progress {
     minmax(330px, 1.5fr);
 
   gap: 10px;
+}
+
+.summary-calendar-grid > div {
+  min-width: 0;
+}
+
+.summary-dates-list {
+  display: flex;
+  flex-direction: column;
 }
 
 .summary-date-item {
@@ -1426,20 +1615,30 @@ body.light .summary-small-progress {
   font-size: 0.78rem;
 }
 
+.summary-date-item:last-child {
+  border-bottom: none;
+}
+
 .summary-date-box {
+  flex: 0 0 auto;
+
   padding: 4px 7px;
 
   border-radius: 7px;
 
-  background: rgba(99, 102, 241, 0.1);
-
   border: 1px solid rgba(99, 102, 241, 0.35);
+
+  background: rgba(99, 102, 241, 0.1);
 
   font-size: 0.67rem;
 }
 
 .semester-summary-table-wrapper {
+  width: 100%;
   overflow-x: auto;
+
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
 }
 
 .semester-summary-table {
@@ -1464,12 +1663,61 @@ body.light .summary-small-progress {
   background: var(--table-header);
 }
 
+.semester-summary-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 
 /* ==================================================
-   RESPONSIVO
+   MELHORIAS VISUAIS DO RESUMO NO TEMA CLARO
+================================================== */
+
+body.light .semester-summary-stat,
+body.light .summary-overview-card,
+body.light .summary-grade-card,
+body.light .summary-task-card,
+body.light .summary-subject-card {
+  background: #f9fafb;
+}
+
+body.light .summary-subject-chip {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+body.light .summary-grade-approved,
+body.light .summary-status-done {
+  color: #047857;
+}
+
+body.light .summary-grade-warning {
+  color: #b91c1c;
+}
+
+body.light .summary-status-pending {
+  color: #a16207;
+}
+
+
+/* ==================================================
+   RESPONSIVIDADE GERAL
 ================================================== */
 
 @media (max-width: 800px) {
+
+  .app-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 
   .semester-summary-page {
     padding: 14px;
@@ -1486,65 +1734,147 @@ body.light .summary-small-progress {
   }
 
   .summary-calendar-grid {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .news-map-container {
+    height: auto;
+    min-height: 620px;
   }
 }
 
+
 @media (max-width: 500px) {
+
+  .app-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .top-nav {
+    justify-content: flex-start;
+  }
+
+  .semester-summary-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
   .semester-summary-actions select,
   .semester-summary-actions button {
     width: 100%;
   }
 
+  .semester-summary-page-header {
+    gap: 8px;
+  }
+
+  .semester-summary-page-header h2 {
+    font-size: 1.35rem;
+  }
+
   .semester-summary-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grade-grid {
     grid-template-columns:
-      1fr;
+      repeat(2, minmax(0, 1fr));
   }
 
   .summary-task-header {
+    flex-direction: column;
+  }
+
+  .summary-status-badge {
+    align-self: flex-start;
+  }
+
+  .summary-subject-header {
+    align-items: flex-start;
     flex-direction: column;
   }
 }
 
 
 /* ==================================================
-   RELATÓRIO DE IMPRESSÃO / PDF
+   RELATÓRIO / PDF
 ================================================== */
+
+/*
+  Fora do modo de impressão, o relatório fica escondido.
+  Ele será exibido apenas quando window.print() for chamado.
+*/
 
 .semester-print-report {
   display: none;
 }
 
+
+/* ==================================================
+   IMPRESSÃO A4
+================================================== */
+
 @media print {
 
+  html,
   body {
+    width: 100%;
+    min-height: 100%;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
     background: #ffffff !important;
     color: #111827 !important;
   }
 
+
+  /*
+    Esconde visualmente o site normal durante
+    a geração do PDF.
+  */
+
   body * {
     visibility: hidden !important;
   }
+
+
+  /*
+    Torna visível somente o relatório.
+  */
 
   #semesterPrintReport,
   #semesterPrintReport * {
     visibility: visible !important;
   }
 
+
   #semesterPrintReport {
     display: block !important;
 
     position: absolute;
+
     top: 0;
     left: 0;
 
     width: 100%;
 
+    margin: 0 !important;
+    padding: 0 !important;
+
     background: #ffffff !important;
     color: #111827 !important;
+
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif !important;
   }
+
+
+  /* ==================================================
+     CABEÇALHO DO PDF
+  ================================================== */
 
   .print-report-header {
     margin-bottom: 22px;
@@ -1556,34 +1886,78 @@ body.light .summary-small-progress {
   }
 
   .print-report-header h1 {
+    margin: 0;
+
+    color: #111827 !important;
+
     font-size: 21px;
+    line-height: 1.2;
   }
 
   .print-report-header h2 {
-    margin-top: 7px;
+    margin: 7px 0 0;
+
+    color: #111827 !important;
+
     font-size: 17px;
+    line-height: 1.2;
   }
+
+  .print-report-header p {
+    margin: 4px 0 0;
+
+    color: #4b5563 !important;
+
+    font-size: 11px;
+  }
+
+
+  /* ==================================================
+     SEÇÕES DO PDF
+  ================================================== */
 
   #semesterPrintReport section {
     margin-top: 20px;
   }
 
   #semesterPrintReport section > h2 {
-    margin-bottom: 9px;
+    margin: 0 0 9px;
     padding-bottom: 4px;
 
     border-bottom: 1px solid #9ca3af;
 
+    color: #111827 !important;
+
     font-size: 14px;
+
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  #semesterPrintReport h3,
+  #semesterPrintReport h4 {
+    color: #111827 !important;
   }
 
   #semesterPrintReport p,
   #semesterPrintReport li,
   #semesterPrintReport td,
   #semesterPrintReport th {
+    color: #111827 !important;
+
     font-size: 10.5px;
     line-height: 1.45;
   }
+
+  #semesterPrintReport ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+
+  /* ==================================================
+     ITENS DO PDF
+  ================================================== */
 
   .print-item {
     margin-bottom: 10px;
@@ -1595,9 +1969,37 @@ body.light .summary-small-progress {
     page-break-inside: avoid;
   }
 
+  .print-item:last-child {
+    border-bottom: none;
+  }
+
+  .print-item strong {
+    color: #111827 !important;
+    font-size: 11px;
+  }
+
+
+  /* ==================================================
+     TABELAS DO PDF
+  ================================================== */
+
   #semesterPrintReport table {
     width: 100%;
+
+    margin-top: 6px;
+
     border-collapse: collapse;
+
+    break-inside: auto;
+  }
+
+  #semesterPrintReport thead {
+    display: table-header-group;
+  }
+
+  #semesterPrintReport tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   #semesterPrintReport th,
@@ -1608,7 +2010,40 @@ body.light .summary-small-progress {
 
     color: #111827 !important;
     background: #ffffff !important;
+
+    text-align: left;
   }
+
+  #semesterPrintReport th {
+    font-weight: 700;
+
+    background: #f3f4f6 !important;
+  }
+
+
+  /* ==================================================
+     EVITA ELEMENTOS DESNECESSÁRIOS NO PDF
+  ================================================== */
+
+  .app-header,
+  .top-nav,
+  main,
+  footer {
+    visibility: hidden !important;
+  }
+
+  #semesterPrintReport {
+    visibility: visible !important;
+  }
+
+  #semesterPrintReport * {
+    visibility: visible !important;
+  }
+
+
+  /* ==================================================
+     CONFIGURAÇÃO DA PÁGINA
+  ================================================== */
 
   @page {
     size: A4;
