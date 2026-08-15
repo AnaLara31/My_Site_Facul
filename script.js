@@ -3921,3 +3921,5030 @@ if (
     );
 }
 
+// =====================================================
+// RESUMO DA CAPA
+// =====================================================
+
+const summarySubjectsEl =
+  document.getElementById("summarySubjects");
+
+const summaryWorksEl =
+  document.getElementById("summaryWorks");
+
+const summaryExamsEl =
+  document.getElementById("summaryExams");
+
+const summaryLessonsEl =
+  document.getElementById("summaryLessons");
+
+const semesterStatusContainer =
+  document.getElementById("semesterStatusContainer");
+
+
+function getSubjectsForCurrentSemester() {
+
+  return state.subjects.filter(
+    subject =>
+      Number(subject.semester) ===
+      Number(currentSemester)
+  );
+}
+
+
+function computeSemesterStats() {
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+  let totalWorks = 0;
+  let doneWorks = 0;
+
+  let totalExams = 0;
+  let doneExams = 0;
+
+  let totalLessons = 0;
+  let doneLessons = 0;
+
+
+  subjects.forEach(subject => {
+
+    const works =
+      subject.works || [];
+
+    const exams =
+      subject.exams || [];
+
+    const lessons =
+      subject.lessons || [];
+
+
+    totalWorks +=
+      works.length;
+
+    doneWorks +=
+      works.filter(
+        work => work.done
+      ).length;
+
+
+    totalExams +=
+      exams.length;
+
+    doneExams +=
+      exams.filter(
+        exam => exam.done
+      ).length;
+
+
+    totalLessons +=
+      lessons.length;
+
+    doneLessons +=
+      lessons.filter(
+        lesson => lesson.done
+      ).length;
+  });
+
+
+  return {
+
+    subjectsCount:
+      subjects.length,
+
+    totalWorks,
+
+    doneWorks,
+
+    totalExams,
+
+    doneExams,
+
+    totalLessons,
+
+    doneLessons
+
+  };
+}
+
+
+function updateSummary() {
+
+  const stats =
+    computeSemesterStats();
+
+
+  if (summarySubjectsEl) {
+
+    summarySubjectsEl.textContent =
+      stats.subjectsCount || "0";
+  }
+
+
+  if (summaryWorksEl) {
+
+    summaryWorksEl.textContent =
+      `${stats.doneWorks}/${stats.totalWorks}`;
+  }
+
+
+  if (summaryExamsEl) {
+
+    summaryExamsEl.textContent =
+      `${stats.doneExams}/${stats.totalExams}`;
+  }
+
+
+  const progress =
+    stats.totalLessons
+      ? Math.round(
+          (
+            stats.doneLessons /
+            stats.totalLessons
+          ) * 100
+        )
+      : 0;
+
+
+  if (summaryLessonsEl) {
+
+    summaryLessonsEl.textContent =
+      `${progress}%`;
+  }
+}
+
+
+function renderSemesterStatus() {
+
+  if (!semesterStatusContainer) {
+    return;
+  }
+
+
+  const stats =
+    computeSemesterStats();
+
+
+  const progressLessons =
+    stats.totalLessons
+      ? Math.round(
+          (
+            stats.doneLessons /
+            stats.totalLessons
+          ) * 100
+        )
+      : 0;
+
+
+  const progressWorks =
+    stats.totalWorks
+      ? Math.round(
+          (
+            stats.doneWorks /
+            stats.totalWorks
+          ) * 100
+        )
+      : 0;
+
+
+  const progressExams =
+    stats.totalExams
+      ? Math.round(
+          (
+            stats.doneExams /
+            stats.totalExams
+          ) * 100
+        )
+      : 0;
+
+
+  semesterStatusContainer.innerHTML = `
+
+    <div class="semester-status-row">
+
+      <strong>
+        Aulas estudadas:
+      </strong>
+
+      ${stats.doneLessons}/${stats.totalLessons}
+      (${progressLessons}%)
+
+      <div class="progress-bar-track">
+
+        <div
+          class="progress-bar-fill"
+          style="
+            width:${progressLessons}%;
+          "
+        >
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="semester-status-row">
+
+      <strong>
+        Trabalhos concluídos:
+      </strong>
+
+      ${stats.doneWorks}/${stats.totalWorks}
+      (${progressWorks}%)
+
+      <div class="progress-bar-track">
+
+        <div
+          class="progress-bar-fill"
+          style="
+            width:${progressWorks}%;
+          "
+        >
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="semester-status-row">
+
+      <strong>
+        Provas realizadas:
+      </strong>
+
+      ${stats.doneExams}/${stats.totalExams}
+      (${progressExams}%)
+
+      <div class="progress-bar-track">
+
+        <div
+          class="progress-bar-fill"
+          style="
+            width:${progressExams}%;
+          "
+        >
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+
+// =====================================================
+// CALENDÁRIO / CAPA
+// =====================================================
+
+const calendarBody =
+  document.getElementById("calendarBody");
+
+const calendarMonthLabel =
+  document.getElementById("calendarMonthLabel");
+
+const calendarSelectedInfo =
+  document.getElementById("calendarSelectedInfo");
+
+const prevMonthBtn =
+  document.getElementById("prevMonthBtn");
+
+const nextMonthBtn =
+  document.getElementById("nextMonthBtn");
+
+const holidayList =
+  document.getElementById("holidayList");
+
+const importantDatesList =
+  document.getElementById("importantDatesList");
+
+const timetableBody =
+  document.getElementById("timetableBody");
+
+const addImportantDateForm =
+  document.getElementById("addImportantDateForm");
+
+const importantDateInput =
+  document.getElementById("importantDateInput");
+
+const importantLabelInput =
+  document.getElementById("importantLabelInput");
+
+const addTimetableForm =
+  document.getElementById("addTimetableForm");
+
+const timetableDayInput =
+  document.getElementById("timetableDayInput");
+
+const timetableTimeInput =
+  document.getElementById("timetableTimeInput");
+
+const timetableSubjectInput =
+  document.getElementById("timetableSubjectInput");
+
+const upcomingList =
+  document.getElementById("upcomingList");
+
+
+let calendarYear;
+
+let calendarMonth;
+
+let selectedDate =
+  null;
+
+
+function initCalendar() {
+
+  const today =
+    new Date();
+
+  calendarYear =
+    today.getFullYear();
+
+  calendarMonth =
+    today.getMonth();
+
+  renderCalendar();
+}
+
+
+function dateToIso(date) {
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  return (
+    `${year}-${month}-${day}`
+  );
+}
+
+
+// =====================================================
+// FERIADOS DO BRASIL
+// =====================================================
+
+function easterDate(year) {
+
+  const a =
+    year % 19;
+
+  const b =
+    Math.floor(
+      year / 100
+    );
+
+  const c =
+    year % 100;
+
+  const d =
+    Math.floor(
+      b / 4
+    );
+
+  const e =
+    b % 4;
+
+  const f =
+    Math.floor(
+      (b + 8) / 25
+    );
+
+  const g =
+    Math.floor(
+      (b - f + 1) / 3
+    );
+
+  const h =
+    (
+      19 * a +
+      b -
+      d -
+      g +
+      15
+    ) % 30;
+
+  const i =
+    Math.floor(
+      c / 4
+    );
+
+  const k =
+    c % 4;
+
+  const l =
+    (
+      32 +
+      2 * e +
+      2 * i -
+      h -
+      k
+    ) % 7;
+
+  const m =
+    Math.floor(
+      (
+        a +
+        11 * h +
+        22 * l
+      ) / 451
+    );
+
+  const month =
+    Math.floor(
+      (
+        h +
+        l -
+        7 * m +
+        114
+      ) / 31
+    ) - 1;
+
+  const day =
+    (
+      (
+        h +
+        l -
+        7 * m +
+        114
+      ) % 31
+    ) + 1;
+
+
+  return new Date(
+    year,
+    month,
+    day
+  );
+}
+
+
+function getBrazilHolidays(year) {
+
+  const fixed = [
+
+    {
+      date:
+        `${year}-01-01`,
+      label:
+        "Ano Novo"
+    },
+
+    {
+      date:
+        `${year}-04-21`,
+      label:
+        "Tiradentes"
+    },
+
+    {
+      date:
+        `${year}-05-01`,
+      label:
+        "Dia do Trabalhador"
+    },
+
+    {
+      date:
+        `${year}-09-07`,
+      label:
+        "Independência do Brasil"
+    },
+
+    {
+      date:
+        `${year}-10-12`,
+      label:
+        "Nossa Senhora Aparecida"
+    },
+
+    {
+      date:
+        `${year}-11-02`,
+      label:
+        "Finados"
+    },
+
+    {
+      date:
+        `${year}-11-15`,
+      label:
+        "Proclamação da República"
+    },
+
+    {
+      date:
+        `${year}-12-25`,
+      label:
+        "Natal"
+    }
+
+  ];
+
+
+  const easter =
+    easterDate(year);
+
+
+  const goodFriday =
+    new Date(easter);
+
+  goodFriday.setDate(
+    easter.getDate() - 2
+  );
+
+
+  const carnival =
+    new Date(easter);
+
+  carnival.setDate(
+    easter.getDate() - 47
+  );
+
+
+  const corpusChristi =
+    new Date(easter);
+
+  corpusChristi.setDate(
+    easter.getDate() + 60
+  );
+
+
+  const movable = [
+
+    {
+      date:
+        dateToIso(
+          carnival
+        ),
+      label:
+        "Carnaval"
+    },
+
+    {
+      date:
+        dateToIso(
+          goodFriday
+        ),
+      label:
+        "Sexta-feira Santa"
+    },
+
+    {
+      date:
+        dateToIso(
+          easter
+        ),
+      label:
+        "Páscoa"
+    },
+
+    {
+      date:
+        dateToIso(
+          corpusChristi
+        ),
+      label:
+        "Corpus Christi"
+    }
+
+  ];
+
+
+  return [
+    ...fixed,
+    ...movable
+  ].sort(
+    (a, b) =>
+      a.date.localeCompare(
+        b.date
+      )
+  );
+}
+
+
+// =====================================================
+// EVENTOS NO CALENDÁRIO
+// =====================================================
+
+function hasEventsOnDate(iso) {
+
+  const year =
+    Number(
+      iso.slice(
+        0,
+        4
+      )
+    );
+
+
+  const holidays =
+    getBrazilHolidays(
+      year
+    );
+
+
+  const hasHoliday =
+    holidays.some(
+      holiday =>
+        holiday.date === iso
+    );
+
+
+  const important =
+    getImportantDatesForCurrentSemester();
+
+
+  const hasImportant =
+    important.some(
+      item =>
+        item.date === iso
+    );
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  const works =
+    subjects.flatMap(
+      subject =>
+        subject.works || []
+    );
+
+
+  const exams =
+    subjects.flatMap(
+      subject =>
+        subject.exams || []
+    );
+
+
+  const hasWork =
+    works.some(
+      work =>
+        work.dueDate === iso
+    );
+
+
+  const hasExam =
+    exams.some(
+      exam =>
+        exam.date === iso
+    );
+
+
+  return (
+    hasHoliday ||
+    hasImportant ||
+    hasWork ||
+    hasExam
+  );
+}
+
+
+// =====================================================
+// DESENHAR CALENDÁRIO
+// =====================================================
+
+function renderCalendar() {
+
+  if (
+    !calendarBody ||
+    calendarYear === undefined ||
+    calendarMonth === undefined
+  ) {
+    return;
+  }
+
+
+  const firstDay =
+    new Date(
+      calendarYear,
+      calendarMonth,
+      1
+    );
+
+
+  const startDayOfWeek =
+    firstDay.getDay();
+
+
+  const daysInMonth =
+    new Date(
+      calendarYear,
+      calendarMonth + 1,
+      0
+    ).getDate();
+
+
+  const prevMonthDays =
+    new Date(
+      calendarYear,
+      calendarMonth,
+      0
+    ).getDate();
+
+
+  const monthNames = [
+
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro"
+
+  ];
+
+
+  if (calendarMonthLabel) {
+
+    calendarMonthLabel.textContent =
+      `${monthNames[calendarMonth]} de ${calendarYear}`;
+  }
+
+
+  calendarBody.innerHTML =
+    "";
+
+
+  let day =
+    1;
+
+  let nextMonthDay =
+    1;
+
+
+  for (
+    let week = 0;
+    week < 6;
+    week++
+  ) {
+
+    const tr =
+      document.createElement(
+        "tr"
+      );
+
+
+    for (
+      let dow = 0;
+      dow < 7;
+      dow++
+    ) {
+
+      const td =
+        document.createElement(
+          "td"
+        );
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "calendar-day";
+
+
+      let displayDay;
+
+      let dateObj;
+
+
+      if (
+        week === 0 &&
+        dow < startDayOfWeek
+      ) {
+
+        displayDay =
+          prevMonthDays -
+          (
+            startDayOfWeek -
+            dow -
+            1
+          );
+
+
+        dateObj =
+          new Date(
+            calendarYear,
+            calendarMonth - 1,
+            displayDay
+          );
+
+
+        div.classList.add(
+          "other-month"
+        );
+
+      } else if (
+        day >
+        daysInMonth
+      ) {
+
+        displayDay =
+          nextMonthDay++;
+
+
+        dateObj =
+          new Date(
+            calendarYear,
+            calendarMonth + 1,
+            displayDay
+          );
+
+
+        div.classList.add(
+          "other-month"
+        );
+
+      } else {
+
+        displayDay =
+          day++;
+
+
+        dateObj =
+          new Date(
+            calendarYear,
+            calendarMonth,
+            displayDay
+          );
+      }
+
+
+      div.textContent =
+        displayDay;
+
+
+      const iso =
+        dateToIso(
+          dateObj
+        );
+
+
+      div.dataset.date =
+        iso;
+
+
+      const todayIso =
+        dateToIso(
+          new Date()
+        );
+
+
+      if (
+        iso === todayIso
+      ) {
+
+        div.classList.add(
+          "today"
+        );
+      }
+
+
+      if (
+        hasEventsOnDate(
+          iso
+        )
+      ) {
+
+        div.classList.add(
+          "has-event"
+        );
+      }
+
+
+      div.addEventListener(
+        "click",
+        () => {
+
+          selectedDate =
+            iso;
+
+          renderSelectedDateInfo();
+        }
+      );
+
+
+      td.appendChild(
+        div
+      );
+
+
+      tr.appendChild(
+        td
+      );
+    }
+
+
+    calendarBody.appendChild(
+      tr
+    );
+  }
+
+
+  renderSelectedDateInfo();
+
+  renderHolidayList();
+}
+
+
+// =====================================================
+// INFORMAÇÕES DO DIA SELECIONADO
+// =====================================================
+
+function renderSelectedDateInfo() {
+
+  if (
+    !calendarSelectedInfo
+  ) {
+    return;
+  }
+
+
+  if (!selectedDate) {
+
+    calendarSelectedInfo.innerHTML =
+      "<strong>Selecione um dia para ver detalhes.</strong>";
+
+    return;
+  }
+
+
+  const parts =
+    selectedDate.split(
+      "-"
+    );
+
+
+  const formatted =
+    `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+
+  const events =
+    [];
+
+
+  getBrazilHolidays(
+    Number(
+      selectedDate.slice(
+        0,
+        4
+      )
+    )
+  ).forEach(
+    holiday => {
+
+      if (
+        holiday.date ===
+        selectedDate
+      ) {
+
+        events.push({
+
+          type:
+            "Feriado",
+
+          label:
+            holiday.label
+
+        });
+      }
+    }
+  );
+
+
+  getImportantDatesForCurrentSemester()
+    .forEach(
+      item => {
+
+        if (
+          item.date ===
+          selectedDate
+        ) {
+
+          events.push({
+
+            type:
+              "Importante",
+
+            label:
+              item.label
+
+          });
+        }
+      }
+    );
+
+
+  getSubjectsForCurrentSemester()
+    .forEach(
+      subject => {
+
+        (subject.works || [])
+          .forEach(
+            (work, index) => {
+
+              if (
+                work.dueDate ===
+                selectedDate
+              ) {
+
+                events.push({
+
+                  type:
+                    "Trabalho",
+
+                  label:
+                    `${subject.name} - Trabalho ${index + 1}`
+
+                });
+              }
+            }
+          );
+
+
+        (subject.exams || [])
+          .forEach(
+            (exam, index) => {
+
+              if (
+                exam.date ===
+                selectedDate
+              ) {
+
+                events.push({
+
+                  type:
+                    "Prova",
+
+                  label:
+                    `${subject.name} - Prova ${index + 1}`
+
+                });
+              }
+            }
+          );
+      }
+    );
+
+
+  if (
+    events.length === 0
+  ) {
+
+    calendarSelectedInfo.innerHTML =
+      `<strong>${formatted}</strong><br>Nenhum evento cadastrado.`;
+
+    return;
+  }
+
+
+  const listItems =
+    events
+      .map(
+        event => `
+
+          <li>
+
+            <strong>
+              ${event.type}:
+            </strong>
+
+            ${event.label}
+
+          </li>
+
+        `
+      )
+      .join("");
+
+
+  calendarSelectedInfo.innerHTML = `
+
+    <strong>
+      ${formatted}
+    </strong>
+
+    <ul>
+      ${listItems}
+    </ul>
+
+  `;
+}
+
+
+// =====================================================
+// NAVEGAÇÃO DOS MESES
+// =====================================================
+
+if (prevMonthBtn) {
+
+  prevMonthBtn.addEventListener(
+    "click",
+    () => {
+
+      if (
+        calendarMonth === 0
+      ) {
+
+        calendarMonth =
+          11;
+
+        calendarYear--;
+
+      } else {
+
+        calendarMonth--;
+      }
+
+
+      renderCalendar();
+    }
+  );
+}
+
+
+if (nextMonthBtn) {
+
+  nextMonthBtn.addEventListener(
+    "click",
+    () => {
+
+      if (
+        calendarMonth === 11
+      ) {
+
+        calendarMonth =
+          0;
+
+        calendarYear++;
+
+      } else {
+
+        calendarMonth++;
+      }
+
+
+      renderCalendar();
+    }
+  );
+}
+
+
+// =====================================================
+// LISTA DE FERIADOS
+// =====================================================
+
+function renderHolidayList() {
+
+  if (!holidayList) {
+    return;
+  }
+
+
+  holidayList.innerHTML =
+    "";
+
+
+  const holidays =
+    getBrazilHolidays(
+      calendarYear
+    );
+
+
+  holidays.forEach(
+    holiday => {
+
+      const [
+        ,
+        month,
+        day
+      ] =
+        holiday.date.split(
+          "-"
+        );
+
+
+      const li =
+        document.createElement(
+          "li"
+        );
+
+
+      li.innerHTML = `
+
+        <span class="date">
+          ${day}/${month}
+        </span>
+
+        ${holiday.label}
+
+      `;
+
+
+      holidayList.appendChild(
+        li
+      );
+    }
+  );
+}
+
+
+// =====================================================
+// DATAS IMPORTANTES
+// =====================================================
+
+function renderImportantDatesList() {
+
+  if (
+    !importantDatesList
+  ) {
+    return;
+  }
+
+
+  importantDatesList.innerHTML =
+    "";
+
+
+  const sorted =
+    [
+      ...getImportantDatesForCurrentSemester()
+    ].sort(
+      (a, b) =>
+        a.date.localeCompare(
+          b.date
+        )
+    );
+
+
+  if (!sorted.length) {
+
+    importantDatesList.innerHTML =
+      "<li>Nenhuma data importante cadastrada.</li>";
+
+    return;
+  }
+
+
+  sorted.forEach(
+    item => {
+
+      const li =
+        document.createElement(
+          "li"
+        );
+
+
+      const [
+        ,
+        month,
+        day
+      ] =
+        item.date.split(
+          "-"
+        );
+
+
+      const dateSpan =
+        document.createElement(
+          "span"
+        );
+
+
+      dateSpan.className =
+        "date";
+
+
+      dateSpan.textContent =
+        `${day}/${month}`;
+
+
+      const labelSpan =
+        document.createElement(
+          "span"
+        );
+
+
+      labelSpan.textContent =
+        item.label;
+
+
+      const deleteBtn =
+        document.createElement(
+          "button"
+        );
+
+
+      deleteBtn.type =
+        "button";
+
+
+      deleteBtn.className =
+        "inline-delete-btn";
+
+
+      deleteBtn.textContent =
+        "Excluir";
+
+
+      deleteBtn.addEventListener(
+        "click",
+        () => {
+
+          const semesterKey =
+            getSemesterKey();
+
+
+          state
+            .importantDatesBySemester[
+              semesterKey
+            ] =
+            (
+              state
+                .importantDatesBySemester[
+                  semesterKey
+                ] || []
+            ).filter(
+              current =>
+                !(
+                  current.date ===
+                    item.date &&
+                  current.label ===
+                    item.label
+                )
+            );
+
+
+          saveState();
+
+          renderImportantDatesList();
+
+          renderUpcomingDeadlines();
+
+          renderCalendar();
+        }
+      );
+
+
+      li.appendChild(
+        dateSpan
+      );
+
+
+      li.appendChild(
+        labelSpan
+      );
+
+
+      li.appendChild(
+        deleteBtn
+      );
+
+
+      importantDatesList.appendChild(
+        li
+      );
+    }
+  );
+}
+
+
+if (addImportantDateForm) {
+
+  addImportantDateForm
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        const date =
+          importantDateInput
+            ? importantDateInput.value
+            : "";
+
+
+        const label =
+          importantLabelInput
+            ? importantLabelInput.value.trim()
+            : "";
+
+
+        if (
+          !date ||
+          !label
+        ) {
+
+          return;
+        }
+
+
+        const semesterKey =
+          getSemesterKey();
+
+
+        if (
+          !state
+            .importantDatesBySemester[
+              semesterKey
+            ]
+        ) {
+
+          state
+            .importantDatesBySemester[
+              semesterKey
+            ] = [];
+        }
+
+
+        state
+          .importantDatesBySemester[
+            semesterKey
+          ].push({
+
+            date,
+
+            label
+
+          });
+
+
+        saveState();
+
+
+        importantDateInput.value =
+          "";
+
+        importantLabelInput.value =
+          "";
+
+
+        renderImportantDatesList();
+
+        renderCalendar();
+
+        renderUpcomingDeadlines();
+      }
+    );
+}
+
+
+// =====================================================
+// HORÁRIO DAS AULAS
+// =====================================================
+
+function renderTimetable() {
+
+  if (!timetableBody) {
+    return;
+  }
+
+
+  timetableBody.innerHTML =
+    "";
+
+
+  const mapping = {
+
+    monday:
+      "Segunda",
+
+    tuesday:
+      "Terça",
+
+    wednesday:
+      "Quarta",
+
+    thursday:
+      "Quinta",
+
+    friday:
+      "Sexta"
+
+  };
+
+
+  const table =
+    getTimetableForCurrentSemester();
+
+
+  Object.keys(
+    mapping
+  ).forEach(
+    key => {
+
+      const dayName =
+        mapping[key];
+
+
+      const slots =
+        table[key] || [];
+
+
+      if (
+        !slots.length
+      ) {
+
+        return;
+      }
+
+
+      slots.forEach(
+        (slot, index) => {
+
+          const tr =
+            document.createElement(
+              "tr"
+            );
+
+
+          const dayTd =
+            document.createElement(
+              "td"
+            );
+
+
+          dayTd.textContent =
+            index === 0
+              ? dayName
+              : "";
+
+
+          const timeTd =
+            document.createElement(
+              "td"
+            );
+
+
+          timeTd.textContent =
+            slot.time;
+
+
+          const subjectTd =
+            document.createElement(
+              "td"
+            );
+
+
+          const subjectSpan =
+            document.createElement(
+              "span"
+            );
+
+
+          subjectSpan.textContent =
+            slot.subject;
+
+
+          const deleteBtn =
+            document.createElement(
+              "button"
+            );
+
+
+          deleteBtn.type =
+            "button";
+
+
+          deleteBtn.className =
+            "inline-delete-btn";
+
+
+          deleteBtn.textContent =
+            "Excluir";
+
+
+          deleteBtn.addEventListener(
+            "click",
+            () => {
+
+              const updated =
+                getTimetableForCurrentSemester();
+
+
+              updated[key].splice(
+                index,
+                1
+              );
+
+
+              setTimetableForCurrentSemester(
+                updated
+              );
+
+
+              saveState();
+
+              renderTimetable();
+            }
+          );
+
+
+          subjectTd.appendChild(
+            subjectSpan
+          );
+
+
+          subjectTd.appendChild(
+            deleteBtn
+          );
+
+
+          tr.appendChild(
+            dayTd
+          );
+
+
+          tr.appendChild(
+            timeTd
+          );
+
+
+          tr.appendChild(
+            subjectTd
+          );
+
+
+          timetableBody.appendChild(
+            tr
+          );
+        }
+      );
+    }
+  );
+
+
+  if (
+    !timetableBody.hasChildNodes()
+  ) {
+
+    const tr =
+      document.createElement(
+        "tr"
+      );
+
+
+    const td =
+      document.createElement(
+        "td"
+      );
+
+
+    td.colSpan =
+      3;
+
+
+    td.textContent =
+      "Nenhum horário cadastrado.";
+
+
+    tr.appendChild(
+      td
+    );
+
+
+    timetableBody.appendChild(
+      tr
+    );
+  }
+}
+
+
+if (addTimetableForm) {
+
+  addTimetableForm
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        const dayKey =
+          timetableDayInput
+            ? timetableDayInput.value
+            : "";
+
+
+        const time =
+          timetableTimeInput
+            ? timetableTimeInput.value.trim()
+            : "";
+
+
+        const subject =
+          timetableSubjectInput
+            ? timetableSubjectInput.value.trim()
+            : "";
+
+
+        if (
+          !dayKey ||
+          !time ||
+          !subject
+        ) {
+
+          return;
+        }
+
+
+        const updated =
+          getTimetableForCurrentSemester();
+
+
+        updated[
+          dayKey
+        ].push({
+
+          time,
+
+          subject
+
+        });
+
+
+        setTimetableForCurrentSemester(
+          updated
+        );
+
+
+        saveState();
+
+
+        timetableDayInput.value =
+          "";
+
+        timetableTimeInput.value =
+          "";
+
+        timetableSubjectInput.value =
+          "";
+
+
+        renderTimetable();
+      }
+    );
+}
+
+
+// =====================================================
+// PRÓXIMOS PRAZOS
+// =====================================================
+
+function renderUpcomingDeadlines() {
+
+  if (!upcomingList) {
+    return;
+  }
+
+
+  upcomingList.innerHTML =
+    "";
+
+
+  const items =
+    [];
+
+
+  const todayIso =
+    dateToIso(
+      new Date()
+    );
+
+
+  getImportantDatesForCurrentSemester()
+    .forEach(
+      item => {
+
+        if (
+          item.date >=
+          todayIso
+        ) {
+
+          items.push({
+
+            date:
+              item.date,
+
+            label:
+              item.label,
+
+            type:
+              "Importante"
+
+          });
+        }
+      }
+    );
+
+
+  getSubjectsForCurrentSemester()
+    .forEach(
+      subject => {
+
+        (subject.works || [])
+          .forEach(
+            (work, index) => {
+
+              if (
+                work.dueDate &&
+                work.dueDate >=
+                  todayIso
+              ) {
+
+                items.push({
+
+                  date:
+                    work.dueDate,
+
+                  label:
+                    `${subject.name} - Trabalho ${index + 1}`,
+
+                  type:
+                    "Trabalho"
+
+                });
+              }
+            }
+          );
+
+
+        (subject.exams || [])
+          .forEach(
+            (exam, index) => {
+
+              if (
+                exam.date &&
+                exam.date >=
+                  todayIso
+              ) {
+
+                items.push({
+
+                  date:
+                    exam.date,
+
+                  label:
+                    `${subject.name} - Prova ${index + 1}`,
+
+                  type:
+                    "Prova"
+
+                });
+              }
+            }
+          );
+      }
+    );
+
+
+  items.sort(
+    (a, b) =>
+      a.date.localeCompare(
+        b.date
+      )
+  );
+
+
+  const limited =
+    items.slice(
+      0,
+      8
+    );
+
+
+  if (
+    !limited.length
+  ) {
+
+    upcomingList.innerHTML =
+      "<li>Nenhum prazo cadastrado a partir de hoje.</li>";
+
+    return;
+  }
+
+
+  limited.forEach(
+    item => {
+
+      const [
+        ,
+        month,
+        day
+      ] =
+        item.date.split(
+          "-"
+        );
+
+
+      const li =
+        document.createElement(
+          "li"
+        );
+
+
+      li.innerHTML = `
+
+        <span class="date">
+          ${day}/${month}
+        </span>
+
+        <strong>
+          ${item.type}:
+        </strong>
+
+        ${item.label}
+
+      `;
+
+
+      upcomingList.appendChild(
+        li
+      );
+    }
+  );
+}
+
+
+// =====================================================
+// NOTAS
+// =====================================================
+
+const gradesContainer =
+  document.getElementById("gradesContainer");
+
+
+function toNumber(value) {
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+
+    return 0;
+  }
+
+
+  const number =
+    Number(
+      String(value)
+        .replace(
+          ",",
+          "."
+        )
+    );
+
+
+  return isNaN(number)
+    ? 0
+    : number;
+}
+
+
+// =====================================================
+// CÁLCULO DA MÉDIA
+// =====================================================
+
+function computeFinalGrade(grades) {
+
+  if (!grades) {
+    return null;
+  }
+
+
+  const t1 =
+    toNumber(
+      grades.t1
+    );
+
+  const p1 =
+    toNumber(
+      grades.p1
+    );
+
+  const t2 =
+    toNumber(
+      grades.t2
+    );
+
+  const p2 =
+    toNumber(
+      grades.p2
+    );
+
+
+  const result =
+    (
+      (t1 + p1) * 2 +
+      (t2 + p2) * 3
+    ) / 5;
+
+
+  if (
+    isNaN(result)
+  ) {
+
+    return null;
+  }
+
+
+  return result;
+}
+
+
+function renderGrades() {
+
+  if (!gradesContainer) {
+    return;
+  }
+
+
+  gradesContainer.innerHTML =
+    "";
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  const selectedPart =
+    gradeFilterPart
+      ? gradeFilterPart.value
+      : "all";
+
+
+  if (
+    !subjects.length
+  ) {
+
+    gradesContainer.innerHTML =
+      "<p>Nenhuma matéria cadastrada para este semestre.</p>";
+
+    return;
+  }
+
+
+  subjects.forEach(
+    subject => {
+
+      if (!subject.grades) {
+
+        subject.grades = {
+
+          t1:
+            null,
+
+          p1:
+            null,
+
+          t2:
+            null,
+
+          p2:
+            null
+
+        };
+      }
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "subject-card";
+
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+
+      header.className =
+        "subject-card-header";
+
+
+      const nameSpan =
+        document.createElement(
+          "div"
+        );
+
+
+      nameSpan.className =
+        "subject-name";
+
+
+      nameSpan.textContent =
+        subject.name;
+
+
+      const badge =
+        document.createElement(
+          "span"
+        );
+
+
+      badge.className =
+        "badge badge-semester";
+
+
+      badge.textContent =
+        `${subject.semester}º sem.`;
+
+
+      header.appendChild(
+        nameSpan
+      );
+
+
+      header.appendChild(
+        badge
+      );
+
+
+      const gradesGrid =
+        document.createElement(
+          "div"
+        );
+
+
+      gradesGrid.className =
+        "grades-grid";
+
+
+      const fields = [
+
+        {
+          key:
+            "t1",
+
+          label:
+            "Trabalho 1",
+
+          part:
+            "part1"
+        },
+
+        {
+          key:
+            "p1",
+
+          label:
+            "Prova 1",
+
+          part:
+            "part1"
+        },
+
+        {
+          key:
+            "t2",
+
+          label:
+            "Trabalho 2",
+
+          part:
+            "part2"
+        },
+
+        {
+          key:
+            "p2",
+
+          label:
+            "Prova 2",
+
+          part:
+            "part2"
+        }
+
+      ];
+
+
+      fields.forEach(
+        field => {
+
+          if (
+            selectedPart !==
+              "all" &&
+            selectedPart !==
+              field.part
+          ) {
+
+            return;
+          }
+
+
+          const fieldDiv =
+            document.createElement(
+              "div"
+            );
+
+
+          fieldDiv.className =
+            "grade-field";
+
+
+          const label =
+            document.createElement(
+              "label"
+            );
+
+
+          label.textContent =
+            field.label;
+
+
+          const input =
+            document.createElement(
+              "input"
+            );
+
+
+          input.type =
+            "number";
+
+          input.step =
+            "0.1";
+
+          input.min =
+            "0";
+
+          input.max =
+            "10";
+
+
+          input.value =
+            subject
+              .grades[
+                field.key
+              ] ?? "";
+
+
+          input.addEventListener(
+            "input",
+            () => {
+
+              subject
+                .grades[
+                  field.key
+                ] =
+                input.value;
+
+
+              saveState();
+
+              updateSummary();
+
+              renderSemesterStatus();
+            }
+          );
+
+
+          fieldDiv.appendChild(
+            label
+          );
+
+
+          fieldDiv.appendChild(
+            input
+          );
+
+
+          gradesGrid.appendChild(
+            fieldDiv
+          );
+        }
+      );
+
+
+      const finalGrade =
+        computeFinalGrade(
+          subject.grades
+        );
+
+
+      const finalDiv =
+        document.createElement(
+          "div"
+        );
+
+
+      finalDiv.className =
+        "final-grade";
+
+
+      if (
+        finalGrade === null ||
+        isNaN(
+          finalGrade
+        )
+      ) {
+
+        finalDiv.textContent =
+          "Média final: -";
+
+      } else {
+
+        const rounded =
+          finalGrade.toFixed(
+            2
+          );
+
+
+        finalDiv.textContent =
+          `Média final: ${rounded}`;
+
+
+        const statusBadge =
+          document.createElement(
+            "span"
+          );
+
+
+        statusBadge.className =
+          "badge " +
+          (
+            finalGrade >= 6
+              ? "badge-status-ok"
+              : "badge-status-bad"
+          );
+
+
+        statusBadge.textContent =
+          finalGrade >= 6
+            ? "Aprovado (parcial)"
+            : "Atenção";
+
+
+        finalDiv.appendChild(
+          statusBadge
+        );
+      }
+
+
+      card.appendChild(
+        header
+      );
+
+
+      card.appendChild(
+        gradesGrid
+      );
+
+
+      card.appendChild(
+        finalDiv
+      );
+
+
+      gradesContainer.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+// =====================================================
+// DIFICULDADE DOS TRABALHOS
+// =====================================================
+
+function applyDifficultyClass(
+  selectElement,
+  difficulty
+) {
+
+  selectElement.classList.remove(
+    "difficulty-facil",
+    "difficulty-medio",
+    "difficulty-dificil"
+  );
+
+
+  if (
+    difficulty ===
+    "facil"
+  ) {
+
+    selectElement.classList.add(
+      "difficulty-facil"
+    );
+
+  } else if (
+    difficulty ===
+    "medio"
+  ) {
+
+    selectElement.classList.add(
+      "difficulty-medio"
+    );
+
+  } else if (
+    difficulty ===
+    "dificil"
+  ) {
+
+    selectElement.classList.add(
+      "difficulty-dificil"
+    );
+  }
+}
+
+
+// =====================================================
+// TRABALHOS
+// =====================================================
+
+const worksPageContainer =
+  document.getElementById("worksPageContainer");
+
+const workFilterIndex =
+  document.getElementById("workFilterIndex");
+
+const workFilterDifficulty =
+  document.getElementById("workFilterDifficulty");
+
+const workFilterDone =
+  document.getElementById("workFilterDone");
+
+const workFilterDelivered =
+  document.getElementById("workFilterDelivered");
+
+
+function getWorkFilters() {
+
+  return {
+
+    index:
+      workFilterIndex
+        ? workFilterIndex.value
+        : "all",
+
+    difficulty:
+      workFilterDifficulty
+        ? workFilterDifficulty.value
+        : "all",
+
+    done:
+      workFilterDone
+        ? workFilterDone.value
+        : "all",
+
+    delivered:
+      workFilterDelivered
+        ? workFilterDelivered.value
+        : "all"
+
+  };
+}
+
+
+[
+  workFilterIndex,
+  workFilterDifficulty,
+  workFilterDone,
+  workFilterDelivered
+
+]
+  .filter(Boolean)
+  .forEach(
+    element => {
+
+      element.addEventListener(
+        "change",
+        () => {
+
+          renderWorksPage();
+        }
+      );
+    }
+  );
+
+
+function renderWorksPage() {
+
+  if (!worksPageContainer) {
+    return;
+  }
+
+
+  worksPageContainer.innerHTML =
+    "";
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  if (
+    !subjects.length
+  ) {
+
+    worksPageContainer.innerHTML =
+      "<p>Nenhuma matéria cadastrada para este semestre.</p>";
+
+    return;
+  }
+
+
+  const filters =
+    getWorkFilters();
+
+
+  subjects.forEach(
+    subject => {
+
+      if (!subject.works) {
+
+        subject.works =
+          [];
+      }
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "subject-card";
+
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+
+      header.className =
+        "subject-card-header";
+
+
+      const nameSpan =
+        document.createElement(
+          "div"
+        );
+
+
+      nameSpan.className =
+        "subject-name";
+
+
+      nameSpan.textContent =
+        subject.name;
+
+
+      const badge =
+        document.createElement(
+          "span"
+        );
+
+
+      badge.className =
+        "badge badge-semester";
+
+
+      badge.textContent =
+        `${subject.semester}º sem.`;
+
+
+      header.appendChild(
+        nameSpan
+      );
+
+
+      header.appendChild(
+        badge
+      );
+
+
+      const blocks =
+        document.createElement(
+          "div"
+        );
+
+
+      blocks.className =
+        "two-columns";
+
+
+      subject.works.forEach(
+        (work, index) => {
+
+          if (
+            !work.difficulty
+          ) {
+
+            work.difficulty =
+              "medio";
+          }
+
+
+          if (
+            work.delivered ===
+            undefined
+          ) {
+
+            work.delivered =
+              false;
+          }
+
+
+          if (
+            filters.index !==
+              "all" &&
+            Number(
+              filters.index
+            ) !== index
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.difficulty !==
+              "all" &&
+            filters.difficulty !==
+              work.difficulty
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.done ===
+              "done" &&
+            !work.done
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.done ===
+              "not" &&
+            work.done
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.delivered ===
+              "delivered" &&
+            !work.delivered
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.delivered ===
+              "not" &&
+            work.delivered
+          ) {
+
+            return;
+          }
+
+
+          const block =
+            document.createElement(
+              "div"
+            );
+
+
+          block.className =
+            "work-block";
+
+
+          const title =
+            document.createElement(
+              "h3"
+            );
+
+
+          title.textContent =
+            `Trabalho ${index + 1}`;
+
+
+          const textarea =
+            document.createElement(
+              "textarea"
+            );
+
+
+          textarea.className =
+            "textarea-small";
+
+
+          textarea.placeholder =
+            "O que o professor pediu?";
+
+
+          textarea.value =
+            work.description || "";
+
+
+          textarea.addEventListener(
+            "input",
+            () => {
+
+              work.description =
+                textarea.value;
+
+
+              saveState();
+            }
+          );
+
+
+          const smallRow =
+            document.createElement(
+              "div"
+            );
+
+
+          smallRow.className =
+            "small-row";
+
+
+          const dateInput =
+            document.createElement(
+              "input"
+            );
+
+
+          dateInput.type =
+            "date";
+
+
+          dateInput.value =
+            work.dueDate || "";
+
+
+          dateInput.addEventListener(
+            "change",
+            () => {
+
+              work.dueDate =
+                dateInput.value ||
+                null;
+
+
+              saveState();
+
+              renderCalendar();
+
+              renderUpcomingDeadlines();
+            }
+          );
+
+
+          const difficultySelect =
+            document.createElement(
+              "select"
+            );
+
+
+          difficultySelect.className =
+            "difficulty-select";
+
+
+          [
+
+            {
+              value:
+                "facil",
+              label:
+                "Fácil"
+            },
+
+            {
+              value:
+                "medio",
+              label:
+                "Médio"
+            },
+
+            {
+              value:
+                "dificil",
+              label:
+                "Difícil"
+            }
+
+          ].forEach(
+            difficulty => {
+
+              const option =
+                document.createElement(
+                  "option"
+                );
+
+
+              option.value =
+                difficulty.value;
+
+
+              option.textContent =
+                difficulty.label;
+
+
+              difficultySelect.appendChild(
+                option
+              );
+            }
+          );
+
+
+          difficultySelect.value =
+            work.difficulty ||
+            "medio";
+
+
+          applyDifficultyClass(
+            difficultySelect,
+            difficultySelect.value
+          );
+
+
+          difficultySelect.addEventListener(
+            "change",
+            () => {
+
+              work.difficulty =
+                difficultySelect.value;
+
+
+              applyDifficultyClass(
+                difficultySelect,
+                difficultySelect.value
+              );
+
+
+              saveState();
+            }
+          );
+
+
+          const doneLabel =
+            document.createElement(
+              "label"
+            );
+
+
+          doneLabel.className =
+            "checkbox-label";
+
+
+          const doneCheckbox =
+            document.createElement(
+              "input"
+            );
+
+
+          doneCheckbox.type =
+            "checkbox";
+
+
+          doneCheckbox.checked =
+            Boolean(
+              work.done
+            );
+
+
+          doneCheckbox.addEventListener(
+            "change",
+            () => {
+
+              work.done =
+                doneCheckbox.checked;
+
+
+              saveState();
+
+              updateSummary();
+
+              renderSemesterStatus();
+            }
+          );
+
+
+          const doneSpan =
+            document.createElement(
+              "span"
+            );
+
+
+          doneSpan.textContent =
+            "Concluído";
+
+
+          doneLabel.appendChild(
+            doneCheckbox
+          );
+
+
+          doneLabel.appendChild(
+            doneSpan
+          );
+
+
+          const deliveredLabel =
+            document.createElement(
+              "label"
+            );
+
+
+          deliveredLabel.className =
+            "checkbox-label";
+
+
+          const deliveredCheckbox =
+            document.createElement(
+              "input"
+            );
+
+
+          deliveredCheckbox.type =
+            "checkbox";
+
+
+          deliveredCheckbox.checked =
+            Boolean(
+              work.delivered
+            );
+
+
+          deliveredCheckbox.addEventListener(
+            "change",
+            () => {
+
+              work.delivered =
+                deliveredCheckbox.checked;
+
+
+              saveState();
+            }
+          );
+
+
+          const deliveredSpan =
+            document.createElement(
+              "span"
+            );
+
+
+          deliveredSpan.textContent =
+            "Entregue";
+
+
+          deliveredLabel.appendChild(
+            deliveredCheckbox
+          );
+
+
+          deliveredLabel.appendChild(
+            deliveredSpan
+          );
+
+
+          smallRow.appendChild(
+            dateInput
+          );
+
+
+          smallRow.appendChild(
+            difficultySelect
+          );
+
+
+          smallRow.appendChild(
+            doneLabel
+          );
+
+
+          smallRow.appendChild(
+            deliveredLabel
+          );
+
+
+          block.appendChild(
+            title
+          );
+
+
+          block.appendChild(
+            textarea
+          );
+
+
+          block.appendChild(
+            smallRow
+          );
+
+
+          blocks.appendChild(
+            block
+          );
+        }
+      );
+
+
+      if (
+        blocks.hasChildNodes()
+      ) {
+
+        card.appendChild(
+          header
+        );
+
+
+        card.appendChild(
+          blocks
+        );
+
+
+        worksPageContainer.appendChild(
+          card
+        );
+      }
+    }
+  );
+
+
+  if (
+    !worksPageContainer.hasChildNodes()
+  ) {
+
+    worksPageContainer.innerHTML =
+      "<p>Nenhum trabalho encontrado com os filtros selecionados.</p>";
+  }
+}
+
+
+// =====================================================
+// PROVAS
+// =====================================================
+
+const examsPageContainer =
+  document.getElementById("examsPageContainer");
+
+
+function populateExamSubjectFilter() {
+
+  if (
+    !examFilterSubject
+  ) {
+
+    return;
+  }
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  const previousValue =
+    examFilterSubject.value ||
+    "all";
+
+
+  examFilterSubject.innerHTML =
+    "";
+
+
+  const allOption =
+    document.createElement(
+      "option"
+    );
+
+
+  allOption.value =
+    "all";
+
+
+  allOption.textContent =
+    "Todas as matérias";
+
+
+  examFilterSubject.appendChild(
+    allOption
+  );
+
+
+  subjects.forEach(
+    subject => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        subject.id;
+
+
+      option.textContent =
+        subject.name;
+
+
+      examFilterSubject.appendChild(
+        option
+      );
+    }
+  );
+
+
+  const stillExists =
+    [
+      ...examFilterSubject.options
+    ].some(
+      option =>
+        option.value ===
+        previousValue
+    );
+
+
+  examFilterSubject.value =
+    stillExists
+      ? previousValue
+      : "all";
+}
+
+
+function renderExamsPage() {
+
+  if (
+    !examsPageContainer
+  ) {
+
+    return;
+  }
+
+
+  examsPageContainer.innerHTML =
+    "";
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  const selectedSubjectId =
+    examFilterSubject
+      ? examFilterSubject.value
+      : "all";
+
+
+  const selectedStatus =
+    examFilterStatus
+      ? examFilterStatus.value
+      : "all";
+
+
+  if (
+    !subjects.length
+  ) {
+
+    examsPageContainer.innerHTML =
+      "<p>Nenhuma matéria cadastrada para este semestre.</p>";
+
+    return;
+  }
+
+
+  subjects.forEach(
+    subject => {
+
+      if (
+        selectedSubjectId !==
+          "all" &&
+        subject.id !==
+          selectedSubjectId
+      ) {
+
+        return;
+      }
+
+
+      const exams =
+        subject.exams || [];
+
+
+      const filteredExams =
+        exams.filter(
+          exam => {
+
+            if (
+              selectedStatus ===
+              "done"
+            ) {
+
+              return Boolean(
+                exam.done
+              );
+            }
+
+
+            if (
+              selectedStatus ===
+              "not"
+            ) {
+
+              return !exam.done;
+            }
+
+
+            return true;
+          }
+        );
+
+
+      if (
+        !filteredExams.length
+      ) {
+
+        return;
+      }
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "subject-card";
+
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+
+      header.className =
+        "subject-card-header";
+
+
+      const nameSpan =
+        document.createElement(
+          "div"
+        );
+
+
+      nameSpan.className =
+        "subject-name";
+
+
+      nameSpan.textContent =
+        subject.name;
+
+
+      const badge =
+        document.createElement(
+          "span"
+        );
+
+
+      badge.className =
+        "badge badge-semester";
+
+
+      badge.textContent =
+        `${subject.semester}º sem.`;
+
+
+      header.appendChild(
+        nameSpan
+      );
+
+
+      header.appendChild(
+        badge
+      );
+
+
+      const blocks =
+        document.createElement(
+          "div"
+        );
+
+
+      blocks.className =
+        "two-columns";
+
+
+      exams.forEach(
+        (exam, index) => {
+
+          if (
+            selectedStatus ===
+              "done" &&
+            !exam.done
+          ) {
+
+            return;
+          }
+
+
+          if (
+            selectedStatus ===
+              "not" &&
+            exam.done
+          ) {
+
+            return;
+          }
+
+
+          const block =
+            document.createElement(
+              "div"
+            );
+
+
+          block.className =
+            "exam-block";
+
+
+          const title =
+            document.createElement(
+              "h3"
+            );
+
+
+          title.textContent =
+            `Prova ${index + 1}`;
+
+
+          const textarea =
+            document.createElement(
+              "textarea"
+            );
+
+
+          textarea.className =
+            "textarea-small";
+
+
+          textarea.placeholder =
+            "Conteúdo da prova";
+
+
+          textarea.value =
+            exam.description || "";
+
+
+          textarea.addEventListener(
+            "input",
+            () => {
+
+              exam.description =
+                textarea.value;
+
+
+              saveState();
+            }
+          );
+
+
+          const smallRow =
+            document.createElement(
+              "div"
+            );
+
+
+          smallRow.className =
+            "small-row";
+
+
+          const dateInput =
+            document.createElement(
+              "input"
+            );
+
+
+          dateInput.type =
+            "date";
+
+
+          dateInput.value =
+            exam.date || "";
+
+
+          dateInput.addEventListener(
+            "change",
+            () => {
+
+              exam.date =
+                dateInput.value ||
+                null;
+
+
+              saveState();
+
+              renderCalendar();
+
+              renderUpcomingDeadlines();
+            }
+          );
+
+
+          const checkboxLabel =
+            document.createElement(
+              "label"
+            );
+
+
+          checkboxLabel.className =
+            "checkbox-label";
+
+
+          const checkbox =
+            document.createElement(
+              "input"
+            );
+
+
+          checkbox.type =
+            "checkbox";
+
+
+          checkbox.checked =
+            Boolean(
+              exam.done
+            );
+
+
+          checkbox.addEventListener(
+            "change",
+            () => {
+
+              exam.done =
+                checkbox.checked;
+
+
+              saveState();
+
+              updateSummary();
+
+              renderSemesterStatus();
+
+              renderExamsPage();
+            }
+          );
+
+
+          const span =
+            document.createElement(
+              "span"
+            );
+
+
+          span.textContent =
+            "Realizada";
+
+
+          checkboxLabel.appendChild(
+            checkbox
+          );
+
+
+          checkboxLabel.appendChild(
+            span
+          );
+
+
+          smallRow.appendChild(
+            dateInput
+          );
+
+
+          smallRow.appendChild(
+            checkboxLabel
+          );
+
+
+          block.appendChild(
+            title
+          );
+
+
+          block.appendChild(
+            textarea
+          );
+
+
+          block.appendChild(
+            smallRow
+          );
+
+
+          blocks.appendChild(
+            block
+          );
+        }
+      );
+
+
+      if (
+        blocks.hasChildNodes()
+      ) {
+
+        card.appendChild(
+          header
+        );
+
+
+        card.appendChild(
+          blocks
+        );
+
+
+        examsPageContainer.appendChild(
+          card
+        );
+      }
+    }
+  );
+
+
+  if (
+    !examsPageContainer.hasChildNodes()
+  ) {
+
+    examsPageContainer.innerHTML =
+      "<p>Nenhuma prova encontrada com os filtros selecionados.</p>";
+  }
+}
+
+
+// =====================================================
+// MATÉRIAS / AULAS
+// =====================================================
+
+const addSubjectForm =
+  document.getElementById("addSubjectForm");
+
+const subjectNameInput =
+  document.getElementById("subjectNameInput");
+
+const subjectSemesterInput =
+  document.getElementById("subjectSemesterInput");
+
+const subjectsManager =
+  document.getElementById("subjectsManager");
+
+
+if (addSubjectForm) {
+
+  addSubjectForm.addEventListener(
+    "submit",
+    event => {
+
+      event.preventDefault();
+
+
+      const name =
+        subjectNameInput
+          ? subjectNameInput.value.trim()
+          : "";
+
+
+      const semester =
+        subjectSemesterInput
+          ? Number(
+              subjectSemesterInput.value
+            )
+          : 0;
+
+
+      if (
+        !name ||
+        !semester
+      ) {
+
+        return;
+      }
+
+
+      const id =
+        name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(
+            /[\u0300-\u036f]/g,
+            ""
+          )
+          .replace(
+            /[^a-z0-9]+/g,
+            "_"
+          ) +
+        "_" +
+        Date.now();
+
+
+      state.subjects.push({
+
+        id,
+
+        name,
+
+        semester,
+
+        grades: {
+
+          t1:
+            null,
+
+          p1:
+            null,
+
+          t2:
+            null,
+
+          p2:
+            null
+
+        },
+
+        works: [
+
+          {
+            id:
+              id + "_w1",
+
+            description:
+              "",
+
+            done:
+              false,
+
+            delivered:
+              false,
+
+            difficulty:
+              "medio",
+
+            dueDate:
+              null
+          },
+
+          {
+            id:
+              id + "_w2",
+
+            description:
+              "",
+
+            done:
+              false,
+
+            delivered:
+              false,
+
+            difficulty:
+              "medio",
+
+            dueDate:
+              null
+          }
+
+        ],
+
+        exams: [
+
+          {
+            id:
+              id + "_e1",
+
+            description:
+              "",
+
+            done:
+              false,
+
+            date:
+              null
+          },
+
+          {
+            id:
+              id + "_e2",
+
+            description:
+              "",
+
+            done:
+              false,
+
+            date:
+              null
+          }
+
+        ],
+
+        lessons:
+          []
+
+      });
+
+
+      saveState();
+
+
+      subjectNameInput.value =
+        "";
+
+      subjectSemesterInput.value =
+        "";
+
+
+      renderAll();
+    }
+  );
+}
+
+
+function renderSubjectsManager() {
+
+  if (
+    !subjectsManager
+  ) {
+
+    return;
+  }
+
+
+  subjectsManager.innerHTML =
+    "";
+
+
+  const subjects =
+    getSubjectsForCurrentSemester();
+
+
+  const nameFilter =
+    subjectFilterInput
+      ? subjectFilterInput.value
+          .trim()
+          .toLowerCase()
+      : "";
+
+
+  const filteredSubjects =
+    subjects.filter(
+      subject =>
+        !nameFilter ||
+        subject.name
+          .toLowerCase()
+          .includes(
+            nameFilter
+          )
+    );
+
+
+  if (
+    !filteredSubjects.length
+  ) {
+
+    subjectsManager.innerHTML =
+      "<p>Nenhuma matéria encontrada com o filtro selecionado.</p>";
+
+    return;
+  }
+
+
+  const sorted =
+    [
+      ...filteredSubjects
+    ].sort(
+      (a, b) =>
+        a.name.localeCompare(
+          b.name
+        )
+    );
+
+
+  sorted.forEach(
+    subject => {
+
+      if (
+        !subject.lessons
+      ) {
+
+        subject.lessons =
+          [];
+      }
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "subject-card";
+
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+
+      header.className =
+        "subject-card-header";
+
+
+      const left =
+        document.createElement(
+          "div"
+        );
+
+
+      left.className =
+        "subject-name";
+
+
+      left.textContent =
+        subject.name;
+
+
+      const right =
+        document.createElement(
+          "div"
+        );
+
+
+      right.className =
+        "subject-actions";
+
+
+      const badge =
+        document.createElement(
+          "span"
+        );
+
+
+      badge.className =
+        "badge badge-semester";
+
+
+      badge.textContent =
+        `${subject.semester}º sem.`;
+
+
+      right.appendChild(
+        badge
+      );
+
+
+      const editBtn =
+        document.createElement(
+          "button"
+        );
+
+
+      editBtn.type =
+        "button";
+
+
+      editBtn.textContent =
+        "Editar";
+
+
+      editBtn.addEventListener(
+        "click",
+        () => {
+
+          const newName =
+            prompt(
+              "Novo nome da matéria:",
+              subject.name
+            );
+
+
+          if (
+            newName === null
+          ) {
+
+            return;
+          }
+
+
+          const trimmed =
+            newName.trim();
+
+
+          if (!trimmed) {
+            return;
+          }
+
+
+          const newSemesterString =
+            prompt(
+              `Novo semestre (1 a ${state.totalSemesters}):`,
+              String(
+                subject.semester
+              )
+            );
+
+
+          if (
+            newSemesterString ===
+            null
+          ) {
+
+            return;
+          }
+
+
+          const newSemester =
+            Number(
+              newSemesterString
+            );
+
+
+          if (
+            !newSemester ||
+            newSemester < 1 ||
+            newSemester >
+              state.totalSemesters
+          ) {
+
+            alert(
+              `Semestre inválido. Use um número entre 1 e ${state.totalSemesters}.`
+            );
+
+            return;
+          }
+
+
+          subject.name =
+            trimmed;
+
+
+          subject.semester =
+            newSemester;
+
+
+          saveState();
+
+          renderAll();
+        }
+      );
+
+
+      right.appendChild(
+        editBtn
+      );
+
+
+      const deleteBtn =
+        document.createElement(
+          "button"
+        );
+
+
+      deleteBtn.type =
+        "button";
+
+
+      deleteBtn.textContent =
+        "Excluir";
+
+
+      deleteBtn.addEventListener(
+        "click",
+        () => {
+
+          const ok =
+            confirm(
+              `Tem certeza que deseja excluir a matéria "${subject.name}" e TODOS os dados ligados a ela?`
+            );
+
+
+          if (!ok) {
+            return;
+          }
+
+
+          state.subjects =
+            state.subjects.filter(
+              current =>
+                current.id !==
+                subject.id
+            );
+
+
+          if (
+            state
+              .materialsBySubject[
+                subject.id
+              ]
+          ) {
+
+            delete state
+              .materialsBySubject[
+                subject.id
+              ];
+          }
+
+
+          saveState();
+
+          renderAll();
+        }
+      );
+
+
+      right.appendChild(
+        deleteBtn
+      );
+
+
+      header.appendChild(
+        left
+      );
+
+
+      header.appendChild(
+        right
+      );
+
+
+      const total =
+        subject.lessons.length;
+
+
+      const done =
+        subject.lessons.filter(
+          lesson =>
+            lesson.done
+        ).length;
+
+
+      const percent =
+        total
+          ? Math.round(
+              (
+                done /
+                total
+              ) * 100
+            )
+          : 0;
+
+
+      const progressWrapper =
+        document.createElement(
+          "div"
+        );
+
+
+      progressWrapper.className =
+        "progress-bar-wrapper";
+
+
+      progressWrapper.innerHTML = `
+
+        <div class="progress-bar-track">
+
+          <div
+            class="progress-bar-fill"
+            style="
+              width:${percent}%;
+            "
+          >
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            font-size:0.78rem;
+            margin-top:2px;
+            color:var(--text-muted);
+          "
+        >
+
+          Progresso:
+          ${done}/${total}
+          (${percent}%)
+
+        </div>
+
+      `;
+
+
+      const lessonsList =
+        document.createElement(
+          "ul"
+        );
+
+
+      lessonsList.className =
+        "lessons-list";
+
+
+      subject.lessons.forEach(
+        lesson => {
+
+          const li =
+            document.createElement(
+              "li"
+            );
+
+
+          const main =
+            document.createElement(
+              "div"
+            );
+
+
+          main.className =
+            "lesson-main";
+
+
+          const checkbox =
+            document.createElement(
+              "input"
+            );
+
+
+          checkbox.type =
+            "checkbox";
+
+
+          checkbox.checked =
+            Boolean(
+              lesson.done
+            );
+
+
+          checkbox.addEventListener(
+            "change",
+            () => {
+
+              lesson.done =
+                checkbox.checked;
+
+
+              saveState();
+
+              renderSubjectsManager();
+
+              updateSummary();
+
+              renderSemesterStatus();
+            }
+          );
+
+
+          const span =
+            document.createElement(
+              "span"
+            );
+
+
+          span.textContent =
+            lesson.title;
+
+
+          main.appendChild(
+            checkbox
+          );
+
+
+          main.appendChild(
+            span
+          );
+
+
+          const actions =
+            document.createElement(
+              "div"
+            );
+
+
+          actions.className =
+            "lesson-actions";
+
+
+          const deleteLessonBtn =
+            document.createElement(
+              "button"
+            );
+
+
+          deleteLessonBtn.type =
+            "button";
+
+
+          deleteLessonBtn.textContent =
+            "Excluir";
+
+
+          deleteLessonBtn.addEventListener(
+            "click",
+            () => {
+
+              subject.lessons =
+                subject.lessons.filter(
+                  current =>
+                    current.id !==
+                    lesson.id
+                );
+
+
+              saveState();
+
+              renderSubjectsManager();
+
+              updateSummary();
+
+              renderSemesterStatus();
+            }
+          );
+
+
+          actions.appendChild(
+            deleteLessonBtn
+          );
+
+
+          li.appendChild(
+            main
+          );
+
+
+          li.appendChild(
+            actions
+          );
+
+
+          lessonsList.appendChild(
+            li
+          );
+        }
+      );
+
+
+      const addRow =
+        document.createElement(
+          "div"
+        );
+
+
+      addRow.className =
+        "add-lesson-row";
+
+
+      const input =
+        document.createElement(
+          "input"
+        );
+
+
+      input.type =
+        "text";
+
+
+      input.placeholder =
+        "Título da aula/unidade";
+
+
+      const addBtn =
+        document.createElement(
+          "button"
+        );
+
+
+      addBtn.type =
+        "button";
+
+
+      addBtn.textContent =
+        "Adicionar";
+
+
+      const addLesson =
+        () => {
+
+          const title =
+            input.value.trim();
+
+
+          if (!title) {
+            return;
+          }
+
+
+          const id =
+            subject.id +
+            "_l_" +
+            Date.now();
+
+
+          subject.lessons.push({
+
+            id,
+
+            title,
+
+            done:
+              false
+
+          });
+
+
+          input.value =
+            "";
+
+
+          saveState();
+
+          renderSubjectsManager();
+
+          updateSummary();
+
+          renderSemesterStatus();
+        };
+
+
+      addBtn.addEventListener(
+        "click",
+        addLesson
+      );
+
+
+      input.addEventListener(
+        "keydown",
+        event => {
+
+          if (
+            event.key ===
+            "Enter"
+          ) {
+
+            event.preventDefault();
+
+            addLesson();
+          }
+        }
+      );
+
+
+      addRow.appendChild(
+        input
+      );
+
+
+      addRow.appendChild(
+        addBtn
+      );
+
+
+      card.appendChild(
+        header
+      );
+
+
+      card.appendChild(
+        progressWrapper
+      );
+
+
+      card.appendChild(
+        lessonsList
+      );
+
+
+      card.appendChild(
+        addRow
+      );
+
+
+      subjectsManager.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+// =====================================================
+// BACKUP
+// =====================================================
+
+const downloadBackupBtn =
+  document.getElementById("downloadBackupBtn");
+
+const restoreBackupBtn =
+  document.getElementById("restoreBackupBtn");
+
+const backupFileInput =
+  document.getElementById("backupFileInput");
+
+const backupStatus =
+  document.getElementById("backupStatus");
+
+
+if (downloadBackupBtn) {
+
+  downloadBackupBtn.addEventListener(
+    "click",
+    () => {
+
+      try {
+
+        const dataString =
+          JSON.stringify(
+            state,
+            null,
+            2
+          );
+
+
+        const blob =
+          new Blob(
+            [
+              dataString
+            ],
+            {
+              type:
+                "application/json"
+            }
+          );
+
+
+        const url =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        const link =
+          document.createElement(
+            "a"
+          );
+
+
+        const now =
+          new Date();
+
+
+        const year =
+          now.getFullYear();
+
+
+        const month =
+          String(
+            now.getMonth() + 1
+          ).padStart(
+            2,
+            "0"
+          );
+
+
+        const day =
+          String(
+            now.getDate()
+          ).padStart(
+            2,
+            "0"
+          );
+
+
+        link.href =
+          url;
+
+
+        link.download =
+          `backup_faculdade_${year}-${month}-${day}.json`;
+
+
+        document.body.appendChild(
+          link
+        );
+
+
+        link.click();
+
+
+        document.body.removeChild(
+          link
+        );
+
+
+        URL.revokeObjectURL(
+          url
+        );
+
+
+        if (backupStatus) {
+
+          backupStatus.textContent =
+            "Backup baixado com sucesso. Guarde esse arquivo em um lugar seguro.";
+        }
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+
+        if (backupStatus) {
+
+          backupStatus.textContent =
+            "Erro ao gerar backup.";
+        }
+      }
+    }
+  );
+}
+
+
+if (restoreBackupBtn) {
+
+  restoreBackupBtn.addEventListener(
+    "click",
+    () => {
+
+      const file =
+        backupFileInput &&
+        backupFileInput.files
+          ? backupFileInput.files[0]
+          : null;
+
+
+      if (!file) {
+
+        if (backupStatus) {
+
+          backupStatus.textContent =
+            "Selecione um arquivo de backup (.json) primeiro.";
+        }
+
+        return;
+      }
+
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        event => {
+
+          try {
+
+            const parsed =
+              JSON.parse(
+                event.target.result
+              );
+
+
+            if (
+              !parsed ||
+              typeof parsed !==
+                "object" ||
+              !Array.isArray(
+                parsed.subjects
+              )
+            ) {
+
+              if (backupStatus) {
+
+                backupStatus.textContent =
+                  "Arquivo inválido. Parece que não é um backup deste site.";
+              }
+
+              return;
+            }
+
+
+            state =
+              parsed;
+
+
+            ensureSemesterMaps();
+
+            ensureConfigState();
+
+            ensureMaterialsState();
+
+
+            currentSemester =
+              Number(
+                state.currentSemester ||
+                1
+              );
+
+
+            if (
+              currentSemester >
+              state.totalSemesters
+            ) {
+
+              currentSemester =
+                state.totalSemesters;
+            }
+
+
+            state.currentSemester =
+              currentSemester;
+
+
+            migrateLegacyDataIfNeeded();
+
+            saveState();
+
+            applyTheme();
+
+            renderAll();
+
+
+            if (backupStatus) {
+
+              backupStatus.textContent =
+                "Backup restaurado com sucesso!";
+            }
+
+          } catch (error) {
+
+            console.error(
+              error
+            );
+
+
+            if (backupStatus) {
+
+              backupStatus.textContent =
+                "Erro ao ler arquivo de backup.";
+            }
+          }
+        };
+
+
+      reader.readAsText(
+        file,
+        "utf-8"
+      );
+    }
+  );
+}
+
+
+// =====================================================
+// EVENTOS DOS FILTROS
+// =====================================================
+
+if (gradeFilterPart) {
+
+  gradeFilterPart.addEventListener(
+    "change",
+    renderGrades
+  );
+}
+
+
+if (examFilterSubject) {
+
+  examFilterSubject.addEventListener(
+    "change",
+    renderExamsPage
+  );
+}
+
+
+if (examFilterStatus) {
+
+  examFilterStatus.addEventListener(
+    "change",
+    renderExamsPage
+  );
+}
+
+
+if (subjectFilterInput) {
+
+  subjectFilterInput.addEventListener(
+    "input",
+    renderSubjectsManager
+  );
+}
+
+
+// =====================================================
+// NAVEGAÇÃO PRINCIPAL
+// =====================================================
+
+navButtons.forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const viewName =
+          button.dataset.view;
+
+
+        navButtons.forEach(
+          currentButton => {
+
+            currentButton.classList.remove(
+              "active"
+            );
+          }
+        );
+
+
+        button.classList.add(
+          "active"
+        );
+
+
+        Object.keys(
+          views
+        ).forEach(
+          name => {
+
+            if (
+              views[name]
+            ) {
+
+              views[
+                name
+              ].classList.toggle(
+                "active",
+                name ===
+                  viewName
+              );
+            }
+          }
+        );
+
+
+        if (
+          viewName ===
+          "noticias"
+        ) {
+
+          renderNews();
+        }
+
+
+        if (
+          viewName ===
+          "config"
+        ) {
+
+          populateSummarySemesterSelect();
+
+          populateMaterialSubjectSelect();
+
+          renderMaterialsListConfig();
+        }
+      }
+    );
+  }
+);
+
+
+// =====================================================
+// ALTERAÇÃO DO SEMESTRE GLOBAL
+// =====================================================
+
+if (globalSemesterSelect) {
+
+  globalSemesterSelect.addEventListener(
+    "change",
+    () => {
+
+      currentSemester =
+        Number(
+          globalSemesterSelect.value
+        );
+
+
+      state.currentSemester =
+        currentSemester;
+
+
+      selectedDate =
+        null;
+
+
+      saveState();
+
+      renderAll();
+    }
+  );
+}
+
+
+// =====================================================
+// RENDERIZAÇÃO GERAL
+// =====================================================
+
+function renderAll() {
+
+  ensureConfigState();
+
+  ensureSemesterMaps();
+
+  ensureMaterialsState();
+
+
+  renderSemesterOptions();
+
+  renderConfigFields();
+
+  populateSummarySemesterSelect();
+
+  populateMaterialSubjectSelect();
+
+
+  if (globalSemesterSelect) {
+
+    globalSemesterSelect.value =
+      String(
+        currentSemester
+      );
+  }
+
+
+  populateExamSubjectFilter();
+
+
+  updateSummary();
+
+  renderSemesterStatus();
+
+  renderCalendar();
+
+  renderImportantDatesList();
+
+  renderTimetable();
+
+  renderUpcomingDeadlines();
+
+  renderGrades();
+
+  renderWorksPage();
+
+  renderExamsPage();
+
+  renderSubjectsManager();
+
+  renderMaterialsListConfig();
+
+  renderNews();
+
+
+  // Se o resumo estiver aberto,
+  // atualiza os dados dele também.
+
+  if (
+    selectedSummarySemester &&
+    semesterSummaryPage &&
+    !semesterSummaryPage.classList.contains(
+      "hidden"
+    )
+  ) {
+
+    const summaryData =
+      getSemesterSummaryData(
+        selectedSummarySemester
+      );
+
+
+    if (semesterSummaryTitle) {
+
+      semesterSummaryTitle.textContent =
+        `${selectedSummarySemester}º Semestre`;
+    }
+
+
+    if (semesterSummaryCourse) {
+
+      semesterSummaryCourse.textContent =
+        state.courseName ||
+        "Curso não informado";
+    }
+
+
+    renderSummaryStats(
+      summaryData
+    );
+
+
+    renderCurrentSummaryTab();
+  }
+}
+
+
+// =====================================================
+// INICIALIZAÇÃO
+// =====================================================
+
+ensureSemesterMaps();
+
+migrateLegacyDataIfNeeded();
+
+ensureConfigState();
+
+ensureMaterialsState();
+
+
+currentSemester =
+  Number(
+    state.currentSemester ||
+    currentSemester ||
+    5
+  );
+
+
+if (
+  currentSemester >
+  state.totalSemesters
+) {
+
+  currentSemester =
+    state.totalSemesters;
+}
+
+
+if (
+  currentSemester < 1
+) {
+
+  currentSemester =
+    1;
+}
+
+
+state.currentSemester =
+  currentSemester;
+
+
+saveState();
+
+applyTheme();
+
+initCalendar();
+
+renderAll();
