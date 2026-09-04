@@ -2050,3 +2050,24 @@ body.light .summary-status-pending {
     margin: 15mm;
   }
 }
+
+/* ==================================================
+   STATUS EM ANDAMENTO - TRABALHOS
+================================================== */
+
+.checkbox-progress {
+  color: #facc15;
+}
+
+.checkbox-progress input[type="checkbox"] {
+  accent-color: #eab308;
+}
+
+.summary-status-progress {
+  color: #fde68a;
+  background: rgba(234, 179, 8, 0.12);
+}
+
+body.light .summary-status-progress {
+  color: #a16207;
+}
