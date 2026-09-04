@@ -25,6 +25,7 @@ const defaultState = {
           id: "animacao3d_w1",
           description: "",
           done: false,
+          inProgress: false,
           delivered: false,
           difficulty: "medio",
           dueDate: null
@@ -33,6 +34,7 @@ const defaultState = {
           id: "animacao3d_w2",
           description: "",
           done: false,
+          inProgress: false,
           delivered: false,
           difficulty: "medio",
           dueDate: null
@@ -81,6 +83,7 @@ const defaultState = {
           id: "leveldesign_w1",
           description: "",
           done: false,
+          inProgress: false,
           delivered: false,
           difficulty: "medio",
           dueDate: null
@@ -89,6 +92,7 @@ const defaultState = {
           id: "leveldesign_w2",
           description: "",
           done: false,
+          inProgress: false,
           delivered: false,
           difficulty: "medio",
           dueDate: null
@@ -2302,7 +2306,9 @@ function renderSummaryWorks(data) {
                   ${
                     work.done
                       ? "summary-status-done"
-                      : "summary-status-pending"
+                      : work.inProgress
+                        ? "summary-status-progress"
+                        : "summary-status-pending"
                   }
                 "
               >
@@ -2310,7 +2316,9 @@ function renderSummaryWorks(data) {
                 ${
                   work.done
                     ? "Concluído"
-                    : "Pendente"
+                    : work.inProgress
+                      ? "Em andamento"
+                      : "Pendente"
                 }
 
               </span>
@@ -3423,7 +3431,9 @@ function generatePrintReport(
                 ${
                   work.done
                     ? "Concluído"
-                    : "Pendente"
+                    : work.inProgress
+                      ? "Em andamento"
+                      : "Pendente"
                 }
 
                 ·
@@ -6401,6 +6411,9 @@ const workFilterIndex =
 const workFilterDifficulty =
   document.getElementById("workFilterDifficulty");
 
+const workFilterProgress =
+  document.getElementById("workFilterProgress");
+
 const workFilterDone =
   document.getElementById("workFilterDone");
 
@@ -6422,6 +6435,11 @@ function getWorkFilters() {
         ? workFilterDifficulty.value
         : "all",
 
+    progress:
+      workFilterProgress
+        ? workFilterProgress.value
+        : "all",
+
     done:
       workFilterDone
         ? workFilterDone.value
@@ -6439,6 +6457,7 @@ function getWorkFilters() {
 [
   workFilterIndex,
   workFilterDifficulty,
+  workFilterProgress,
   workFilterDone,
   workFilterDelivered
 
@@ -6589,6 +6608,16 @@ function renderWorksPage() {
 
 
           if (
+            work.inProgress ===
+            undefined
+          ) {
+
+            work.inProgress =
+              false;
+          }
+
+
+          if (
             filters.index !==
               "all" &&
             Number(
@@ -6605,6 +6634,26 @@ function renderWorksPage() {
               "all" &&
             filters.difficulty !==
               work.difficulty
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.progress ===
+              "progress" &&
+            !work.inProgress
+          ) {
+
+            return;
+          }
+
+
+          if (
+            filters.progress ===
+              "not" &&
+            work.inProgress
           ) {
 
             return;
@@ -6831,6 +6880,52 @@ function renderWorksPage() {
           );
 
 
+          const progressLabel =
+            document.createElement(
+              "label"
+            );
+
+
+          progressLabel.className =
+            "checkbox-label checkbox-progress";
+
+
+          const progressCheckbox =
+            document.createElement(
+              "input"
+            );
+
+
+          progressCheckbox.type =
+            "checkbox";
+
+
+          progressCheckbox.checked =
+            Boolean(
+              work.inProgress
+            );
+
+
+          const progressSpan =
+            document.createElement(
+              "span"
+            );
+
+
+          progressSpan.textContent =
+            "Em andamento";
+
+
+          progressLabel.appendChild(
+            progressCheckbox
+          );
+
+
+          progressLabel.appendChild(
+            progressSpan
+          );
+
+
           const doneLabel =
             document.createElement(
               "label"
@@ -6857,12 +6952,53 @@ function renderWorksPage() {
             );
 
 
+          progressCheckbox.addEventListener(
+            "change",
+            () => {
+
+              work.inProgress =
+                progressCheckbox.checked;
+
+
+              if (
+                progressCheckbox.checked
+              ) {
+
+                work.done =
+                  false;
+
+                doneCheckbox.checked =
+                  false;
+              }
+
+
+              saveState();
+
+              updateSummary();
+
+              renderSemesterStatus();
+            }
+          );
+
+
           doneCheckbox.addEventListener(
             "change",
             () => {
 
               work.done =
                 doneCheckbox.checked;
+
+
+              if (
+                doneCheckbox.checked
+              ) {
+
+                work.inProgress =
+                  false;
+
+                progressCheckbox.checked =
+                  false;
+              }
 
 
               saveState();
@@ -6960,6 +7096,11 @@ function renderWorksPage() {
 
           smallRow.appendChild(
             difficultySelect
+          );
+
+
+          smallRow.appendChild(
+            progressLabel
           );
 
 
@@ -7628,6 +7769,9 @@ if (addSubjectForm) {
             done:
               false,
 
+            inProgress:
+              false,
+
             delivered:
               false,
 
@@ -7646,6 +7790,9 @@ if (addSubjectForm) {
               "",
 
             done:
+              false,
+
+            inProgress:
               false,
 
             delivered:
