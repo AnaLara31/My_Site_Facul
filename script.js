@@ -14,8 +14,8 @@ const defaultState = {
   totalSemesters: 5,
   courseName: "",
   profile: {
-    name: "",
-    nickname: ""
+    name: "Ana Luiza",
+    nickname: "Ana"
   },
 
   subjects: [
@@ -365,7 +365,8 @@ function ensureConfigState() {
   }
 
   if (!state.profile || typeof state.profile !== "object") {
-    state.profile = { name: "", nickname: "" };
+    // Migração para instalações anteriores que ainda não tinham Perfil.
+    state.profile = { name: "Ana Luiza", nickname: "Ana" };
   }
 
   if (typeof state.profile.name !== "string") {
@@ -8311,6 +8312,10 @@ function renderAll() {
 
   ensureConfigState();
 
+  // Atualiza primeiro a área pessoal da Capa. Assim nome e data aparecem
+  // mesmo se algum bloco acadêmico antigo precisar de ajuste durante a renderização.
+  renderProfileGreeting();
+
   ensureSemesterMaps();
 
   renderSemesterOptions();
@@ -8351,8 +8356,6 @@ function renderAll() {
   renderExamsPage();
 
   renderSubjectsManager();
-
-  renderProfileGreeting();
 
 
   // Se o resumo estiver aberto,
@@ -8442,6 +8445,9 @@ state.currentSemester =
 saveState();
 
 applyTheme();
+
+// Garante nome e data já no primeiro frame da Capa.
+renderProfileGreeting();
 
 initCalendar();
 
