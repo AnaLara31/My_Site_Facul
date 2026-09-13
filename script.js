@@ -13,6 +13,10 @@ const defaultState = {
   currentSemester: 5,
   totalSemesters: 5,
   courseName: "",
+  profile: {
+    name: "",
+    nickname: ""
+  },
 
   subjects: [
     {
@@ -124,9 +128,7 @@ const defaultState = {
 
   importantDatesBySemester: {},
 
-  timetableBySemester: {},
-
-  materialsBySubject: {}
+  timetableBySemester: {}
 };
 
 
@@ -362,6 +364,18 @@ function ensureConfigState() {
     state.courseName = "";
   }
 
+  if (!state.profile || typeof state.profile !== "object") {
+    state.profile = { name: "", nickname: "" };
+  }
+
+  if (typeof state.profile.name !== "string") {
+    state.profile.name = "";
+  }
+
+  if (typeof state.profile.nickname !== "string") {
+    state.profile.nickname = "";
+  }
+
 
   if (!state.currentSemester) {
     state.currentSemester =
@@ -480,20 +494,15 @@ function renderSemesterOptions() {
 }
 
 
-function ensureMaterialsState() {
-
-  if (
-    !state.materialsBySubject ||
-    typeof state.materialsBySubject !==
-      "object"
-  ) {
-
-    state.materialsBySubject = {};
-  }
-}
-
-
 function renderConfigFields() {
+
+  if (profileNameInput) {
+    profileNameInput.value = state.profile?.name || "";
+  }
+
+  if (profileNicknameInput) {
+    profileNicknameInput.value = state.profile?.nickname || "";
+  }
 
   if (courseNameInput) {
 
@@ -555,9 +564,9 @@ const views = {
       "view-materias"
     ),
 
-  noticias:
+  ajuda:
     document.getElementById(
-      "view-noticias"
+      "view-ajuda"
     ),
 
   config:
@@ -597,59 +606,17 @@ const configStatus =
     "configStatus"
   );
 
-
-const newsCenter =
-  document.getElementById(
-    "newsCenter"
-  );
-
-
-const newsSubjects =
-  document.getElementById(
-    "newsSubjects"
-  );
+const profileNameInput = document.getElementById("profileNameInput");
+const profileNicknameInput = document.getElementById("profileNicknameInput");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const profileStatus = document.getElementById("profileStatus");
+const welcomeGreeting = document.getElementById("welcomeGreeting");
+const welcomeDateWeekday = document.getElementById("welcomeDateWeekday");
+const welcomeDateDay = document.getElementById("welcomeDateDay");
+const welcomeDateMonth = document.getElementById("welcomeDateMonth");
+const pageHeaderTitle = document.getElementById("pageHeaderTitle");
 
 
-const newsPanel =
-  document.getElementById(
-    "newsPanel"
-  );
-
-
-const materialSubjectSelect =
-  document.getElementById(
-    "materialSubjectSelect"
-  );
-
-
-const materialNameInput =
-  document.getElementById(
-    "materialNameInput"
-  );
-
-
-const materialUrlInput =
-  document.getElementById(
-    "materialUrlInput"
-  );
-
-
-const saveMaterialBtn =
-  document.getElementById(
-    "saveMaterialBtn"
-  );
-
-
-const materialStatus =
-  document.getElementById(
-    "materialStatus"
-  );
-
-
-const materialsListConfig =
-  document.getElementById(
-    "materialsListConfig"
-  );
 
 
 // =====================================================
@@ -904,652 +871,58 @@ if (saveConfigBtn) {
 
 
 // =====================================================
-// NOTÍCIAS E CONTEÚDOS
+// PERFIL E SAUDAÇÃO
 // =====================================================
 
-function renderNews() {
+function getDisplayName() {
+  const nickname = state.profile?.nickname?.trim();
+  const name = state.profile?.name?.trim();
+  return nickname || name || "estudante";
+}
 
-  if (
-    !newsCenter ||
-    !newsSubjects ||
-    !newsPanel
-  ) {
-    return;
+function getGreetingByHour(hour) {
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function renderProfileGreeting() {
+  const now = new Date();
+  const displayName = getDisplayName();
+
+  if (welcomeGreeting) {
+    welcomeGreeting.textContent = `${getGreetingByHour(now.getHours())}, ${displayName}!`;
   }
 
-
-  const subjects =
-    getSubjectsForCurrentSemester();
-
-
-  newsCenter.textContent =
-    state.courseName &&
-    state.courseName.trim()
-      ? state.courseName
-      : "Curso";
-
-
-  newsSubjects.innerHTML = "";
-
-
-  if (!subjects.length) {
-
-    newsPanel.innerHTML = `
-
-      <h3>
-        Nenhuma matéria neste semestre
-      </h3>
-
-      <p>
-        Não há matérias cadastradas
-        para o semestre selecionado.
-      </p>
-
-      <p>
-        Selecione outro semestre ou
-        adicione matérias primeiro.
-      </p>
-
-    `;
-
-    return;
+  if (welcomeDateWeekday) {
+    welcomeDateWeekday.textContent = now.toLocaleDateString("pt-BR", { weekday: "long" });
   }
 
+  if (welcomeDateDay) {
+    welcomeDateDay.textContent = String(now.getDate()).padStart(2, "0");
+  }
 
-  newsPanel.innerHTML = `
+  if (welcomeDateMonth) {
+    welcomeDateMonth.textContent = now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  }
+}
 
-    <p>
-      Selecione uma matéria para
-      visualizar conteúdos.
-    </p>
+if (saveProfileBtn) {
+  saveProfileBtn.addEventListener("click", () => {
+    state.profile = {
+      name: profileNameInput ? profileNameInput.value.trim() : "",
+      nickname: profileNicknameInput ? profileNicknameInput.value.trim() : ""
+    };
 
-  `;
+    saveState();
+    renderConfigFields();
+    renderProfileGreeting();
 
-
-  const total =
-    subjects.length;
-
-
-  const radius =
-    Math.max(
-      180,
-      total * 30
-    );
-
-
-  subjects.forEach(
-    (subject, index) => {
-
-      const angle =
-        (index / total) *
-          (2 * Math.PI) -
-        Math.PI / 2;
-
-
-      const x =
-        radius *
-        Math.cos(angle);
-
-
-      const y =
-        radius *
-        Math.sin(angle);
-
-
-      const div =
-        document.createElement(
-          "div"
-        );
-
-
-      div.className =
-        "news-subject";
-
-
-      div.textContent =
-        subject.name;
-
-
-      div.style.position =
-        "absolute";
-
-
-      div.style.left =
-        `calc(50% + ${x}px - 80px)`;
-
-
-      div.style.top =
-        `calc(45% + ${y}px - 25px)`;
-
-
-      div.addEventListener(
-        "click",
-        () => {
-
-          renderNewsPanel(
-            subject
-          );
-        }
-      );
-
-
-      newsSubjects.appendChild(
-        div
-      );
+    if (profileStatus) {
+      profileStatus.textContent = "Perfil salvo com sucesso.";
     }
-  );
+  });
 }
-
-
-function renderNewsPanel(subject) {
-
-  if (!newsPanel) return;
-
-
-  ensureMaterialsState();
-
-
-  const materials =
-    state.materialsBySubject[
-      subject.id
-    ] || [];
-
-
-  let materialsHtml = "";
-
-
-  if (materials.length) {
-
-    materialsHtml = `
-
-      <h4 style="margin-top:10px;">
-        Materiais em PDF
-      </h4>
-
-      <ul
-        style="
-          margin-top:6px;
-          padding-left:18px;
-        "
-      >
-
-        ${materials
-          .map(
-            material => `
-
-              <li
-                style="
-                  margin-bottom:6px;
-                "
-              >
-
-                <a
-                  href="${material.url}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="
-                    color:inherit;
-                    text-decoration:underline;
-                  "
-                >
-                  ${material.name}
-                </a>
-
-              </li>
-
-            `
-          )
-          .join("")}
-
-      </ul>
-
-    `;
-
-  } else {
-
-    materialsHtml = `
-
-      <h4 style="margin-top:10px;">
-        Materiais em PDF
-      </h4>
-
-      <p style="margin-top:6px;">
-        Nenhum PDF cadastrado para
-        esta matéria ainda.
-      </p>
-
-    `;
-  }
-
-
-  newsPanel.innerHTML = `
-
-    <h3>
-      ${subject.name}
-    </h3>
-
-    <p>
-      Conteúdos disponíveis para
-      esta matéria:
-    </p>
-
-
-    ${materialsHtml}
-
-
-    <div style="margin-top:12px;">
-
-      <p>
-        Em breve você verá aqui também:
-      </p>
-
-      <ul
-        style="
-          padding-left:18px;
-          margin-top:6px;
-        "
-      >
-
-        <li>Links e artigos</li>
-
-        <li>Vídeos</li>
-
-        <li>Notícias</li>
-
-      </ul>
-
-    </div>
-
-  `;
-}
-
-
-// =====================================================
-// SELECT DE MATERIAIS
-// =====================================================
-
-function populateMaterialSubjectSelect() {
-
-  if (!materialSubjectSelect) {
-    return;
-  }
-
-
-  const previousValue =
-    materialSubjectSelect.value ||
-    "";
-
-
-  materialSubjectSelect.innerHTML =
-    `<option value="">
-      Selecione a matéria
-    </option>`;
-
-
-  const sortedSubjects =
-    [...state.subjects].sort(
-      (a, b) => {
-
-        if (
-          a.semester !==
-          b.semester
-        ) {
-
-          return (
-            a.semester -
-            b.semester
-          );
-        }
-
-
-        return a.name.localeCompare(
-          b.name
-        );
-      }
-    );
-
-
-  sortedSubjects.forEach(
-    subject => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        subject.id;
-
-
-      option.textContent =
-        `${subject.name} (${subject.semester}º semestre)`;
-
-
-      materialSubjectSelect.appendChild(
-        option
-      );
-    }
-  );
-
-
-  const exists =
-    [
-      ...materialSubjectSelect.options
-    ].some(
-      opt =>
-        opt.value ===
-        previousValue
-    );
-
-
-  if (exists) {
-
-    materialSubjectSelect.value =
-      previousValue;
-  }
-}
-
-
-// =====================================================
-// LISTA DE MATERIAIS NA CONFIGURAÇÃO
-// =====================================================
-
-function renderMaterialsListConfig() {
-
-  if (!materialsListConfig) {
-    return;
-  }
-
-
-  materialsListConfig.innerHTML =
-    "";
-
-
-  ensureMaterialsState();
-
-
-  const allSubjects =
-    [...state.subjects];
-
-
-  let hasAny =
-    false;
-
-
-  allSubjects.forEach(
-    subject => {
-
-      const materials =
-        state.materialsBySubject[
-          subject.id
-        ] || [];
-
-
-      if (!materials.length) {
-        return;
-      }
-
-
-      hasAny =
-        true;
-
-
-      const titleLi =
-        document.createElement(
-          "li"
-        );
-
-
-      titleLi.style.marginTop =
-        "8px";
-
-
-      titleLi.innerHTML =
-        `<strong>${subject.name}</strong>`;
-
-
-      materialsListConfig.appendChild(
-        titleLi
-      );
-
-
-      materials.forEach(
-        material => {
-
-          const li =
-            document.createElement(
-              "li"
-            );
-
-
-          li.style.marginLeft =
-            "12px";
-
-
-          const link =
-            document.createElement(
-              "a"
-            );
-
-
-          link.href =
-            material.url;
-
-
-          link.target =
-            "_blank";
-
-
-          link.rel =
-            "noopener noreferrer";
-
-
-          link.textContent =
-            material.name;
-
-
-          link.style.color =
-            "inherit";
-
-
-          link.style.textDecoration =
-            "underline";
-
-
-          const deleteBtn =
-            document.createElement(
-              "button"
-            );
-
-
-          deleteBtn.type =
-            "button";
-
-
-          deleteBtn.className =
-            "inline-delete-btn";
-
-
-          deleteBtn.textContent =
-            "Excluir";
-
-
-          deleteBtn.addEventListener(
-            "click",
-            () => {
-
-              state
-                .materialsBySubject[
-                  subject.id
-                ] =
-                (
-                  state
-                    .materialsBySubject[
-                      subject.id
-                    ] || []
-                ).filter(
-                  item =>
-                    item.id !==
-                    material.id
-                );
-
-
-              saveState();
-
-              renderMaterialsListConfig();
-
-              renderNews();
-            }
-          );
-
-
-          li.appendChild(link);
-
-          li.appendChild(
-            document.createTextNode(
-              " "
-            )
-          );
-
-          li.appendChild(
-            deleteBtn
-          );
-
-
-          materialsListConfig.appendChild(
-            li
-          );
-        }
-      );
-    }
-  );
-
-
-  if (!hasAny) {
-
-    const li =
-      document.createElement(
-        "li"
-      );
-
-
-    li.textContent =
-      "Nenhum material em PDF cadastrado ainda.";
-
-
-    materialsListConfig.appendChild(
-      li
-    );
-  }
-}
-
-
-// =====================================================
-// SALVAR MATERIAL
-// =====================================================
-
-if (saveMaterialBtn) {
-
-  saveMaterialBtn.addEventListener(
-    "click",
-    () => {
-
-      ensureMaterialsState();
-
-
-      const subjectId =
-        materialSubjectSelect
-          ? materialSubjectSelect.value
-          : "";
-
-
-      const materialName =
-        materialNameInput
-          ? materialNameInput.value.trim()
-          : "";
-
-
-      const materialUrl =
-        materialUrlInput
-          ? materialUrlInput.value.trim()
-          : "";
-
-
-      if (
-        !subjectId ||
-        !materialName ||
-        !materialUrl
-      ) {
-
-        if (materialStatus) {
-
-          materialStatus.textContent =
-            "Preencha a matéria, o nome do material e o link do PDF.";
-        }
-
-        return;
-      }
-
-
-      if (
-        !state.materialsBySubject[
-          subjectId
-        ]
-      ) {
-
-        state.materialsBySubject[
-          subjectId
-        ] = [];
-      }
-
-
-      state.materialsBySubject[
-        subjectId
-      ].push({
-
-        id:
-          "mat_" +
-          Date.now(),
-
-        name:
-          materialName,
-
-        url:
-          materialUrl
-
-      });
-
-
-      saveState();
-
-
-      if (materialNameInput) {
-
-        materialNameInput.value =
-          "";
-      }
-
-
-      if (materialUrlInput) {
-
-        materialUrlInput.value =
-          "";
-      }
-
-
-      renderMaterialsListConfig();
-
-
-      if (materialStatus) {
-
-        materialStatus.textContent =
-          "Material salvo com sucesso.";
-      }
-    }
-  );
-}
-
 
 // =====================================================
 // RESUMO DOS SEMESTRES
@@ -3122,6 +2495,19 @@ semesterSummaryTabs.forEach(
         button.classList.add(
           "active"
         );
+
+        if (pageHeaderTitle) {
+          const labels = {
+            capa: "Capa",
+            materias: "Matérias",
+            trabalhos: "Trabalhos",
+            provas: "Provas",
+            notas: "Notas",
+            ajuda: "Ajuda",
+            config: "Configuração"
+          };
+          pageHeaderTitle.textContent = labels[viewName] || "Organizador";
+        }
 
 
         currentSummaryTab =
@@ -8134,19 +7520,6 @@ function renderSubjectsManager() {
             );
 
 
-          if (
-            state
-              .materialsBySubject[
-                subject.id
-              ]
-          ) {
-
-            delete state
-              .materialsBySubject[
-                subject.id
-              ];
-          }
-
 
           saveState();
 
@@ -8730,8 +8103,6 @@ if (restoreBackupBtn) {
 
             ensureConfigState();
 
-            ensureMaterialsState();
-
 
             currentSemester =
               Number(
@@ -8885,14 +8256,6 @@ navButtons.forEach(
         );
 
 
-        if (
-          viewName ===
-          "noticias"
-        ) {
-
-          renderNews();
-        }
-
 
         if (
           viewName ===
@@ -8900,10 +8263,7 @@ navButtons.forEach(
         ) {
 
           populateSummarySemesterSelect();
-
-          populateMaterialSubjectSelect();
-
-          renderMaterialsListConfig();
+          renderConfigFields();
         }
       }
     );
@@ -8953,16 +8313,11 @@ function renderAll() {
 
   ensureSemesterMaps();
 
-  ensureMaterialsState();
-
-
   renderSemesterOptions();
 
   renderConfigFields();
 
   populateSummarySemesterSelect();
-
-  populateMaterialSubjectSelect();
 
 
   if (globalSemesterSelect) {
@@ -8997,9 +8352,7 @@ function renderAll() {
 
   renderSubjectsManager();
 
-  renderMaterialsListConfig();
-
-  renderNews();
+  renderProfileGreeting();
 
 
   // Se o resumo estiver aberto,
@@ -9053,8 +8406,6 @@ ensureSemesterMaps();
 migrateLegacyDataIfNeeded();
 
 ensureConfigState();
-
-ensureMaterialsState();
 
 
 currentSemester =
