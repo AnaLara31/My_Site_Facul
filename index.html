@@ -60,9 +60,10 @@
           <p id="welcomeMessage">Organize suas matérias, acompanhe seus prazos e veja seu progresso em um só lugar.</p>
         </div>
         <div class="welcome-date">
-          <span id="welcomeDateWeekday">Hoje</span>
+          <span class="welcome-today-label">Hoje</span>
           <strong id="welcomeDateDay">--</strong>
           <span id="welcomeDateMonth">--</span>
+          <small id="welcomeDateWeekday">--</small>
         </div>
       </section>
 
@@ -298,25 +299,156 @@
     <section id="view-ajuda" class="view">
       <div class="help-hero">
         <span class="help-eyebrow">CENTRAL DE AJUDA</span>
-        <h2>Como usar o Organizador da Faculdade</h2>
-        <p>Um guia rápido para configurar seu perfil, cadastrar matérias, acompanhar trabalhos, provas, notas e manter um backup dos seus dados.</p>
+        <h2>Manual do Organizador da Faculdade</h2>
+        <p>Use este guia sempre que tiver dúvida sobre onde cadastrar ou alterar uma informação. Os dados são salvos no navegador e cada semestre pode ter matérias, prazos, notas e horários diferentes.</p>
+      </div>
+
+      <div class="help-start-card">
+        <div>
+          <span class="help-step-badge">COMECE AQUI</span>
+          <h3>Primeira configuração do site</h3>
+          <p>Se esta é a primeira vez que você está usando o Organizador, faça estes passos nesta ordem:</p>
+        </div>
+        <ol class="help-numbered-list">
+          <li><strong>Configuração → Perfil:</strong> informe seu nome e o nome/apelido que deve aparecer na Capa.</li>
+          <li><strong>Configuração → Informações do curso:</strong> escreva o curso e informe quantos semestres ele possui.</li>
+          <li><strong>Topo da página:</strong> escolha o semestre que deseja visualizar ou editar.</li>
+          <li><strong>Matérias:</strong> cadastre as disciplinas daquele semestre.</li>
+          <li><strong>Capa:</strong> adicione datas importantes e seus horários de aula.</li>
+          <li><strong>Backup:</strong> depois de preencher seus dados, baixe uma cópia de segurança.</li>
+        </ol>
       </div>
 
       <div class="help-quick-grid">
-        <article class="help-card help-card-blue"><span>01</span><h3>Comece pela Configuração</h3><p>Preencha seu Perfil, nome do curso, total de semestres e escolha o semestre atual.</p></article>
-        <article class="help-card help-card-purple"><span>02</span><h3>Cadastre suas Matérias</h3><p>Na aba Matérias, adicione cada disciplina e registre aulas ou unidades estudadas.</p></article>
-        <article class="help-card help-card-pink"><span>03</span><h3>Organize Trabalhos e Provas</h3><p>Adicione descrição, data, dificuldade e acompanhe o status de cada atividade.</p></article>
-        <article class="help-card help-card-green"><span>04</span><h3>Acompanhe suas Notas</h3><p>Registre Trabalho 1, Prova 1, Trabalho 2 e Prova 2 para acompanhar sua média.</p></article>
+        <article class="help-card help-card-blue"><span>01</span><h3>Capa</h3><p>Calendário, próximos prazos, feriados, datas importantes, horários e progresso do semestre.</p></article>
+        <article class="help-card help-card-purple"><span>02</span><h3>Matérias</h3><p>Cadastre, edite e exclua disciplinas e registre os conteúdos estudados.</p></article>
+        <article class="help-card help-card-pink"><span>03</span><h3>Trabalhos e Provas</h3><p>Controle descrição, prazo, dificuldade, andamento, conclusão e realização.</p></article>
+        <article class="help-card help-card-green"><span>04</span><h3>Notas e Backup</h3><p>Acompanhe a média, gere o resumo do semestre e proteja seus dados.</p></article>
       </div>
 
       <div class="help-sections">
-        <details open><summary>🏠 Capa — sua visão geral</summary><div><p>A Capa reúne calendário, próximos prazos, feriados, datas importantes, horário das aulas e progresso do semestre.</p><ol><li>Escolha o semestre no topo.</li><li>Clique em um dia do calendário para visualizar seus eventos.</li><li>Use “Datas importantes” para registrar compromissos acadêmicos extras.</li><li>Cadastre seus horários de aula para consultar rapidamente durante a semana.</li></ol></div></details>
-        <details><summary>📚 Matérias — conteúdos estudados</summary><div><p>Cadastre uma matéria, escolha o semestre e depois adicione as aulas ou unidades estudadas. Marque cada conteúdo concluído para atualizar o progresso automaticamente.</p></div></details>
-        <details><summary>📋 Trabalhos — atividades e entregas</summary><div><p>Para cada matéria existem espaços para trabalhos. Registre o pedido do professor, prazo, dificuldade e marque “Em andamento”, “Concluído” ou “Entregue”.</p></div></details>
-        <details><summary>📝 Provas — datas e conteúdos</summary><div><p>Registre o conteúdo e a data de cada prova. Quando realizar a avaliação, marque como “Realizada”. A data também aparecerá no calendário e nos próximos prazos.</p></div></details>
-        <details><summary>⭐ Notas — acompanhamento da média</summary><div><p>Informe as notas das avaliações. O site calcula a média usando a fórmula exibida na própria página e mostra um indicador parcial de desempenho.</p></div></details>
-        <details><summary>⚙ Configuração — personalize seu organizador</summary><div><p>Em Configuração você define Perfil, curso e quantidade de semestres, consulta o resumo acadêmico e pode baixar ou restaurar um backup.</p></div></details>
-        <details><summary>💾 Backup — proteja seus dados</summary><div><p>Use “Baixar arquivo de backup” periodicamente. Para recuperar seus dados, selecione um arquivo JSON gerado pelo próprio Organizador e clique em “Restaurar backup”.</p></div></details>
+        <details open>
+          <summary>🏠 Capa — calendário e visão geral</summary>
+          <div>
+            <p>A Capa é o painel principal. Os quatro indicadores do topo são atualizados automaticamente de acordo com o semestre selecionado.</p>
+            <h4>Como ajustar:</h4>
+            <ol>
+              <li>Use <strong>Semestre atual</strong>, no canto superior direito, para trocar o semestre visualizado.</li>
+              <li>No calendário, use as setas para trocar o mês e clique em um dia para ver os eventos daquela data.</li>
+              <li>Em <strong>Datas importantes</strong>, escolha uma data, escreva o motivo e clique em <strong>Adicionar</strong>.</li>
+              <li>Para apagar uma data cadastrada, clique em <strong>Excluir</strong> ao lado dela.</li>
+              <li>Em <strong>Horário das aulas</strong>, selecione o dia, informe o horário e escreva o nome da matéria.</li>
+              <li><strong>Próximos prazos</strong> é preenchido automaticamente com datas importantes, trabalhos e provas futuras.</li>
+              <li><strong>Estado do semestre</strong> usa as marcações feitas em Matérias, Trabalhos e Provas para calcular o progresso.</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>📚 Matérias — cadastrar, editar e registrar conteúdo</summary>
+          <div>
+            <p>Cada matéria pertence a um semestre. Por isso, confira primeiro o semestre selecionado no topo.</p>
+            <h4>Para cadastrar uma matéria:</h4>
+            <ol>
+              <li>Digite o nome da disciplina.</li>
+              <li>Escolha o semestre.</li>
+              <li>Clique em <strong>Adicionar matéria</strong>.</li>
+            </ol>
+            <h4>Para ajustar uma matéria já cadastrada:</h4>
+            <ol>
+              <li>Clique em <strong>Editar</strong> no card da disciplina.</li>
+              <li>Altere o nome e/ou o semestre solicitado.</li>
+              <li>Para apagar a disciplina e todos os dados ligados a ela, use <strong>Excluir</strong>.</li>
+            </ol>
+            <p>Dentro de cada matéria, escreva o título da aula/unidade e clique em <strong>Adicionar</strong>. Marque a caixa quando estudar o conteúdo. Isso atualiza o progresso da Capa.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>📋 Trabalhos — controlar atividades e entregas</summary>
+          <div>
+            <p>Os trabalhos são separados por matéria. O site mantém dois espaços de trabalho para cada disciplina.</p>
+            <ol>
+              <li>No campo grande, escreva o que o professor pediu.</li>
+              <li>Selecione a <strong>data de entrega</strong>.</li>
+              <li>Escolha a dificuldade: <strong>Fácil, Médio ou Difícil</strong>.</li>
+              <li>Marque <strong>Em andamento</strong> quando começar.</li>
+              <li>Marque <strong>Concluído</strong> quando terminar. Ao concluir, “Em andamento” é desmarcado automaticamente.</li>
+              <li>Marque <strong>Entregue</strong> depois de enviar a atividade ao professor.</li>
+            </ol>
+            <p>Use os filtros no topo para localizar apenas Trabalho 1 ou 2, uma dificuldade específica ou atividades em determinado status.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>📝 Provas — conteúdo, data e realização</summary>
+          <div>
+            <ol>
+              <li>Escolha a matéria pelo filtro, se quiser visualizar apenas uma disciplina.</li>
+              <li>No campo de texto, registre o conteúdo que precisa estudar.</li>
+              <li>Informe a data da prova.</li>
+              <li>Depois da avaliação, marque <strong>Realizada</strong>.</li>
+            </ol>
+            <p>A data aparece automaticamente no calendário e em Próximos prazos. O filtro permite mostrar todas, somente realizadas ou somente pendentes.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>⭐ Notas — preencher e acompanhar a média</summary>
+          <div>
+            <p>Em cada matéria, preencha <strong>Trabalho 1, Prova 1, Trabalho 2 e Prova 2</strong>. O cálculo é feito automaticamente.</p>
+            <p><strong>Fórmula atual:</strong> (Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, dividido por 5.</p>
+            <p>O filtro permite visualizar tudo, apenas a Parte 1 ou apenas a Parte 2. A média também aparece no resumo acadêmico do semestre.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>👤 Perfil — alterar o nome que aparece no site</summary>
+          <div>
+            <ol>
+              <li>Abra <strong>Configuração</strong>.</li>
+              <li>Na seção <strong>Perfil</strong>, informe o nome completo.</li>
+              <li>No campo <strong>Como você quer ser chamado(a)?</strong>, escreva o nome ou apelido que deve aparecer na Capa.</li>
+              <li>Clique em <strong>Salvar perfil</strong>.</li>
+            </ol>
+            <p>O apelido tem prioridade. Se ele estiver vazio, o site usa o nome informado. A saudação muda automaticamente entre Bom dia, Boa tarde e Boa noite.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>⚙ Configuração — curso, semestres e resumo acadêmico</summary>
+          <div>
+            <p>Em <strong>Informações do curso</strong>, altere o nome do curso e a quantidade total de semestres. Depois clique em <strong>Salvar configuração</strong>.</p>
+            <p>Em <strong>Resumo dos semestres</strong>, selecione um semestre e clique em <strong>Visualizar resumo</strong>. As abas mostram visão geral, notas, trabalhos, provas, matérias e calendário.</p>
+            <p>O botão <strong>Gerar PDF</strong> abre a versão de impressão do relatório acadêmico daquele semestre.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>🌙 Aparência — modo claro ou escuro</summary>
+          <div>
+            <p>Use o botão <strong>Modo claro / Modo escuro</strong> no topo. A preferência fica salva neste navegador e não altera seus dados acadêmicos.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>💾 Backup — salvar ou recuperar seus dados</summary>
+          <div>
+            <h4>Para fazer uma cópia de segurança:</h4>
+            <ol>
+              <li>Abra <strong>Configuração</strong>.</li>
+              <li>Clique em <strong>Baixar arquivo de backup</strong>.</li>
+              <li>Guarde o arquivo <strong>.json</strong> em um local seguro.</li>
+            </ol>
+            <h4>Para restaurar:</h4>
+            <ol>
+              <li>Selecione o arquivo JSON criado pelo próprio Organizador.</li>
+              <li>Clique em <strong>Restaurar backup</strong>.</li>
+              <li>Os dados atuais serão substituídos pelos dados do arquivo escolhido.</li>
+            </ol>
+            <p><strong>Importante:</strong> como os dados ficam no navegador, faça um backup antes de limpar dados do navegador, formatar o computador ou trocar de dispositivo.</p>
+          </div>
+        </details>
       </div>
     </section>
 
