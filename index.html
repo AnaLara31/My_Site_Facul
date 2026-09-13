@@ -7,13 +7,37 @@
   <link rel="icon" type="image/png" href="icon_transparent.png">
 </head>
 <body>
+  <nav class="top-nav" aria-label="Navegação principal">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">🎓</div>
+      <div>
+        <strong>Organizador</strong>
+        <span>da Faculdade</span>
+      </div>
+    </div>
+
+    <div class="sidebar-menu">
+      <button class="nav-btn active" data-view="capa"><span>⌂</span> Capa</button>
+      <button class="nav-btn" data-view="materias"><span>▤</span> Matérias</button>
+      <button class="nav-btn" data-view="trabalhos"><span>✓</span> Trabalhos</button>
+      <button class="nav-btn" data-view="provas"><span>◫</span> Provas</button>
+      <button class="nav-btn" data-view="notas"><span>★</span> Notas</button>
+      <button class="nav-btn" data-view="ajuda"><span>?</span> Ajuda</button>
+      <button class="nav-btn" data-view="config"><span>⚙</span> Configuração</button>
+    </div>
+
+    <div class="sidebar-footer">
+      <span>Seus dados ficam neste navegador.</span>
+    </div>
+  </nav>
+
   <header class="app-header">
     <div>
-      <h1>Organizador da Faculdade 🎓</h1>
-      <p class="subtitle">Calendário, notas, trabalhos, provas e matérias em um lugar só.</p>
+      <p class="header-eyebrow">ORGANIZADOR DA FACULDADE</p>
+      <h1 id="pageHeaderTitle">Capa</h1>
     </div>
     <div class="header-controls">
-      <label for="globalSemesterSelect">Semestre atual:</label>
+      <label for="globalSemesterSelect">Semestre atual</label>
       <select id="globalSemesterSelect">
         <option value="1">1º semestre</option>
         <option value="2">2º semestre</option>
@@ -25,20 +49,23 @@
     </div>
   </header>
 
-  <nav class="top-nav">
-    <button class="nav-btn active" data-view="capa">Capa</button>
-    <button class="nav-btn" data-view="notas">Notas</button>
-    <button class="nav-btn" data-view="trabalhos">Trabalhos</button>
-    <button class="nav-btn" data-view="provas">Provas</button>
-    <button class="nav-btn" data-view="materias">Matérias</button>
-    <button class="nav-btn" data-view="noticias">Notícias</button>
-    <button class="nav-btn" data-view="config">Configuração</button>
-  </nav>
-
   <main>
 
     <!-- CAPA -->
     <section id="view-capa" class="view active">
+      <section class="welcome-hero">
+        <div>
+          <span class="welcome-kicker">VISÃO GERAL</span>
+          <h2 id="welcomeGreeting">Olá!</h2>
+          <p id="welcomeMessage">Organize suas matérias, acompanhe seus prazos e veja seu progresso em um só lugar.</p>
+        </div>
+        <div class="welcome-date">
+          <span id="welcomeDateWeekday">Hoje</span>
+          <strong id="welcomeDateDay">--</strong>
+          <span id="welcomeDateMonth">--</span>
+        </div>
+      </section>
+
       <!-- SUMÁRIO -->
       <section class="summary-grid">
         <div class="summary-card">
@@ -266,28 +293,33 @@
       <div id="subjectsManager" class="subjects-manager"></div>
     </section>
 
-    <!-- BACKUP -->
-    <section id="view-noticias" class="view">
-  <h2 class="view-title">Notícias e Conteúdos</h2>
 
-  <div class="news-map-container">
+    <!-- AJUDA / MANUAL -->
+    <section id="view-ajuda" class="view">
+      <div class="help-hero">
+        <span class="help-eyebrow">CENTRAL DE AJUDA</span>
+        <h2>Como usar o Organizador da Faculdade</h2>
+        <p>Um guia rápido para configurar seu perfil, cadastrar matérias, acompanhar trabalhos, provas, notas e manter um backup dos seus dados.</p>
+      </div>
 
-    <!-- Centro (curso) -->
-    <div class="news-center" id="newsCenter">
-      Nome do Curso
-    </div>
+      <div class="help-quick-grid">
+        <article class="help-card help-card-blue"><span>01</span><h3>Comece pela Configuração</h3><p>Preencha seu Perfil, nome do curso, total de semestres e escolha o semestre atual.</p></article>
+        <article class="help-card help-card-purple"><span>02</span><h3>Cadastre suas Matérias</h3><p>Na aba Matérias, adicione cada disciplina e registre aulas ou unidades estudadas.</p></article>
+        <article class="help-card help-card-pink"><span>03</span><h3>Organize Trabalhos e Provas</h3><p>Adicione descrição, data, dificuldade e acompanhe o status de cada atividade.</p></article>
+        <article class="help-card help-card-green"><span>04</span><h3>Acompanhe suas Notas</h3><p>Registre Trabalho 1, Prova 1, Trabalho 2 e Prova 2 para acompanhar sua média.</p></article>
+      </div>
 
-    <!-- Matérias ao redor -->
-    <div class="news-subjects" id="newsSubjects"></div>
+      <div class="help-sections">
+        <details open><summary>🏠 Capa — sua visão geral</summary><div><p>A Capa reúne calendário, próximos prazos, feriados, datas importantes, horário das aulas e progresso do semestre.</p><ol><li>Escolha o semestre no topo.</li><li>Clique em um dia do calendário para visualizar seus eventos.</li><li>Use “Datas importantes” para registrar compromissos acadêmicos extras.</li><li>Cadastre seus horários de aula para consultar rapidamente durante a semana.</li></ol></div></details>
+        <details><summary>📚 Matérias — conteúdos estudados</summary><div><p>Cadastre uma matéria, escolha o semestre e depois adicione as aulas ou unidades estudadas. Marque cada conteúdo concluído para atualizar o progresso automaticamente.</p></div></details>
+        <details><summary>📋 Trabalhos — atividades e entregas</summary><div><p>Para cada matéria existem espaços para trabalhos. Registre o pedido do professor, prazo, dificuldade e marque “Em andamento”, “Concluído” ou “Entregue”.</p></div></details>
+        <details><summary>📝 Provas — datas e conteúdos</summary><div><p>Registre o conteúdo e a data de cada prova. Quando realizar a avaliação, marque como “Realizada”. A data também aparecerá no calendário e nos próximos prazos.</p></div></details>
+        <details><summary>⭐ Notas — acompanhamento da média</summary><div><p>Informe as notas das avaliações. O site calcula a média usando a fórmula exibida na própria página e mostra um indicador parcial de desempenho.</p></div></details>
+        <details><summary>⚙ Configuração — personalize seu organizador</summary><div><p>Em Configuração você define Perfil, curso e quantidade de semestres, consulta o resumo acadêmico e pode baixar ou restaurar um backup.</p></div></details>
+        <details><summary>💾 Backup — proteja seus dados</summary><div><p>Use “Baixar arquivo de backup” periodicamente. Para recuperar seus dados, selecione um arquivo JSON gerado pelo próprio Organizador e clique em “Restaurar backup”.</p></div></details>
+      </div>
+    </section>
 
-  </div>
-
-  <!-- Painel ao clicar -->
-  <div class="news-panel" id="newsPanel">
-    <p>Selecione uma matéria para visualizar conteúdos.</p>
-  </div>
-</section>
-    
     <section id="view-config" class="view">
       <h2 class="view-title">Configuração</h2>
       <p class="view-subtitle">
@@ -295,6 +327,28 @@
       </p>
     
       <div class="cards-column">
+        <div class="card profile-card">
+          <div class="settings-card-header">
+            <div class="settings-icon">👤</div>
+            <div>
+              <h3>Perfil</h3>
+              <p>Personalize como o Organizador fala com você.</p>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <label>
+              <span>Nome</span>
+              <input type="text" id="profileNameInput" placeholder="Seu nome" autocomplete="name" />
+            </label>
+            <label>
+              <span>Como você quer ser chamado(a)?</span>
+              <input type="text" id="profileNicknameInput" placeholder="Ex.: Ana, Bia, João..." />
+            </label>
+          </div>
+          <button id="saveProfileBtn" class="primary-action-btn" type="button">Salvar perfil</button>
+          <p id="profileStatus" class="backup-status"></p>
+        </div>
+
         <div class="card">
           <h3>Informações do curso</h3>
           <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
@@ -422,27 +476,7 @@
 <div id="semesterPrintReport"
      class="semester-print-report">
 </div>
-        
-        <div class="card">
-  <h3>Materiais em PDF por matéria</h3>
-  <p style="font-size:0.85rem;margin-bottom:8px;">
-    Vincule um material em PDF a uma matéria usando o nome do material e o link do arquivo.
-  </p>
 
-  <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
-    <select id="materialSubjectSelect">
-      <option value="">Selecione a matéria</option>
-    </select>
-    <input type="text" id="materialNameInput" placeholder="Nome do PDF/material" />
-    <input type="text" id="materialUrlInput" placeholder="Link do PDF" />
-    <button id="saveMaterialBtn" type="button">Salvar material</button>
-  </div>
-
-  <p id="materialStatus" class="backup-status"></p>
-
-  <ul id="materialsListConfig" class="simple-list" style="margin-top:10px;"></ul>
-</div>
-        
         <div class="card">
           <h3>Baixar backup</h3>
           <p style="font-size:0.85rem;margin-bottom:6px;">
