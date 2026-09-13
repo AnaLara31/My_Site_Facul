@@ -2415,3 +2415,145 @@ footer {
   .welcome-date { border-left: 0; border-top: 1px solid rgba(109,99,232,.14); flex-direction: row; gap: 8px; }
   .welcome-date strong { font-size: 1.2rem; margin: 0; }
 }
+
+
+/* ==================================================
+   AJUSTES V2 — TELA CHEIA, DATA E CENTRAL DE AJUDA
+================================================== */
+
+/* Usa toda a área disponível em monitores largos. */
+main {
+  max-width: none;
+  margin: 0;
+  padding: 22px 24px 40px;
+}
+
+.view {
+  width: 100%;
+}
+
+.welcome-hero {
+  width: 100%;
+}
+
+.welcome-date {
+  min-width: 190px;
+}
+
+.welcome-today-label {
+  font-size: .7rem !important;
+  font-weight: 700;
+  text-transform: uppercase !important;
+  letter-spacing: .08em;
+}
+
+.welcome-date small {
+  font-size: .7rem;
+  color: #8a859a;
+  text-transform: capitalize;
+  margin-top: 3px;
+}
+
+/* Em telas grandes, deixa as duas colunas ocuparem melhor o espaço. */
+@media (min-width: 1500px) {
+  main {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .capa-layout {
+    grid-template-columns: minmax(0, 1.55fr) minmax(390px, .95fr);
+    gap: 18px;
+  }
+
+  .summary-grid {
+    gap: 14px;
+  }
+
+  .card {
+    padding: 18px 20px;
+  }
+}
+
+/* Manual mais explicativo. */
+.help-start-card {
+  display: grid;
+  grid-template-columns: minmax(230px, .8fr) minmax(420px, 1.5fr);
+  gap: 24px;
+  align-items: start;
+  padding: 22px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.help-start-card h3 {
+  margin-top: 8px;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+}
+
+.help-start-card p {
+  color: var(--text-muted);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.help-step-badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: .63rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.help-numbered-list {
+  margin-left: 20px;
+  color: var(--text-muted);
+  font-size: .8rem;
+  line-height: 1.6;
+}
+
+.help-numbered-list li + li {
+  margin-top: 7px;
+}
+
+.help-sections details > div h4 {
+  color: var(--text-main);
+  font-size: .8rem;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.help-sections details > div p + p {
+  margin-top: 8px;
+}
+
+.help-sections details > div ol {
+  margin-top: 7px;
+}
+
+.help-sections details > div li + li {
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .help-start-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  main {
+    padding: 16px 12px 28px;
+  }
+
+  .welcome-date {
+    min-width: 0;
+  }
+}
