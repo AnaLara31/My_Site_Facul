@@ -5,126 +5,42 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-// Estado inicial com alguns exemplos. Você pode editar depois direto no site.
+// Estado inicial vazio: cada pessoa preenche os próprios dados no site.
 const defaultState = {
   theme: "dark",
 
   // salva o semestre atual escolhido no topo
-  currentSemester: 5,
-  totalSemesters: 5,
+  currentSemester: 1,
+  totalSemesters: 8,
   courseName: "",
   profile: {
-    name: "Ana Luiza",
-    nickname: "Ana"
+    name: "",
+    nickname: ""
   },
 
-  subjects: [
-    {
-      id: "animacao3d",
-      name: "Animação 3D",
-      semester: 5,
-      grades: { t1: null, p1: null, t2: null, p2: null },
-      works: [
-        {
-          id: "animacao3d_w1",
-          description: "",
-          done: false,
-          inProgress: false,
-          delivered: false,
-          difficulty: "medio",
-          dueDate: null
-        },
-        {
-          id: "animacao3d_w2",
-          description: "",
-          done: false,
-          inProgress: false,
-          delivered: false,
-          difficulty: "medio",
-          dueDate: null
-        }
-      ],
-      exams: [
-        {
-          id: "animacao3d_e1",
-          description: "",
-          done: false,
-          date: null
-        },
-        {
-          id: "animacao3d_e2",
-          description: "",
-          done: false,
-          date: null
-        }
-      ],
-      lessons: [
-        {
-          id: "animacao3d_l1",
-          title: "Princípios de animação",
-          done: false
-        },
-        {
-          id: "animacao3d_l2",
-          title: "Ciclo de caminhada",
-          done: false
-        }
-      ]
-    },
+  // Fórmula da média: (T1 + P1) × peso1 + (T2 + P2) × peso2, dividido por (peso1 + peso2)
+  gradeConfig: {
+    weight1: 2,
+    weight2: 3,
+    passingGrade: 6
+  },
 
-    {
-      id: "leveldesign",
-      name: "Level Design",
-      semester: 5,
-      grades: {
-        t1: null,
-        p1: null,
-        t2: null,
-        p2: null
-      },
-      works: [
-        {
-          id: "leveldesign_w1",
-          description: "",
-          done: false,
-          inProgress: false,
-          delivered: false,
-          difficulty: "medio",
-          dueDate: null
-        },
-        {
-          id: "leveldesign_w2",
-          description: "",
-          done: false,
-          inProgress: false,
-          delivered: false,
-          difficulty: "medio",
-          dueDate: null
-        }
-      ],
-      exams: [
-        {
-          id: "leveldesign_e1",
-          description: "",
-          done: false,
-          date: null
-        },
-        {
-          id: "leveldesign_e2",
-          description: "",
-          done: false,
-          date: null
-        }
-      ],
-      lessons: [
-        {
-          id: "leveldesign_l1",
-          title: "Kishotenketsu",
-          done: false
-        }
-      ]
-    }
-  ],
+  // aparência: cor principal e estilo do fundo
+  appearance: {
+    accent: "#6d63e8",
+    background: "padrao"
+  },
+
+  // controle de faltas: desligado por padrão (nem toda faculdade controla)
+  attendance: {
+    enabled: false,
+    minPercent: 75
+  },
+
+  // data (ISO) do último backup baixado
+  lastBackupAt: null,
+
+  subjects: [],
 
   importantDatesBySemester: {},
 
@@ -366,7 +282,15 @@ function ensureConfigState() {
 
   if (!state.profile || typeof state.profile !== "object") {
     // Migração para instalações anteriores que ainda não tinham Perfil.
-    state.profile = { name: "Ana Luiza", nickname: "Ana" };
+    state.profile = { name: "", nickname: "" };
+  }
+
+  if (!state.attendance || typeof state.attendance !== "object") {
+    state.attendance = { enabled: false, minPercent: 75 };
+  }
+
+  if (!state.gradeConfig || typeof state.gradeConfig !== "object") {
+    state.gradeConfig = { weight1: 2, weight2: 3, passingGrade: 6 };
   }
 
   if (typeof state.profile.name !== "string") {
@@ -573,6 +497,11 @@ const views = {
   config:
     document.getElementById(
       "view-config"
+    ),
+
+  noticias:
+    document.getElementById(
+      "view-noticias"
     )
 
 };
@@ -737,7 +666,9 @@ function applyTheme() {
 
     if (themeToggleBtn) {
       themeToggleBtn.textContent =
-        "Modo claro";
+        "🌙 Modo escuro";
+      themeToggleBtn.title =
+        "Mudar para o modo escuro";
     }
 
   } else {
@@ -749,9 +680,13 @@ function applyTheme() {
 
     if (themeToggleBtn) {
       themeToggleBtn.textContent =
-        "Modo escuro";
+        "☀️ Modo claro";
+      themeToggleBtn.title =
+        "Mudar para o modo claro";
     }
   }
+
+  applyAppearance();
 }
 
 
@@ -918,6 +853,7 @@ if (saveProfileBtn) {
     saveState();
     renderConfigFields();
     renderProfileGreeting();
+    renderNotices();
 
     if (profileStatus) {
       profileStatus.textContent = "Perfil salvo com sucesso.";
@@ -1501,7 +1437,7 @@ function renderSummaryGrades(data) {
     const gradeClass =
       finalGrade !== null &&
       !isNaN(finalGrade) &&
-      finalGrade >= 6
+      finalGrade >= getGradeConfig().passingGrade
         ? "summary-grade-approved"
         : "summary-grade-warning";
 
@@ -2496,19 +2432,6 @@ semesterSummaryTabs.forEach(
         button.classList.add(
           "active"
         );
-
-        if (pageHeaderTitle) {
-          const labels = {
-            capa: "Capa",
-            materias: "Matérias",
-            trabalhos: "Trabalhos",
-            provas: "Provas",
-            notas: "Notas",
-            ajuda: "Ajuda",
-            config: "Configuração"
-          };
-          pageHeaderTitle.textContent = labels[viewName] || "Organizador";
-        }
 
 
         currentSummaryTab =
@@ -3845,6 +3768,13 @@ function getBrazilHolidays(year) {
         `${year}-11-15`,
       label:
         "Proclamação da República"
+    },
+
+    {
+      date:
+        `${year}-11-20`,
+      label:
+        "Dia da Consciência Negra"
     },
 
     {
@@ -5335,50 +5265,158 @@ function toNumber(value) {
 // CÁLCULO DA MÉDIA
 // =====================================================
 
+function isGradeFilled(value) {
+  return (
+    value !== null &&
+    value !== undefined &&
+    String(value).trim() !== ""
+  );
+}
+
+
+function getGradeConfig() {
+  const cfg = state.gradeConfig || {};
+
+  const weight1 = Number(cfg.weight1);
+  const weight2 = Number(cfg.weight2);
+  const passingGrade = Number(cfg.passingGrade);
+
+  return {
+    weight1: weight1 >= 0 ? weight1 : 2,
+    weight2: weight2 > 0 ? weight2 : 3,
+    passingGrade:
+      passingGrade >= 0 && passingGrade <= 10 ? passingGrade : 6
+  };
+}
+
+
+function formatGrade(value) {
+  return Number(value)
+    .toFixed(2)
+    .replace(".", ",");
+}
+
+
+function getFormulaText() {
+  const { weight1, weight2, passingGrade } = getGradeConfig();
+  const fmt = n => String(n).replace(".", ",");
+
+  return `(Trabalho 1 + Prova 1) × ${fmt(weight1)} + (Trabalho 2 + Prova 2) × ${fmt(weight2)}, tudo dividido por ${fmt(weight1 + weight2)}. Média para passar: ${fmt(passingGrade)}.`;
+}
+
+
+// Retorna null quando nenhuma nota foi lançada.
+// Notas ainda não lançadas contam como 0 (média parcial).
 function computeFinalGrade(grades) {
 
   if (!grades) {
     return null;
   }
 
+  const keys = ["t1", "p1", "t2", "p2"];
 
-  const t1 =
-    toNumber(
-      grades.t1
-    );
-
-  const p1 =
-    toNumber(
-      grades.p1
-    );
-
-  const t2 =
-    toNumber(
-      grades.t2
-    );
-
-  const p2 =
-    toNumber(
-      grades.p2
-    );
-
-
-  const result =
-    (
-      (t1 + p1) * 2 +
-      (t2 + p2) * 3
-    ) / 5;
-
-
-  if (
-    isNaN(result)
-  ) {
-
+  if (!keys.some(k => isGradeFilled(grades[k]))) {
     return null;
   }
 
+  const { weight1, weight2 } = getGradeConfig();
 
-  return result;
+  const part1 = toNumber(grades.t1) + toNumber(grades.p1);
+  const part2 = toNumber(grades.t2) + toNumber(grades.p2);
+
+  const result =
+    (part1 * weight1 + part2 * weight2) /
+    (weight1 + weight2);
+
+  return isNaN(result) ? null : result;
+}
+
+
+function isGradeComplete(grades) {
+  return (
+    !!grades &&
+    ["t1", "p1", "t2", "p2"].every(k => isGradeFilled(grades[k]))
+  );
+}
+
+
+// Calcula a situação da matéria e quanto falta para passar.
+function getGradeStatus(grades) {
+
+  const final = computeFinalGrade(grades);
+  const { weight1, weight2, passingGrade } = getGradeConfig();
+
+  if (final === null) {
+    return { final: null, label: "Sem notas", kind: "empty", hint: "" };
+  }
+
+  if (isGradeComplete(grades)) {
+    const ok = final >= passingGrade;
+    return {
+      final,
+      kind: ok ? "ok" : "bad",
+      label: ok ? "Aprovado(a)" : "Abaixo da média",
+      hint: ok
+        ? ""
+        : `Faltaram ${formatGrade(passingGrade - final)} pontos para a média ${String(passingGrade).replace(".", ",")}.`
+    };
+  }
+
+  const part1Done =
+    isGradeFilled(grades.t1) && isGradeFilled(grades.p1);
+
+  if (!part1Done) {
+    return {
+      final,
+      kind: "partial",
+      label: "Parcial",
+      hint: "Preencha Trabalho 1 e Prova 1 para ver quanto precisa na Parte 2."
+    };
+  }
+
+  const part1 = toNumber(grades.t1) + toNumber(grades.p1);
+
+  // nota que a Parte 2 (Trabalho 2 + Prova 2) precisa somar
+  const neededPart2 =
+    (passingGrade * (weight1 + weight2) - part1 * weight1) / weight2;
+
+  const t2Done = isGradeFilled(grades.t2);
+  const p2Done = isGradeFilled(grades.p2);
+  let needed = neededPart2;
+  let what = "na Parte 2 (Trabalho 2 + Prova 2 somados)";
+
+  if (t2Done && !p2Done) {
+    needed = neededPart2 - toNumber(grades.t2);
+    what = "na Prova 2";
+  } else if (!t2Done && p2Done) {
+    needed = neededPart2 - toNumber(grades.p2);
+    what = "no Trabalho 2";
+  }
+
+  if (needed <= 0) {
+    return {
+      final,
+      kind: "ok",
+      label: "Média garantida",
+      hint: "Mesmo tirando 0 no que falta, você já passa. 🎉"
+    };
+  }
+
+  if (neededPart2 > 10) {
+    return {
+      final,
+      kind: "bad",
+      label: "Atenção",
+      hint: `Seria preciso ${formatGrade(neededPart2)} na Parte 2, acima do máximo de 10. Converse com o(a) professor(a) sobre recuperação.`
+    };
+  }
+
+  return {
+    final,
+    kind: "partial",
+    label: "Parcial",
+    hint: `Você precisa de ${formatGrade(needed)} ${what} para chegar à média ${String(passingGrade).replace(".", ",")}.`
+  };
 }
 
 
@@ -5627,6 +5665,8 @@ function renderGrades() {
 
               saveState();
 
+              updateFinal();
+
               updateSummary();
 
               renderSemesterStatus();
@@ -5651,69 +5691,51 @@ function renderGrades() {
       );
 
 
-      const finalGrade =
-        computeFinalGrade(
-          subject.grades
-        );
-
-
       const finalDiv =
         document.createElement(
           "div"
         );
 
-
       finalDiv.className =
         "final-grade";
 
+      const updateFinal = () => {
+        const info = getGradeStatus(subject.grades);
 
-      if (
-        finalGrade === null ||
-        isNaN(
-          finalGrade
-        )
-      ) {
+        finalDiv.innerHTML = "";
 
-        finalDiv.textContent =
-          "Média final: -";
+        const line = document.createElement("div");
+        line.className = "final-grade-line";
 
-      } else {
+        const value = document.createElement("span");
+        value.textContent =
+          `Média final: ${info.final === null ? "—" : formatGrade(info.final)}`;
+        line.appendChild(value);
 
-        const rounded =
-          finalGrade.toFixed(
-            2
-          );
-
-
-        finalDiv.textContent =
-          `Média final: ${rounded}`;
-
-
-        const statusBadge =
-          document.createElement(
-            "span"
-          );
-
-
-        statusBadge.className =
-          "badge " +
-          (
-            finalGrade >= 6
+        if (info.kind !== "empty") {
+          const statusBadge = document.createElement("span");
+          statusBadge.className =
+            "badge " +
+            (info.kind === "ok"
               ? "badge-status-ok"
-              : "badge-status-bad"
-          );
+              : info.kind === "bad"
+                ? "badge-status-bad"
+                : "badge-status-partial");
+          statusBadge.textContent = info.label;
+          line.appendChild(statusBadge);
+        }
 
+        finalDiv.appendChild(line);
 
-        statusBadge.textContent =
-          finalGrade >= 6
-            ? "Aprovado (parcial)"
-            : "Atenção";
+        if (info.hint) {
+          const hint = document.createElement("p");
+          hint.className = "grade-hint";
+          hint.textContent = info.hint;
+          finalDiv.appendChild(hint);
+        }
+      };
 
-
-        finalDiv.appendChild(
-          statusBadge
-        );
-      }
+      updateFinal();
 
 
       card.appendChild(
@@ -7896,6 +7918,13 @@ function renderSubjectsManager() {
       );
 
 
+      if (isAttendanceEnabled()) {
+        card.appendChild(
+          buildAttendanceBox(subject)
+        );
+      }
+
+
       subjectsManager.appendChild(
         card
       );
@@ -8012,6 +8041,18 @@ if (downloadBackupBtn) {
           url
         );
 
+
+        state.lastBackupAt =
+          new Date().toISOString();
+
+        state.backupSnoozeUntil =
+          null;
+
+        saveState();
+
+        renderBackupInfo();
+
+        renderNotices();
 
         if (backupStatus) {
 
@@ -8236,6 +8277,21 @@ navButtons.forEach(
         );
 
 
+        if (pageHeaderTitle) {
+          const labels = {
+            capa: "Capa",
+            materias: "Matérias",
+            trabalhos: "Trabalhos",
+            provas: "Provas",
+            notas: "Notas",
+            noticias: "Notícias",
+            ajuda: "Ajuda",
+            config: "Configuração"
+          };
+          pageHeaderTitle.textContent = labels[viewName] || "Organizador";
+        }
+
+
         Object.keys(
           views
         ).forEach(
@@ -8357,6 +8413,22 @@ function renderAll() {
 
   renderSubjectsManager();
 
+  renderFormulaTexts();
+
+  renderGradeConfigFields();
+
+  renderBackupInfo();
+
+  renderAttendanceConfigFields();
+
+  renderAppearanceControls();
+
+  renderTodayPanel();
+
+  renderNotices();
+
+  renderNewsIfVisible();
+
 
   // Se o resumo estiver aberto,
   // atualiza os dados dele também.
@@ -8399,6 +8471,1103 @@ function renderAll() {
   }
 }
 
+
+// =====================================================
+// FÓRMULA DAS NOTAS (CONFIGURAÇÃO)
+// =====================================================
+
+const gradeWeight1Input = document.getElementById("gradeWeight1Input");
+const gradeWeight2Input = document.getElementById("gradeWeight2Input");
+const gradePassingInput = document.getElementById("gradePassingInput");
+const formulaPreview = document.getElementById("formulaPreview");
+const saveGradeConfigBtn = document.getElementById("saveGradeConfigBtn");
+const gradeConfigStatus = document.getElementById("gradeConfigStatus");
+
+function renderFormulaTexts() {
+  const text = getFormulaText();
+  document.querySelectorAll(".formula-text").forEach(el => {
+    el.textContent = text;
+  });
+}
+
+function renderGradeConfigFields() {
+  const cfg = getGradeConfig();
+  if (gradeWeight1Input) gradeWeight1Input.value = cfg.weight1;
+  if (gradeWeight2Input) gradeWeight2Input.value = cfg.weight2;
+  if (gradePassingInput) gradePassingInput.value = cfg.passingGrade;
+  updateFormulaPreview();
+}
+
+function readGradeConfigInputs() {
+  const parse = el => {
+    const raw = String(el ? el.value : "").replace(",", ".").trim();
+    return raw === "" ? NaN : Number(raw);
+  };
+  return {
+    weight1: parse(gradeWeight1Input),
+    weight2: parse(gradeWeight2Input),
+    passingGrade: parse(gradePassingInput)
+  };
+}
+
+function updateFormulaPreview() {
+  if (!formulaPreview) return;
+  const { weight1, weight2, passingGrade } = readGradeConfigInputs();
+  if (!(weight1 >= 0) || !(weight2 > 0) || !(passingGrade >= 0)) {
+    formulaPreview.textContent = "preencha os três campos com números válidos.";
+    return;
+  }
+  const fmt = n => String(n).replace(".", ",");
+  formulaPreview.textContent =
+    `(T1 + P1) × ${fmt(weight1)} + (T2 + P2) × ${fmt(weight2)}, dividido por ${fmt(weight1 + weight2)} · média para passar ${fmt(passingGrade)}`;
+}
+
+[gradeWeight1Input, gradeWeight2Input, gradePassingInput].forEach(el => {
+  if (el) el.addEventListener("input", updateFormulaPreview);
+});
+
+if (saveGradeConfigBtn) {
+  saveGradeConfigBtn.addEventListener("click", () => {
+    const cfg = readGradeConfigInputs();
+
+    if (
+      !(cfg.weight1 >= 0) || cfg.weight1 > 100 ||
+      !(cfg.weight2 > 0) || cfg.weight2 > 100 ||
+      !(cfg.passingGrade >= 0) || cfg.passingGrade > 10
+    ) {
+      if (gradeConfigStatus) {
+        gradeConfigStatus.textContent =
+          "Confira os valores: pesos entre 0 e 100 (o da Parte 2 maior que 0) e média entre 0 e 10.";
+      }
+      return;
+    }
+
+    state.gradeConfig = cfg;
+    saveState();
+    renderAll();
+
+    if (gradeConfigStatus) {
+      gradeConfigStatus.textContent = "Fórmula salva. As médias já foram recalculadas.";
+    }
+  });
+}
+
+
+// =====================================================
+// NAVEGAÇÃO AUXILIAR + AVISOS (BOAS-VINDAS E BACKUP)
+// =====================================================
+
+const appNotices = document.getElementById("appNotices");
+const lastBackupInfo = document.getElementById("lastBackupInfo");
+const BACKUP_REMINDER_DAYS = 14;
+
+function goToView(viewName) {
+  const btn = document.querySelector(`.nav-btn[data-view="${viewName}"]`);
+  if (btn) {
+    btn.click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+document.querySelectorAll(".go-config-link").forEach(link => {
+  link.addEventListener("click", event => {
+    event.preventDefault();
+    goToView("config");
+  });
+});
+
+function daysSince(iso) {
+  if (!iso) return null;
+  const then = new Date(iso);
+  if (isNaN(then)) return null;
+  return Math.floor((Date.now() - then.getTime()) / 86400000);
+}
+
+function renderBackupInfo() {
+  if (!lastBackupInfo) return;
+  const days = daysSince(state.lastBackupAt);
+  if (days === null) {
+    lastBackupInfo.textContent = "Você ainda não baixou nenhum backup.";
+  } else {
+    const when = new Date(state.lastBackupAt).toLocaleDateString("pt-BR");
+    lastBackupInfo.textContent =
+      days === 0
+        ? `Último backup: hoje (${when}).`
+        : `Último backup: ${when} (há ${days} ${days === 1 ? "dia" : "dias"}).`;
+  }
+}
+
+function hasUserContent() {
+  return (
+    (state.subjects && state.subjects.length > 0) ||
+    Object.values(state.importantDatesBySemester || {}).some(list => list && list.length)
+  );
+}
+
+function makeNotice(kind, icon, html, actions) {
+  const box = document.createElement("div");
+  box.className = `app-notice app-notice-${kind}`;
+
+  const iconEl = document.createElement("span");
+  iconEl.className = "app-notice-icon";
+  iconEl.textContent = icon;
+
+  const textEl = document.createElement("p");
+  textEl.innerHTML = html;
+
+  const actionsEl = document.createElement("div");
+  actionsEl.className = "app-notice-actions";
+
+  actions.forEach(({ label, primary, onClick }) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    if (!primary) b.className = "ghost-btn";
+    b.addEventListener("click", onClick);
+    actionsEl.appendChild(b);
+  });
+
+  box.append(iconEl, textEl, actionsEl);
+  return box;
+}
+
+function renderNotices() {
+  if (!appNotices) return;
+  appNotices.innerHTML = "";
+
+  const hasName =
+    !!(state.profile && (state.profile.name || state.profile.nickname));
+
+  // Boas-vindas para quem está chegando agora
+  if (!hasName && !hasUserContent() && !state.welcomeDismissed) {
+    appNotices.appendChild(
+      makeNotice(
+        "info",
+        "👋",
+        "<strong>Bem-vindo(a) ao Organizador!</strong> Comece informando seu nome, seu curso e a fórmula de notas da sua faculdade.",
+        [
+          { label: "Começar configuração", primary: true, onClick: () => goToView("config") },
+          {
+            label: "Agora não",
+            onClick: () => {
+              state.welcomeDismissed = true;
+              saveState();
+              renderNotices();
+            }
+          }
+        ]
+      )
+    );
+  }
+
+  // Lembrete de backup
+  if (hasUserContent()) {
+    const days = daysSince(state.lastBackupAt);
+    const snoozed =
+      state.backupSnoozeUntil &&
+      new Date(state.backupSnoozeUntil).getTime() > Date.now();
+
+    if (!snoozed && (days === null || days >= BACKUP_REMINDER_DAYS)) {
+      const msg =
+        days === null
+          ? "<strong>Você ainda não fez nenhum backup.</strong> Seus dados ficam só neste navegador: se ele for limpo, tudo se perde."
+          : `<strong>Seu último backup foi há ${days} dias.</strong> Que tal salvar uma cópia atualizada?`;
+
+      appNotices.appendChild(
+        makeNotice("warn", "💾", msg, [
+          {
+            label: "Baixar backup agora",
+            primary: true,
+            onClick: () => {
+              if (downloadBackupBtn) downloadBackupBtn.click();
+            }
+          },
+          {
+            label: "Lembrar em 3 dias",
+            onClick: () => {
+              state.backupSnoozeUntil = new Date(Date.now() + 3 * 86400000).toISOString();
+              saveState();
+              renderNotices();
+            }
+          }
+        ])
+      );
+    }
+  }
+
+  // Provas da próxima semana + o que falta estudar
+  appendExamNotices();
+
+  // Matérias perto do limite de faltas
+  appendAttendanceNotices();
+}
+
+
+// =====================================================
+// ALERTA DE PROVAS PRÓXIMAS
+// =====================================================
+
+const EXAM_ALERT_DAYS = 7;
+
+function parseIsoLocal(iso) {
+  if (!iso || typeof iso !== "string") return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function daysUntil(iso) {
+  const date = parseIsoLocal(iso);
+  if (!date) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((date - today) / 86400000);
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function getUpcomingExams() {
+  const list = [];
+
+  getSubjectsForCurrentSemester().forEach(subject => {
+    (subject.exams || []).forEach((exam, index) => {
+      if (exam.done || !exam.date) return;
+      const days = daysUntil(exam.date);
+      if (days === null || days < 0 || days > EXAM_ALERT_DAYS) return;
+      list.push({ subject, exam, index, days });
+    });
+  });
+
+  return list.sort((a, b) => a.days - b.days);
+}
+
+function buildExamNotice({ subject, exam, index, days }) {
+  const when =
+    days === 0 ? "é <strong>hoje</strong>"
+    : days === 1 ? "é <strong>amanhã</strong>"
+    : `é em <strong>${days} dias</strong>`;
+
+  const dateText = parseIsoLocal(exam.date).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit"
+  });
+
+  const pendingLessons = (subject.lessons || []).filter(l => !l.done);
+  const doneLessons = (subject.lessons || []).length - pendingLessons.length;
+
+  let html =
+    `<strong>Prova ${index + 1} de ${escapeHtml(subject.name)}</strong> ${when} (${dateText}).`;
+
+  if (exam.description && exam.description.trim()) {
+    html += `<span class="exam-alert-line"><b>Conteúdo:</b> ${escapeHtml(exam.description.trim())}</span>`;
+  } else {
+    html += `<span class="exam-alert-line"><b>Conteúdo:</b> ainda não cadastrado em Provas.</span>`;
+  }
+
+  if (!(subject.lessons || []).length) {
+    html += `<span class="exam-alert-line"><b>O que falta:</b> nenhuma aula cadastrada em Matérias.</span>`;
+  } else if (pendingLessons.length) {
+    const items = pendingLessons
+      .slice(0, 6)
+      .map(l => `<li>${escapeHtml(l.title)}</li>`)
+      .join("");
+    const more =
+      pendingLessons.length > 6
+        ? `<li>e mais ${pendingLessons.length - 6}…</li>`
+        : "";
+    html += `<span class="exam-alert-line"><b>O que falta estudar</b> (${doneLessons} de ${subject.lessons.length} ${subject.lessons.length === 1 ? "aula estudada" : "aulas estudadas"}):</span><ul class="exam-alert-list">${items}${more}</ul>`;
+  } else {
+    html += `<span class="exam-alert-line"><b>O que falta:</b> nada! Você já estudou ${subject.lessons.length === 1 ? "a única aula cadastrada" : `todas as ${subject.lessons.length} aulas cadastradas`}. 💪</span>`;
+  }
+
+  const kind = days <= 2 ? "danger" : "exam";
+
+  return makeNotice(kind, "📝", html, [
+    { label: "Ver provas", primary: true, onClick: () => goToView("provas") },
+    { label: "Ver aulas", onClick: () => goToView("materias") }
+  ]);
+}
+
+function appendExamNotices() {
+  if (!appNotices) return;
+  getUpcomingExams().forEach(item => {
+    appNotices.appendChild(buildExamNotice(item));
+  });
+}
+
+
+// =====================================================
+// NOTÍCIAS E CURIOSIDADES DAS MATÉRIAS
+// Fontes: GDELT (notícias) e Wikipédia (curiosidades).
+// As duas permitem acesso direto do navegador.
+// =====================================================
+
+const newsContainer = document.getElementById("newsContainer");
+const newsSemesterLabel = document.getElementById("newsSemesterLabel");
+const refreshNewsBtn = document.getElementById("refreshNewsBtn");
+
+const NEWS_CACHE_KEY = "organizador_faculdade_news_cache_v1";
+const NEWS_CACHE_HOURS = 6;
+let newsRenderToken = 0;
+
+function loadNewsCache() {
+  try {
+    return JSON.parse(localStorage.getItem(NEWS_CACHE_KEY) || "{}") || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveNewsCache(cache) {
+  try {
+    localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    // sem espaço ou bloqueado: segue sem cache
+  }
+}
+
+function getCached(key) {
+  const cache = loadNewsCache();
+  const item = cache[key];
+  if (!item) return null;
+  if (Date.now() - item.at > NEWS_CACHE_HOURS * 3600000) return null;
+  return item.data;
+}
+
+function setCached(key, data) {
+  const cache = loadNewsCache();
+  cache[key] = { at: Date.now(), data };
+  // mantém o cache pequeno
+  const keys = Object.keys(cache);
+  if (keys.length > 60) {
+    keys
+      .sort((a, b) => cache[a].at - cache[b].at)
+      .slice(0, keys.length - 60)
+      .forEach(k => delete cache[k]);
+  }
+  saveNewsCache(cache);
+}
+
+function getNewsQuery(subject) {
+  return (subject.newsQuery || subject.name || "").trim();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fetchJsonWithTimeout(url, ms = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const text = await response.text();
+    // o GDELT responde texto simples quando a busca é inválida
+    return JSON.parse(text);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// GDELT: datas vêm como 20261110T153000Z
+function parseGdeltDate(value) {
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(value || "");
+  if (!m) return null;
+  return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+}
+
+let lastGdeltCall = 0;
+
+async function fetchNews(query) {
+  const cacheKey = "news:" + query.toLowerCase();
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
+  // O GDELT pede no máximo 1 busca a cada 5 segundos
+  const wait = 5200 - (Date.now() - lastGdeltCall);
+  if (wait > 0) await sleep(wait);
+  lastGdeltCall = Date.now();
+
+  const phrase = query.includes(" ") ? `"${query}"` : query;
+  const url =
+    "https://api.gdeltproject.org/api/v2/doc/doc?" +
+    new URLSearchParams({
+      query: `${phrase} sourcelang:portuguese`,
+      mode: "artlist",
+      format: "json",
+      maxrecords: "8",
+      timespan: "3m",
+      sort: "hybridrel"
+    }).toString();
+
+  const data = await fetchJsonWithTimeout(url);
+  const seen = new Set();
+  const articles = (data.articles || [])
+    .filter(a => {
+      const key = (a.title || "").toLowerCase().trim();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 5)
+    .map(a => ({
+      title: a.title,
+      url: a.url,
+      domain: a.domain,
+      date: parseGdeltDate(a.seendate)?.toISOString() || null
+    }));
+
+  setCached(cacheKey, articles);
+  return articles;
+}
+
+async function fetchCuriosity(query) {
+  const cacheKey = "wiki:" + query.toLowerCase();
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
+  const url =
+    "https://pt.wikipedia.org/w/api.php?" +
+    new URLSearchParams({
+      action: "query",
+      format: "json",
+      origin: "*",
+      generator: "search",
+      gsrsearch: query,
+      gsrlimit: "1",
+      prop: "extracts|info",
+      exintro: "1",
+      explaintext: "1",
+      exsentences: "3",
+      inprop: "url",
+      redirects: "1"
+    }).toString();
+
+  const data = await fetchJsonWithTimeout(url);
+  const pages = data && data.query && data.query.pages
+    ? Object.values(data.query.pages)
+    : [];
+  const page = pages[0];
+
+  const result = page && page.extract
+    ? { title: page.title, extract: page.extract, url: page.fullurl }
+    : null;
+
+  setCached(cacheKey, result);
+  return result;
+}
+
+function googleNewsUrl(query) {
+  return (
+    "https://news.google.com/search?" +
+    new URLSearchParams({ q: query, hl: "pt-BR", gl: "BR", ceid: "BR:pt-419" }).toString()
+  );
+}
+
+function formatNewsDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+}
+
+function safeLink(url) {
+  return /^https?:\/\//i.test(url || "") ? url : "#";
+}
+
+function buildNewsCard(subject) {
+  const query = getNewsQuery(subject);
+
+  const card = document.createElement("article");
+  card.className = "card news-card";
+
+  card.innerHTML = `
+    <div class="news-card-header">
+      <div>
+        <span class="news-kicker">MATÉRIA</span>
+        <h3>${escapeHtml(subject.name)}</h3>
+      </div>
+      <form class="news-query-form" title="Mude o termo se as notícias não tiverem a ver com a matéria">
+        <label>
+          <span>Buscar por</span>
+          <input type="text" value="${escapeHtml(query)}" maxlength="80" />
+        </label>
+        <button type="submit">Atualizar</button>
+      </form>
+    </div>
+
+    <section class="news-curiosity">
+      <h4>💡 Curiosidade</h4>
+      <div class="news-curiosity-body"><p class="news-loading">Buscando na Wikipédia…</p></div>
+    </section>
+
+    <section class="news-list-section">
+      <h4>📰 Notícias recentes</h4>
+      <ul class="news-list"><li class="news-loading">Buscando notícias…</li></ul>
+      <a class="news-more-link" href="${googleNewsUrl(query)}" target="_blank" rel="noopener">Ver mais no Google Notícias ↗</a>
+    </section>
+  `;
+
+  const form = card.querySelector(".news-query-form");
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const value = form.querySelector("input").value.trim();
+    subject.newsQuery = value && value !== subject.name ? value : "";
+    saveState();
+    renderNewsPage();
+  });
+
+  return card;
+}
+
+async function fillCuriosity(card, query, token) {
+  const body = card.querySelector(".news-curiosity-body");
+  try {
+    const info = await fetchCuriosity(query);
+    if (token !== newsRenderToken) return;
+    if (!info) {
+      body.innerHTML = `<p class="news-empty">Não achei um artigo sobre “${escapeHtml(query)}”. Tente outro termo de busca.</p>`;
+      return;
+    }
+    body.innerHTML = `
+      <p>${escapeHtml(info.extract)}</p>
+      <a href="${safeLink(info.url)}" target="_blank" rel="noopener">Ler mais: ${escapeHtml(info.title)} (Wikipédia) ↗</a>
+    `;
+  } catch (e) {
+    if (token !== newsRenderToken) return;
+    body.innerHTML = `<p class="news-empty">Não foi possível carregar a curiosidade agora. Confira sua internet e clique em Atualizar.</p>`;
+  }
+}
+
+async function fillNews(card, query, token) {
+  const list = card.querySelector(".news-list");
+  try {
+    const articles = await fetchNews(query);
+    if (token !== newsRenderToken) return;
+    if (!articles.length) {
+      list.innerHTML = `<li class="news-empty">Nenhuma notícia em português nos últimos 3 meses. Use o link abaixo ou tente um termo mais amplo.</li>`;
+      return;
+    }
+    list.innerHTML = articles
+      .map(a => `
+        <li>
+          <a href="${safeLink(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.title)}</a>
+          <span class="news-meta">${escapeHtml(a.domain || "")}${a.date ? " · " + formatNewsDate(a.date) : ""}</span>
+        </li>`)
+      .join("");
+  } catch (e) {
+    if (token !== newsRenderToken) return;
+    list.innerHTML = `<li class="news-empty">O serviço de notícias não respondeu agora. Tente de novo em alguns minutos ou use o link abaixo.</li>`;
+  }
+}
+
+async function renderNewsPage(force = false) {
+  if (!newsContainer) return;
+
+  const token = ++newsRenderToken;
+
+  if (newsSemesterLabel) {
+    newsSemesterLabel.textContent = `${currentSemester}º semestre`;
+  }
+
+  if (force) {
+    saveNewsCache({});
+  }
+
+  const subjects = getSubjectsForCurrentSemester();
+  newsContainer.innerHTML = "";
+
+  if (!subjects.length) {
+    newsContainer.innerHTML =
+      `<div class="card"><p>Nenhuma matéria cadastrada no ${currentSemester}º semestre. Cadastre suas matérias em <a href="#" class="go-materias-link">Matérias</a> para ver notícias e curiosidades sobre elas.</p></div>`;
+    const link = newsContainer.querySelector(".go-materias-link");
+    if (link) {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        goToView("materias");
+      });
+    }
+    return;
+  }
+
+  const cards = subjects.map(subject => {
+    const card = buildNewsCard(subject);
+    newsContainer.appendChild(card);
+    return { card, query: getNewsQuery(subject) };
+  });
+
+  // curiosidades em paralelo (Wikipédia aguenta bem)
+  cards.forEach(({ card, query }) => fillCuriosity(card, query, token));
+
+  // notícias uma por vez (limite do GDELT)
+  for (const { card, query } of cards) {
+    if (token !== newsRenderToken) return;
+    await fillNews(card, query, token);
+  }
+}
+
+if (refreshNewsBtn) {
+  refreshNewsBtn.addEventListener("click", () => renderNewsPage(true));
+}
+
+let newsLoadedForSemester = null;
+
+function renderNewsIfVisible() {
+  const view = views.noticias;
+  if (!view || !view.classList.contains("active")) return;
+  if (newsLoadedForSemester === currentSemester) return;
+  newsLoadedForSemester = currentSemester;
+  renderNewsPage();
+}
+
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    if (button.dataset.view === "noticias") {
+      newsLoadedForSemester = null;
+      renderNewsIfVisible();
+    }
+  });
+});
+
+
+
+// =====================================================
+// CONTROLE DE FALTAS (opcional, ligado na Configuração)
+// =====================================================
+
+const attendanceEnabledInput = document.getElementById("attendanceEnabledInput");
+const attendanceMinInput = document.getElementById("attendanceMinInput");
+const attendanceMinRow = document.getElementById("attendanceMinRow");
+const saveAttendanceBtn = document.getElementById("saveAttendanceBtn");
+const attendanceStatus = document.getElementById("attendanceStatus");
+
+function getAttendanceConfig() {
+  const cfg = state.attendance || {};
+  const min = Number(cfg.minPercent);
+  return {
+    enabled: cfg.enabled === true,
+    minPercent: min > 0 && min <= 100 ? min : 75
+  };
+}
+
+function isAttendanceEnabled() {
+  return getAttendanceConfig().enabled;
+}
+
+// Situação das faltas de uma matéria
+function getAttendanceInfo(subject) {
+  const { minPercent } = getAttendanceConfig();
+  const total = Number(subject.totalClasses) || 0;
+  const absences = Math.max(0, Number(subject.absences) || 0);
+
+  if (!total) {
+    return { total, absences, allowed: null, remaining: null, kind: "empty" };
+  }
+
+  const allowed = Math.floor(total * (1 - minPercent / 100) + 1e-9);
+  const remaining = allowed - absences;
+  const presence = Math.max(0, Math.round(((total - absences) / total) * 100));
+
+  let kind = "ok";
+  if (remaining < 0) kind = "bad";
+  else if (remaining <= 2) kind = "warn";
+
+  return { total, absences, allowed, remaining, presence, kind };
+}
+
+function attendanceMessage(info) {
+  if (info.kind === "empty") {
+    return "Informe quantas aulas a matéria tem no semestre para calcular o limite de faltas.";
+  }
+  if (info.remaining < 0) {
+    return `Você passou do limite de ${info.allowed} faltas (${-info.remaining} a mais). Fale com a coordenação ou o(a) professor(a).`;
+  }
+  if (info.remaining === 0) {
+    return `Atenção: você chegou ao limite de ${info.allowed} faltas. Mais uma e reprova por falta.`;
+  }
+  return `Você ainda pode faltar ${info.remaining} ${info.remaining === 1 ? "aula" : "aulas"} (limite de ${info.allowed}).`;
+}
+
+function buildAttendanceBox(subject) {
+  const box = document.createElement("div");
+  box.className = "attendance-box";
+
+  box.innerHTML = `
+    <div class="attendance-head">
+      <strong>📋 Faltas</strong>
+      <label class="attendance-total">
+        <span>Aulas no semestre</span>
+        <input type="number" min="0" max="500" step="1" placeholder="ex.: 40" />
+      </label>
+    </div>
+    <div class="attendance-row">
+      <div class="attendance-counter">
+        <button type="button" class="attendance-minus" aria-label="Tirar uma falta">−</button>
+        <span class="attendance-count"></span>
+        <button type="button" class="attendance-plus" aria-label="Adicionar uma falta">+1 falta</button>
+      </div>
+      <span class="attendance-presence"></span>
+    </div>
+    <p class="attendance-msg"></p>
+  `;
+
+  const totalInput = box.querySelector(".attendance-total input");
+  const countEl = box.querySelector(".attendance-count");
+  const presenceEl = box.querySelector(".attendance-presence");
+  const msgEl = box.querySelector(".attendance-msg");
+
+  totalInput.value = subject.totalClasses || "";
+
+  const refresh = () => {
+    const info = getAttendanceInfo(subject);
+    countEl.textContent = `${info.absences} ${info.absences === 1 ? "falta" : "faltas"}`;
+    presenceEl.textContent = info.kind === "empty" ? "" : `Presença: ${info.presence}%`;
+    msgEl.textContent = attendanceMessage(info);
+    box.dataset.kind = info.kind;
+  };
+
+  totalInput.addEventListener("input", () => {
+    const value = Math.max(0, Math.floor(Number(totalInput.value) || 0));
+    subject.totalClasses = value || null;
+    saveState();
+    refresh();
+  });
+
+  box.querySelector(".attendance-plus").addEventListener("click", () => {
+    subject.absences = (Number(subject.absences) || 0) + 1;
+    saveState();
+    refresh();
+  });
+
+  box.querySelector(".attendance-minus").addEventListener("click", () => {
+    subject.absences = Math.max(0, (Number(subject.absences) || 0) - 1);
+    saveState();
+    refresh();
+  });
+
+  refresh();
+  return box;
+}
+
+function appendAttendanceNotices() {
+  if (!appNotices || !isAttendanceEnabled()) return;
+
+  getSubjectsForCurrentSemester().forEach(subject => {
+    const info = getAttendanceInfo(subject);
+    if (info.kind !== "warn" && info.kind !== "bad") return;
+
+    appNotices.appendChild(
+      makeNotice(
+        info.kind === "bad" || info.remaining === 0 ? "danger" : "warn",
+        "📋",
+        `<strong>Faltas em ${escapeHtml(subject.name)}:</strong> ${escapeHtml(attendanceMessage(info))}`,
+        [{ label: "Ver matéria", primary: true, onClick: () => goToView("materias") }]
+      )
+    );
+  });
+}
+
+function renderAttendanceConfigFields() {
+  const cfg = getAttendanceConfig();
+  if (attendanceEnabledInput) attendanceEnabledInput.checked = cfg.enabled;
+  if (attendanceMinInput) attendanceMinInput.value = cfg.minPercent;
+  if (attendanceMinRow) attendanceMinRow.classList.toggle("is-disabled", !cfg.enabled);
+}
+
+if (attendanceEnabledInput && attendanceMinRow) {
+  attendanceEnabledInput.addEventListener("change", () => {
+    attendanceMinRow.classList.toggle("is-disabled", !attendanceEnabledInput.checked);
+  });
+}
+
+if (saveAttendanceBtn) {
+  saveAttendanceBtn.addEventListener("click", () => {
+    const enabled = !!(attendanceEnabledInput && attendanceEnabledInput.checked);
+    const min = Number(String(attendanceMinInput ? attendanceMinInput.value : "").replace(",", "."));
+
+    if (enabled && !(min > 0 && min <= 100)) {
+      if (attendanceStatus) attendanceStatus.textContent = "Informe uma frequência mínima entre 1% e 100%.";
+      return;
+    }
+
+    state.attendance = {
+      enabled,
+      minPercent: min > 0 && min <= 100 ? min : 75
+    };
+    saveState();
+    renderAll();
+
+    if (attendanceStatus) {
+      attendanceStatus.textContent = enabled
+        ? "Controle de faltas ligado. Informe o total de aulas de cada matéria na aba Matérias."
+        : "Controle de faltas desligado.";
+    }
+  });
+}
+
+
+// =====================================================
+// "HOJE VOCÊ TEM…" NA CAPA
+// =====================================================
+
+const todayPanel = document.getElementById("todayPanel");
+
+const WEEKDAY_KEYS = [null, "monday", "tuesday", "wednesday", "thursday", "friday", null];
+
+function getNextDeadlines(limit = 3) {
+  const items = [];
+
+  getSubjectsForCurrentSemester().forEach(subject => {
+    (subject.works || []).forEach((work, i) => {
+      if (work.done || work.delivered || !work.dueDate) return;
+      items.push({ iso: work.dueDate, label: `Entrega do Trabalho ${i + 1}`, subject: subject.name });
+    });
+    (subject.exams || []).forEach((exam, i) => {
+      if (exam.done || !exam.date) return;
+      items.push({ iso: exam.date, label: `Prova ${i + 1}`, subject: subject.name });
+    });
+  });
+
+  getImportantDatesForCurrentSemester().forEach(item => {
+    if (item && item.date) items.push({ iso: item.date, label: item.label || "Data importante", subject: "" });
+  });
+
+  return items
+    .map(item => ({ ...item, days: daysUntil(item.iso) }))
+    .filter(item => item.days !== null && item.days >= 0)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, limit);
+}
+
+function relativeDayText(days) {
+  if (days === 0) return "Hoje";
+  if (days === 1) return "Amanhã";
+  return `Em ${days} dias`;
+}
+
+function renderTodayPanel() {
+  if (!todayPanel) return;
+
+  const key = WEEKDAY_KEYS[new Date().getDay()];
+  const slots = key ? [...(getTimetableForCurrentSemester()[key] || [])] : [];
+  slots.sort((a, b) => String(a.time).localeCompare(String(b.time)));
+
+  const classesHtml = slots.length
+    ? `<ul class="today-list">${slots
+        .map(s => `<li><span class="today-time">${escapeHtml(s.time)}</span>${escapeHtml(s.subject)}</li>`)
+        .join("")}</ul>`
+    : `<p class="today-empty">${key ? "Nenhuma aula cadastrada para hoje." : "Fim de semana, sem aulas. 😌"}</p>`;
+
+  const deadlines = getNextDeadlines();
+  const deadlinesHtml = deadlines.length
+    ? `<ul class="today-list">${deadlines
+        .map(d => `<li><span class="today-when today-when-${d.days <= 2 ? "soon" : "later"}">${relativeDayText(d.days)}</span>${escapeHtml(d.label)}${d.subject ? ` · <em>${escapeHtml(d.subject)}</em>` : ""}</li>`)
+        .join("")}</ul>`
+    : `<p class="today-empty">Nenhum prazo pela frente. Aproveite!</p>`;
+
+  todayPanel.innerHTML = `
+    <div class="today-col">
+      <h3>🕒 Aulas de hoje</h3>
+      ${classesHtml}
+    </div>
+    <div class="today-col">
+      <h3>⏳ Em breve</h3>
+      ${deadlinesHtml}
+    </div>
+  `;
+}
+
+
+// =====================================================
+// APARÊNCIA: COR PRINCIPAL E FUNDO (vale nos modos dia e noite)
+// =====================================================
+
+const DEFAULT_ACCENT = "#6d63e8";
+
+const ACCENT_PRESETS = [
+  { name: "Roxo-azulado", value: "#6d63e8" },
+  { name: "Azul", value: "#2563eb" },
+  { name: "Lilás", value: "#9333ea" },
+  { name: "Rosa", value: "#db2777" },
+  { name: "Vermelho", value: "#dc2626" },
+  { name: "Laranja", value: "#c2410c" },
+  { name: "Verde", value: "#15803d" },
+  { name: "Turquesa", value: "#0f766e" }
+];
+
+const BACKGROUND_STYLES = [
+  { id: "padrao", name: "Padrão", hint: "Azul-marinho à noite, cinza-claro de dia" },
+  { id: "cor", name: "Combinando com a cor", hint: "O fundo ganha um toque da cor escolhida" },
+  { id: "neutro", name: "Neutro", hint: "Cinzas sem cor, mais sóbrio" },
+  { id: "preto", name: "Preto total", hint: "Só no modo noite. Bom para telas OLED" }
+];
+
+const accentSwatches = document.getElementById("accentSwatches");
+const accentCustomInput = document.getElementById("accentCustomInput");
+const backgroundOptions = document.getElementById("backgroundOptions");
+const resetAppearanceBtn = document.getElementById("resetAppearanceBtn");
+const appearanceStatus = document.getElementById("appearanceStatus");
+
+function normalizeHex(value) {
+  const v = String(value || "").trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(v)) return v;
+  if (/^#[0-9a-f]{3}$/.test(v)) {
+    return "#" + v.slice(1).split("").map(c => c + c).join("");
+  }
+  return null;
+}
+
+function relativeLuminance(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(c => {
+    const x = c / 255;
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+
+function contrastWithWhite(hex) {
+  return 1.05 / (relativeLuminance(hex) + 0.05);
+}
+
+function getAppearance() {
+  const a = state.appearance || {};
+  const accent = normalizeHex(a.accent) || DEFAULT_ACCENT;
+  const background = BACKGROUND_STYLES.some(b => b.id === a.background)
+    ? a.background
+    : "padrao";
+  return { accent, background };
+}
+
+function applyAppearance() {
+  const { accent, background } = getAppearance();
+  const root = document.documentElement;
+
+  root.style.setProperty("--accent", accent);
+  // texto em cima da cor: branco, ou escuro se a cor for muito clara
+  root.style.setProperty(
+    "--on-accent",
+    contrastWithWhite(accent) >= 3 ? "#ffffff" : "#111827"
+  );
+
+  document.body.dataset.bg = background;
+
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", accent);
+}
+
+function setAppearance(changes, message) {
+  state.appearance = { ...getAppearance(), ...changes };
+  saveState();
+  applyAppearance();
+  renderAppearanceControls();
+  if (appearanceStatus && message) appearanceStatus.textContent = message;
+}
+
+function renderAppearanceControls() {
+  const { accent, background } = getAppearance();
+
+  if (accentSwatches) {
+    accentSwatches.innerHTML = "";
+
+    ACCENT_PRESETS.forEach(preset => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "accent-swatch";
+      btn.style.setProperty("--swatch", preset.value);
+      btn.setAttribute("aria-label", preset.name);
+      btn.setAttribute("aria-pressed", String(preset.value === accent));
+      btn.title = preset.name;
+      btn.innerHTML = `<span class="accent-swatch-dot"></span><span class="accent-swatch-name">${preset.name}</span>`;
+      btn.addEventListener("click", () =>
+        setAppearance({ accent: preset.value }, `Cor alterada para ${preset.name}.`)
+      );
+      accentSwatches.appendChild(btn);
+    });
+  }
+
+  if (accentCustomInput) {
+    accentCustomInput.value = accent;
+    const isPreset = ACCENT_PRESETS.some(p => p.value === accent);
+    const wrap = accentCustomInput.closest(".accent-custom");
+    if (wrap) wrap.classList.toggle("is-active", !isPreset);
+  }
+
+  if (backgroundOptions) {
+    backgroundOptions.innerHTML = "";
+
+    BACKGROUND_STYLES.forEach(style => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "bg-option";
+      btn.dataset.preview = style.id;
+      btn.setAttribute("aria-pressed", String(style.id === background));
+      btn.innerHTML = `
+        <span class="bg-option-preview" aria-hidden="true">
+          <span class="bg-option-side"></span>
+          <span class="bg-option-main"><span class="bg-option-card"></span><span class="bg-option-card"></span></span>
+        </span>
+        <span class="bg-option-text"><strong>${style.name}</strong><small>${style.hint}</small></span>
+      `;
+      btn.addEventListener("click", () =>
+        setAppearance({ background: style.id }, `Fundo alterado para “${style.name}”.`)
+      );
+      backgroundOptions.appendChild(btn);
+    });
+  }
+}
+
+if (accentCustomInput) {
+  // aplica enquanto arrasta, salva ao soltar
+  accentCustomInput.addEventListener("input", () => {
+    const hex = normalizeHex(accentCustomInput.value);
+    if (!hex) return;
+    document.documentElement.style.setProperty("--accent", hex);
+    document.documentElement.style.setProperty(
+      "--on-accent",
+      contrastWithWhite(hex) >= 3 ? "#ffffff" : "#111827"
+    );
+  });
+
+  accentCustomInput.addEventListener("change", () => {
+    const hex = normalizeHex(accentCustomInput.value);
+    if (!hex) return;
+    const light = relativeLuminance(hex) > 0.55;
+    setAppearance(
+      { accent: hex },
+      light
+        ? "Cor personalizada salva. Ela é bem clara: no modo dia alguns textos podem ficar difíceis de ler."
+        : "Cor personalizada salva."
+    );
+  });
+}
+
+if (resetAppearanceBtn) {
+  resetAppearanceBtn.addEventListener("click", () =>
+    setAppearance(
+      { accent: DEFAULT_ACCENT, background: "padrao" },
+      "Aparência voltou ao padrão (roxo-azulado)."
+    )
+  );
+}
+
+// Avisos sempre atualizados ao voltar para a Capa
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    if (button.dataset.view === "capa") {
+      renderTodayPanel();
+      renderNotices();
+    }
+  });
+});
 
 // =====================================================
 // INICIALIZAÇÃO
