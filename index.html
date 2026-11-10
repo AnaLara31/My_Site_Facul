@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#6d63e8">
+  <meta name="description" content="Organize matérias, trabalhos, provas, notas e prazos da faculdade em um só lugar.">
   <title>Organizador da Faculdade</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="icon_transparent.png">
@@ -22,6 +25,7 @@
       <button class="nav-btn" data-view="trabalhos"><span>✓</span> Trabalhos</button>
       <button class="nav-btn" data-view="provas"><span>◫</span> Provas</button>
       <button class="nav-btn" data-view="notas"><span>★</span> Notas</button>
+      <button class="nav-btn" data-view="noticias"><span>◉</span> Notícias</button>
       <button class="nav-btn" data-view="ajuda"><span>?</span> Ajuda</button>
       <button class="nav-btn" data-view="config"><span>⚙</span> Configuração</button>
     </div>
@@ -45,7 +49,7 @@
         <option value="4">4º semestre</option>
         <option value="5" selected>5º semestre</option>
       </select>
-      <button id="themeToggleBtn" class="theme-toggle-btn" type="button">Modo escuro</button>
+      <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Alternar tema">☀️ Modo claro</button>
     </div>
   </header>
 
@@ -53,6 +57,7 @@
 
     <!-- CAPA -->
     <section id="view-capa" class="view active">
+      <div id="appNotices" class="app-notices"></div>
       <section class="welcome-hero">
         <div>
           <span class="welcome-kicker">VISÃO GERAL</span>
@@ -68,6 +73,8 @@
       </section>
 
       <!-- SUMÁRIO -->
+      <section id="todayPanel" class="today-panel card" aria-label="Hoje"></section>
+
       <section class="summary-grid">
         <div class="summary-card">
           <h2>Matérias do semestre</h2>
@@ -171,7 +178,8 @@
     <section id="view-notas" class="view">
       <h2 class="view-title">Notas por matéria</h2>
       <p class="view-subtitle">
-        Fórmula: (Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, tudo dividido por 5.
+        Fórmula: <span class="formula-text">(Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, tudo dividido por 5.</span>
+        <a href="#" class="go-config-link">Alterar fórmula</a>
       </p>
 
       <div class="card" style="margin-bottom: 10px; padding: 10px;">
@@ -296,6 +304,21 @@
 
 
     <!-- AJUDA / MANUAL -->
+    <!-- NOTÍCIAS -->
+    <section id="view-noticias" class="view">
+      <div class="news-page-header">
+        <div>
+          <h2 class="view-title">Notícias e curiosidades</h2>
+          <p class="view-subtitle">
+            Novidades e curiosidades sobre as matérias do <strong id="newsSemesterLabel">semestre</strong>. Troque o semestre no topo para ver outras matérias.
+          </p>
+        </div>
+        <button id="refreshNewsBtn" type="button" class="primary-action-btn">↻ Atualizar tudo</button>
+      </div>
+      <div id="newsContainer" class="news-grid"></div>
+      <p class="news-sources">Notícias: GDELT (sites de notícias em português, últimos 3 meses). Curiosidades: Wikipédia. Se as notícias não tiverem a ver com a matéria, mude o termo em “Buscar por”.</p>
+    </section>
+
     <section id="view-ajuda" class="view">
       <div class="help-hero">
         <span class="help-eyebrow">CENTRAL DE AJUDA</span>
@@ -394,10 +417,59 @@
         </details>
 
         <details>
+          <summary>📰 Notícias — novidades e curiosidades das matérias</summary>
+          <div>
+            <p>A aba <strong>Notícias</strong> mostra, para cada matéria do semestre selecionado no topo, uma <strong>curiosidade</strong> (da Wikipédia) e até 5 <strong>notícias recentes</strong> em português.</p>
+            <ol>
+              <li>Troque o semestre no topo para ver as matérias de outro semestre.</li>
+              <li>Se as notícias não tiverem a ver com a matéria, mude o texto em <strong>Buscar por</strong> (ex.: “Level Design” → “design de fases games”) e clique em <strong>Atualizar</strong>. O termo fica salvo.</li>
+              <li>O link <strong>Ver mais no Google Notícias</strong> abre uma busca completa.</li>
+            </ol>
+            <p>As notícias ficam guardadas por 6 horas para carregar mais rápido. Use <strong>↻ Atualizar tudo</strong> para buscar de novo. Esta aba precisa de internet.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>🎨 Aparência — cor e fundo do site</summary>
+          <div>
+            <p>Em <strong>Configuração → Aparência</strong> você escolhe:</p>
+            <ol>
+              <li><strong>Cor principal</strong>: 8 cores prontas (roxo-azulado é o padrão) ou <strong>Outra cor…</strong> para escolher qualquer uma. A cor muda botões, menu, destaques, calendário e a Capa.</li>
+              <li><strong>Fundo</strong>: Padrão, Combinando com a cor, Neutro (cinzas) ou Preto total (só no modo noite).</li>
+            </ol>
+            <p>As escolhas valem nos dois modos: o botão ☀️/🌙 continua alternando entre dia e noite. A mudança é salva na hora. Use <strong>Voltar ao padrão</strong> para desfazer.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>📋 Faltas — controle de presença (opcional)</summary>
+          <div>
+            <p>Nem toda faculdade controla presença, por isso esta função vem <strong>desligada</strong>.</p>
+            <ol>
+              <li>Abra <strong>Configuração → Controle de faltas</strong>, marque “Minha faculdade controla presença” e informe a frequência mínima (normalmente 75%). Clique em <strong>Salvar</strong>.</li>
+              <li>Em <strong>Matérias</strong>, cada disciplina ganha o campo <strong>Aulas no semestre</strong>. Informe o total de aulas.</li>
+              <li>Clique em <strong>+1 falta</strong> sempre que faltar (o botão <strong>−</strong> corrige um clique errado).</li>
+            </ol>
+            <p>O site mostra quantas faltas ainda restam e avisa na Capa quando faltarem 2 ou menos.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>🔔 Avisos da Capa — provas e backup</summary>
+          <div>
+            <p>Quando faltar <strong>7 dias ou menos</strong> para uma prova não realizada, a Capa mostra um aviso com o conteúdo cadastrado em Provas e as <strong>aulas que ainda faltam estudar</strong> naquela matéria. Com 2 dias ou menos o aviso fica vermelho.</p>
+            <p>O aviso some quando você marca a prova como <strong>Realizada</strong>. Para a lista do que falta funcionar, cadastre as aulas em Matérias e marque as que já estudou.</p>
+            <p>A Capa também lembra de fazer backup quando o último tiver mais de 14 dias.</p>
+          </div>
+        </details>
+
+        <details>
           <summary>⭐ Notas — preencher e acompanhar a média</summary>
           <div>
             <p>Em cada matéria, preencha <strong>Trabalho 1, Prova 1, Trabalho 2 e Prova 2</strong>. O cálculo é feito automaticamente.</p>
-            <p><strong>Fórmula atual:</strong> (Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, dividido por 5.</p>
+            <p><strong>Fórmula atual:</strong> <span class="formula-text">(Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, dividido por 5.</span></p>
+            <p>Para mudar os pesos ou a média para passar, abra <strong>Configuração → Fórmula das notas</strong>. Cada parte (trabalho + prova) vale até 10.</p>
+            <p>Depois de lançar Trabalho 1 e Prova 1, o site mostra <strong>quanto você precisa tirar na Parte 2</strong> para chegar à média.</p>
             <p>O filtro permite visualizar tudo, apenas a Parte 1 ou apenas a Parte 2. A média também aparece no resumo acadêmico do semestre.</p>
           </div>
         </details>
@@ -481,6 +553,33 @@
           <p id="profileStatus" class="backup-status"></p>
         </div>
 
+        <div class="card appearance-card">
+          <div class="settings-card-header">
+            <div class="settings-icon">🎨</div>
+            <div>
+              <h3>Aparência</h3>
+              <p>Escolha a cor do site e o estilo do fundo. Vale para o modo dia e para o modo noite.</p>
+            </div>
+          </div>
+
+          <p class="appearance-label">Cor principal</p>
+          <div class="accent-picker">
+            <div id="accentSwatches" class="accent-swatches"></div>
+            <label class="accent-custom" title="Escolher qualquer cor">
+              <input type="color" id="accentCustomInput" value="#6d63e8" aria-label="Cor personalizada" />
+              <span>Outra cor…</span>
+            </label>
+          </div>
+
+          <p class="appearance-label">Fundo</p>
+          <div id="backgroundOptions" class="bg-options"></div>
+
+          <div class="appearance-footer">
+            <button id="resetAppearanceBtn" type="button" class="ghost-btn">Voltar ao padrão</button>
+            <p id="appearanceStatus" class="backup-status"></p>
+          </div>
+        </div>
+
         <div class="card">
           <h3>Informações do curso</h3>
           <div class="inline-form" style="flex-wrap: wrap; gap: 8px;">
@@ -489,6 +588,53 @@
             <button id="saveConfigBtn" type="button">Salvar configuração</button>
           </div>
           <p id="configStatus" class="backup-status"></p>
+        </div>
+
+        <div class="card attendance-config-card">
+          <div class="settings-card-header">
+            <div class="settings-icon">📋</div>
+            <div>
+              <h3>Controle de faltas</h3>
+              <p>Ligue só se a sua faculdade exige frequência mínima. Desligado, nada sobre faltas aparece no site.</p>
+            </div>
+          </div>
+          <label class="switch-row">
+            <input type="checkbox" id="attendanceEnabledInput" />
+            <span>Minha faculdade controla presença (faltas)</span>
+          </label>
+          <label id="attendanceMinRow" class="attendance-min-row">
+            <span>Frequência mínima para passar (%)</span>
+            <input type="number" id="attendanceMinInput" min="1" max="100" step="1" />
+          </label>
+          <button id="saveAttendanceBtn" class="primary-action-btn" type="button">Salvar</button>
+          <p id="attendanceStatus" class="backup-status"></p>
+        </div>
+
+        <div class="card grade-config-card">
+          <div class="settings-card-header">
+            <div class="settings-icon">★</div>
+            <div>
+              <h3>Fórmula das notas</h3>
+              <p>Ajuste os pesos conforme as regras da sua faculdade. Cada parte é Trabalho + Prova e vale até 10.</p>
+            </div>
+          </div>
+          <div class="grade-config-grid">
+            <label>
+              <span>Peso da Parte 1 (T1 + P1)</span>
+              <input type="number" id="gradeWeight1Input" min="0" max="100" step="0.5" />
+            </label>
+            <label>
+              <span>Peso da Parte 2 (T2 + P2)</span>
+              <input type="number" id="gradeWeight2Input" min="0.5" max="100" step="0.5" />
+            </label>
+            <label>
+              <span>Média para passar</span>
+              <input type="number" id="gradePassingInput" min="0" max="10" step="0.5" />
+            </label>
+          </div>
+          <p class="formula-preview">Como fica: <span id="formulaPreview"></span></p>
+          <button id="saveGradeConfigBtn" class="primary-action-btn" type="button">Salvar fórmula</button>
+          <p id="gradeConfigStatus" class="backup-status"></p>
         </div>
 
 <!-- RESUMO DOS SEMESTRES -->
@@ -615,6 +761,7 @@
             Gera um arquivo <strong>.json</strong> com todas as matérias, notas, trabalhos, provas, aulas estudadas, datas importantes e horários.
           </p>
           <button id="downloadBackupBtn" type="button">Baixar arquivo de backup</button>
+          <p id="lastBackupInfo" class="backup-status"></p>
         </div>
     
         <div class="card">
