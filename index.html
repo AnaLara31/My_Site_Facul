@@ -8,6 +8,12 @@
   <title>Organizador da Faculdade</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="icon_transparent.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Organizador">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <nav class="top-nav" aria-label="Navegação principal">
@@ -430,6 +436,16 @@
         </details>
 
         <details>
+          <summary>📱 App no celular — instalar e usar sem internet</summary>
+          <div>
+            <p><strong>Android (Chrome):</strong> abra o site, vá em <strong>Configuração → App no celular</strong> e toque em <strong>Instalar app</strong>. Se o botão não aparecer, use o menu ⋮ do Chrome → <strong>Instalar app</strong> (ou “Adicionar à tela inicial”).</p>
+            <p><strong>iPhone (Safari):</strong> toque em <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong> → <strong>Adicionar</strong>.</p>
+            <p>Depois de instalado, o app abre em tela cheia e funciona <strong>sem internet</strong> (só a aba Notícias precisa de conexão). Quando o site for atualizado, o app pega a versão nova na próxima vez que abrir com internet.</p>
+            <p>Os dados do app ficam no celular, separados do computador. Para copiar, faça um backup no computador e restaure no app.</p>
+          </div>
+        </details>
+
+        <details>
           <summary>🎨 Aparência — cor e fundo do site</summary>
           <div>
             <p>Em <strong>Configuração → Aparência</strong> você escolhe:</p>
@@ -551,6 +567,24 @@
           </div>
           <button id="saveProfileBtn" class="primary-action-btn" type="button">Salvar perfil</button>
           <p id="profileStatus" class="backup-status"></p>
+        </div>
+
+        <div class="card install-card">
+          <div class="settings-card-header">
+            <div class="settings-icon">📱</div>
+            <div>
+              <h3>App no celular</h3>
+              <p>Instale o Organizador como um app: ícone na tela inicial, tela cheia e funciona sem internet.</p>
+            </div>
+          </div>
+          <button id="installAppBtn" class="primary-action-btn" type="button" hidden>Instalar app</button>
+          <ol id="installIosSteps" class="install-steps" hidden>
+            <li>No <strong>Safari</strong>, toque no botão <strong>Compartilhar</strong> (o quadrado com a seta para cima).</li>
+            <li>Role a lista e toque em <strong>Adicionar à Tela de Início</strong>.</li>
+            <li>Toque em <strong>Adicionar</strong>. O ícone “Organizador” aparece na tela inicial.</li>
+          </ol>
+          <p id="installAppStatus" class="backup-status"></p>
+          <p class="install-note">Os dados do app ficam no celular. Para levar os dados do computador, use o backup (baixar no PC e restaurar no app).</p>
         </div>
 
         <div class="card appearance-card">

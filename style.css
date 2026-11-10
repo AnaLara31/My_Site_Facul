@@ -3400,3 +3400,28 @@ body.light .bg-option[data-preview="preto"] .bg-option-card { background: #fffff
 }
 
 .appearance-footer .backup-status { margin: 0; }
+
+/* ==================================================
+   APP NO CELULAR
+================================================== */
+
+.install-steps {
+  margin: 10px 0 4px 18px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.install-note {
+  margin-top: 8px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+[hidden] { display: none !important; }
+
+/* No app instalado: respeita o recorte da tela (notch) */
+@media (display-mode: standalone) {
+  body { padding-top: env(safe-area-inset-top); }
+  .top-nav { padding-bottom: env(safe-area-inset-bottom); }
+}

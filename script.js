@@ -8423,6 +8423,8 @@ function renderAll() {
 
   renderAppearanceControls();
 
+  renderInstallCard();
+
   renderTodayPanel();
 
   renderNotices();
@@ -8700,6 +8702,9 @@ function renderNotices() {
 
   // Matérias perto do limite de faltas
   appendAttendanceNotices();
+
+  // Convite para instalar o app (só no celular)
+  appendInstallNotice();
 }
 
 
@@ -9557,6 +9562,142 @@ if (resetAppearanceBtn) {
       "Aparência voltou ao padrão (roxo-azulado)."
     )
   );
+}
+
+
+// =====================================================
+// APP NO CELULAR (PWA): instalação e funcionamento offline
+// =====================================================
+
+const installAppBtn = document.getElementById("installAppBtn");
+const installAppStatus = document.getElementById("installAppStatus");
+const installIosSteps = document.getElementById("installIosSteps");
+
+let deferredInstallPrompt = null;
+
+function isRunningAsApp() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function isIos() {
+  const ua = navigator.userAgent || "";
+  return /iphone|ipad|ipod/i.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isMobileScreen() {
+  return window.matchMedia("(max-width: 820px)").matches;
+}
+
+function canOfferInstall() {
+  return !isRunningAsApp() && (deferredInstallPrompt !== null || isIos());
+}
+
+function renderInstallCard() {
+  if (!installAppBtn) return;
+
+  if (installIosSteps) installIosSteps.hidden = true;
+
+  if (isRunningAsApp()) {
+    installAppBtn.hidden = true;
+    if (installAppStatus) {
+      installAppStatus.textContent = "✅ Você já está usando o app instalado.";
+    }
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    installAppBtn.hidden = false;
+    if (installAppStatus) installAppStatus.textContent = "";
+    return;
+  }
+
+  if (isIos()) {
+    installAppBtn.hidden = true;
+    if (installIosSteps) installIosSteps.hidden = false;
+    if (installAppStatus) installAppStatus.textContent = "";
+    return;
+  }
+
+  installAppBtn.hidden = true;
+  if (installAppStatus) {
+    installAppStatus.textContent =
+      "Abra este site no navegador do celular (Chrome no Android ou Safari no iPhone) para instalar. No computador, o Chrome e o Edge mostram um ícone de instalar na barra de endereço.";
+  }
+}
+
+async function promptInstall() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (installAppStatus && choice && choice.outcome === "accepted") {
+      installAppStatus.textContent = "App instalado! Procure o ícone “Organizador” na tela inicial.";
+    }
+    renderInstallCard();
+    renderNotices();
+    return;
+  }
+
+  // iPhone: não existe botão automático, então leva às instruções
+  goToView("config");
+  setTimeout(() => {
+    const card = document.querySelector(".install-card");
+    if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 150);
+}
+
+function appendInstallNotice() {
+  if (!appNotices) return;
+  if (!isMobileScreen() || !canOfferInstall() || state.installNoticeDismissed) return;
+
+  appNotices.appendChild(
+    makeNotice(
+      "info",
+      "📱",
+      "<strong>Instale o Organizador no seu celular.</strong> Ele ganha um ícone na tela inicial, abre em tela cheia e funciona sem internet.",
+      [
+        { label: isIos() ? "Como instalar" : "Instalar app", primary: true, onClick: promptInstall },
+        {
+          label: "Agora não",
+          onClick: () => {
+            state.installNoticeDismissed = true;
+            saveState();
+            renderNotices();
+          }
+        }
+      ]
+    )
+  );
+}
+
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  renderInstallCard();
+  renderNotices();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  renderInstallCard();
+  renderNotices();
+});
+
+if (installAppBtn) {
+  installAppBtn.addEventListener("click", promptInstall);
+}
+
+// registra o service worker (só funciona em https, como no GitHub Pages)
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // sem service worker o site continua funcionando normalmente
+    });
+  });
 }
 
 // Avisos sempre atualizados ao voltar para a Capa
