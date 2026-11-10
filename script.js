@@ -89,6 +89,33 @@ function saveState() {
     STORAGE_KEY,
     JSON.stringify(state)
   );
+
+  // avisa a sincronização na nuvem (sync.js), se estiver ativa
+  if (window.cloudSync && typeof window.cloudSync.notifyChange === "function") {
+    window.cloudSync.notifyChange();
+  }
+}
+
+
+// Troca todos os dados pelos que vieram da nuvem (usado pelo sync.js)
+function replaceStateFromCloud(parsed) {
+  state = parsed;
+
+  ensureSemesterMaps();
+  ensureConfigState();
+
+  currentSemester = Number(state.currentSemester || 1);
+
+  if (currentSemester > state.totalSemesters) {
+    currentSemester = state.totalSemesters;
+  }
+
+  state.currentSemester = currentSemester;
+
+  migrateLegacyDataIfNeeded();
+  saveState();
+  applyTheme();
+  renderAll();
 }
 
 

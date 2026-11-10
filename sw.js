@@ -3,13 +3,15 @@
 // Estratégia: tenta a internet primeiro (para pegar a versão mais nova)
 // e, se estiver offline, usa a cópia guardada.
 
-const CACHE_NAME = "organizador-v1";
+const CACHE_NAME = "organizador-v2";
 
 const APP_FILES = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
+  "./sync.js",
+  "./firebase-config.js",
   "./manifest.webmanifest",
   "./icon_transparent.png",
   "./icons/icon-192.png",
