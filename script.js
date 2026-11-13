@@ -1491,50 +1491,7 @@ function renderSummaryGrades(data) {
 
 
         <div class="summary-grade-grid">
-
-          <div>
-            <span>
-              Trabalho 1
-            </span>
-
-            <strong>
-              ${grades.t1 ?? "-"}
-            </strong>
-          </div>
-
-
-          <div>
-            <span>
-              Prova 1
-            </span>
-
-            <strong>
-              ${grades.p1 ?? "-"}
-            </strong>
-          </div>
-
-
-          <div>
-            <span>
-              Trabalho 2
-            </span>
-
-            <strong>
-              ${grades.t2 ?? "-"}
-            </strong>
-          </div>
-
-
-          <div>
-            <span>
-              Prova 2
-            </span>
-
-            <strong>
-              ${grades.p2 ?? "-"}
-            </strong>
-          </div>
-
+          ${summaryGradeItemsHtml(grades)}
         </div>
 
       </div>
@@ -2671,25 +2628,7 @@ function generatePrintReport(
           </strong>
 
           <p>
-
-            Trabalho 1:
-            ${grades.t1 ?? "-"}
-
-            |
-
-            Prova 1:
-            ${grades.p1 ?? "-"}
-
-            |
-
-            Trabalho 2:
-            ${grades.t2 ?? "-"}
-
-            |
-
-            Prova 2:
-            ${grades.p2 ?? "-"}
-
+            ${printGradeItemsText(grades)}
           </p>
 
           <p>
@@ -5301,21 +5240,100 @@ function isGradeFilled(value) {
 }
 
 
+// =====================================================
+// MODELO DE NOTAS FLEXÍVEL
+// A média é feita por PERÍODOS (partes, bimestres, trimestres…).
+// Cada período tem um peso e uma ou mais avaliações.
+//   combine "soma":  nota do período = soma das avaliações (ex.: trabalho + prova = 10)
+//   combine "media": nota do período = média das avaliações
+// Média final = soma(nota do período × peso) ÷ soma dos pesos
+// =====================================================
+
+const GRADE_PRESETS = {
+  faculdade: {
+    name: "Faculdade · 2 partes (trabalho + prova)",
+    periods: [
+      { id: "part1", name: "Parte 1", weight: 2, combine: "soma",
+        items: [{ id: "t1", name: "Trabalho 1" }, { id: "p1", name: "Prova 1" }] },
+      { id: "part2", name: "Parte 2", weight: 3, combine: "soma",
+        items: [{ id: "t2", name: "Trabalho 2" }, { id: "p2", name: "Prova 2" }] }
+    ]
+  },
+  bimestral: {
+    name: "Escola · 4 bimestres",
+    periods: [1, 2, 3, 4].map(n => ({
+      id: `b${n}`, name: `${n}º bimestre`, weight: 1, combine: "media",
+      items: [{ id: `b${n}_1`, name: "Nota" }]
+    }))
+  },
+  trimestral: {
+    name: "Escola · 3 trimestres",
+    periods: [1, 2, 3].map(n => ({
+      id: `tr${n}`, name: `${n}º trimestre`, weight: 1, combine: "media",
+      items: [{ id: `tr${n}_1`, name: "Nota" }]
+    }))
+  },
+  semestral: {
+    name: "2 semestres / 2 etapas",
+    periods: [1, 2].map(n => ({
+      id: `s${n}`, name: `${n}º semestre`, weight: 1, combine: "media",
+      items: [{ id: `s${n}_1`, name: "Nota" }]
+    }))
+  }
+};
+
+function clonePeriods(periods) {
+  return JSON.parse(JSON.stringify(periods));
+}
+
+function sanitizePeriods(periods) {
+  if (!Array.isArray(periods)) return null;
+  const usedIds = new Set();
+  const clean = periods
+    .filter(p => p && Array.isArray(p.items))
+    .map((p, pi) => {
+      const items = p.items
+        .filter(it => it && String(it.id || "").trim())
+        .map(it => ({ id: String(it.id), name: String(it.name || "Avaliação").slice(0, 40) }))
+        .filter(it => !usedIds.has(it.id) && usedIds.add(it.id));
+      const weight = Number(p.weight);
+      return {
+        id: String(p.id || `per${pi + 1}`),
+        name: String(p.name || `Período ${pi + 1}`).slice(0, 40),
+        weight: weight >= 0 ? weight : 1,
+        combine: p.combine === "soma" ? "soma" : "media",
+        items
+      };
+    })
+    .filter(p => p.items.length);
+  return clean.length ? clean : null;
+}
+
 function getGradeConfig() {
   const cfg = state.gradeConfig || {};
-
-  const weight1 = Number(cfg.weight1);
-  const weight2 = Number(cfg.weight2);
   const passingGrade = Number(cfg.passingGrade);
 
+  let periods = sanitizePeriods(cfg.periods);
+
+  // configuração antiga (só pesos 1 e 2) → modelo faculdade com os pesos dela
+  if (!periods) {
+    periods = clonePeriods(GRADE_PRESETS.faculdade.periods);
+    const w1 = Number(cfg.weight1);
+    const w2 = Number(cfg.weight2);
+    if (w1 >= 0) periods[0].weight = w1;
+    if (w2 > 0) periods[1].weight = w2;
+  }
+
   return {
-    weight1: weight1 >= 0 ? weight1 : 2,
-    weight2: weight2 > 0 ? weight2 : 3,
-    passingGrade:
-      passingGrade >= 0 && passingGrade <= 10 ? passingGrade : 6
+    preset: cfg.preset || "faculdade",
+    periods,
+    passingGrade: passingGrade >= 0 && passingGrade <= 10 ? passingGrade : 6
   };
 }
 
+function getAllGradeItems() {
+  return getGradeConfig().periods.flatMap(p => p.items);
+}
 
 function formatGrade(value) {
   return Number(value)
@@ -5323,131 +5341,189 @@ function formatGrade(value) {
     .replace(".", ",");
 }
 
+function fmtNumber(n) {
+  return String(Math.round(Number(n) * 100) / 100).replace(".", ",");
+}
 
 function getFormulaText() {
-  const { weight1, weight2, passingGrade } = getGradeConfig();
-  const fmt = n => String(n).replace(".", ",");
+  const { periods, passingGrade } = getGradeConfig();
+  const totalWeight = periods.reduce((s, p) => s + p.weight, 0);
+  const allEqual = periods.every(p => p.weight === periods[0].weight);
 
-  return `(Trabalho 1 + Prova 1) × ${fmt(weight1)} + (Trabalho 2 + Prova 2) × ${fmt(weight2)}, tudo dividido por ${fmt(weight1 + weight2)}. Média para passar: ${fmt(passingGrade)}.`;
+  const partText = p => {
+    const names = p.items.map(i => i.name);
+    if (names.length === 1) return names[0] === "Nota" ? p.name : `${p.name} (${names[0]})`;
+    return p.combine === "soma"
+      ? `(${names.join(" + ")})`
+      : `média de ${p.name} (${names.join(", ")})`;
+  };
+
+  let text;
+  if (allEqual) {
+    text = `Média simples de ${periods.map(partText).join(", ")}`;
+  } else {
+    text = periods.map(p => `${partText(p)} × ${fmtNumber(p.weight)}`).join(" + ") +
+      `, tudo dividido por ${fmtNumber(totalWeight)}`;
+  }
+
+  return `${text}. Média para passar: ${fmtNumber(passingGrade)}.`;
 }
 
+// nota de um período; null se nada lançado nele
+function periodGrade(period, grades) {
+  const filled = period.items.filter(it => isGradeFilled(grades[it.id]));
+  if (!filled.length) return null;
+  const sum = filled.reduce((s, it) => s + toNumber(grades[it.id]), 0);
+  if (period.combine === "soma") return sum;
+  return sum / filled.length;
+}
 
+function isPeriodComplete(period, grades) {
+  return period.items.every(it => isGradeFilled(grades[it.id]));
+}
+
+// Média com o que já foi lançado (só períodos que têm nota).
 // Retorna null quando nenhuma nota foi lançada.
-// Notas ainda não lançadas contam como 0 (média parcial).
 function computeFinalGrade(grades) {
+  if (!grades) return null;
 
-  if (!grades) {
-    return null;
+  const { periods } = getGradeConfig();
+  let weighted = 0;
+  let weights = 0;
+
+  periods.forEach(p => {
+    const g = periodGrade(p, grades);
+    if (g === null) return;
+    weighted += g * p.weight;
+    weights += p.weight;
+  });
+
+  if (!weights) {
+    // períodos com peso 0 e nota lançada
+    return periods.some(p => periodGrade(p, grades) !== null) ? 0 : null;
   }
 
-  const keys = ["t1", "p1", "t2", "p2"];
-
-  if (!keys.some(k => isGradeFilled(grades[k]))) {
-    return null;
-  }
-
-  const { weight1, weight2 } = getGradeConfig();
-
-  const part1 = toNumber(grades.t1) + toNumber(grades.p1);
-  const part2 = toNumber(grades.t2) + toNumber(grades.p2);
-
-  const result =
-    (part1 * weight1 + part2 * weight2) /
-    (weight1 + weight2);
-
+  const result = weighted / weights;
   return isNaN(result) ? null : result;
 }
-
 
 function isGradeComplete(grades) {
   return (
     !!grades &&
-    ["t1", "p1", "t2", "p2"].every(k => isGradeFilled(grades[k]))
+    getGradeConfig().periods.every(p => isPeriodComplete(p, grades))
   );
 }
 
-
-// Calcula a situação da matéria e quanto falta para passar.
+// Situação da matéria e quanto falta para passar.
 function getGradeStatus(grades) {
+  grades = grades || {};
 
+  const { periods, passingGrade } = getGradeConfig();
   const final = computeFinalGrade(grades);
-  const { weight1, weight2, passingGrade } = getGradeConfig();
+  const passText = fmtNumber(passingGrade);
 
   if (final === null) {
-    return { final: null, label: "Sem notas", kind: "empty", hint: "" };
+    return { final: null, label: "Sem notas", kind: "empty", hint: "", complete: false };
   }
+
+  const totalWeight = periods.reduce((s, p) => s + p.weight, 0);
+  const target = passingGrade * totalWeight;
 
   if (isGradeComplete(grades)) {
-    const ok = final >= passingGrade;
+    const ok = final >= passingGrade - 1e-9;
     return {
       final,
+      complete: true,
       kind: ok ? "ok" : "bad",
       label: ok ? "Aprovado(a)" : "Abaixo da média",
-      hint: ok
-        ? ""
-        : `Faltaram ${formatGrade(passingGrade - final)} pontos para a média ${String(passingGrade).replace(".", ",")}.`
+      hint: ok ? "" : `Faltaram ${formatGrade(passingGrade - final)} pontos para a média ${passText}.`
     };
   }
 
-  const part1Done =
-    isGradeFilled(grades.t1) && isGradeFilled(grades.p1);
+  const done = periods.filter(p => isPeriodComplete(p, grades));
+  const open = periods.filter(p => !isPeriodComplete(p, grades));
+  const doneWeighted = done.reduce((s, p) => s + periodGrade(p, grades) * p.weight, 0);
 
-  if (!part1Done) {
+  if (!done.length) {
+    const first = open[0];
     return {
       final,
+      complete: false,
       kind: "partial",
       label: "Parcial",
-      hint: "Preencha Trabalho 1 e Prova 1 para ver quanto precisa na Parte 2."
+      hint: `Complete ${first.name} (${first.items.map(i => i.name).join(", ")}) para ver quanto precisa no restante.`
     };
   }
 
-  const part1 = toNumber(grades.t1) + toNumber(grades.p1);
+  const openWeight = open.reduce((s, p) => s + p.weight, 0);
 
-  // nota que a Parte 2 (Trabalho 2 + Prova 2) precisa somar
-  const neededPart2 =
-    (passingGrade * (weight1 + weight2) - part1 * weight1) / weight2;
-
-  const t2Done = isGradeFilled(grades.t2);
-  const p2Done = isGradeFilled(grades.p2);
-  let needed = neededPart2;
-  let what = "na Parte 2 (Trabalho 2 + Prova 2 somados)";
-
-  if (t2Done && !p2Done) {
-    needed = neededPart2 - toNumber(grades.t2);
-    what = "na Prova 2";
-  } else if (!t2Done && p2Done) {
-    needed = neededPart2 - toNumber(grades.p2);
-    what = "no Trabalho 2";
+  // períodos que faltam não contam (peso 0): resultado já está definido
+  if (!openWeight) {
+    const ok = doneWeighted / totalWeight >= passingGrade - 1e-9;
+    return { final, complete: false, kind: ok ? "ok" : "bad", label: ok ? "Média garantida" : "Atenção", hint: "" };
   }
 
-  if (needed <= 0) {
+  // nota média necessária nos períodos que faltam
+  const neededPeriod = (target - doneWeighted) / openWeight;
+
+  if (neededPeriod <= 0) {
     return {
-      final,
-      kind: "ok",
-      label: "Média garantida",
+      final, complete: false, kind: "ok", label: "Média garantida",
       hint: "Mesmo tirando 0 no que falta, você já passa. 🎉"
     };
   }
 
-  if (neededPart2 > 10) {
+  if (neededPeriod > 10 + 1e-9) {
     return {
-      final,
-      kind: "bad",
-      label: "Atenção",
-      hint: `Seria preciso ${formatGrade(neededPart2)} na Parte 2, acima do máximo de 10. Converse com o(a) professor(a) sobre recuperação.`
+      final, complete: false, kind: "bad", label: "Atenção",
+      hint: `Seria preciso ${formatGrade(neededPeriod)} no que falta, acima do máximo de 10. Converse com o(a) professor(a) sobre recuperação.`
     };
   }
 
-  return {
-    final,
-    kind: "partial",
-    label: "Parcial",
-    hint: `Você precisa de ${formatGrade(needed)} ${what} para chegar à média ${String(passingGrade).replace(".", ",")}.`
-  };
+  // só um período aberto: dá para dizer exatamente o que falta nele
+  let hint;
+  if (open.length === 1) {
+    const p = open[0];
+    const missing = p.items.filter(it => !isGradeFilled(grades[it.id]));
+    const known = p.items.filter(it => isGradeFilled(grades[it.id]));
+    const knownSum = known.reduce((s, it) => s + toNumber(grades[it.id]), 0);
+
+    let need;
+    if (p.combine === "soma") {
+      need = neededPeriod - knownSum;
+    } else {
+      need = (neededPeriod * p.items.length - knownSum) / missing.length;
+    }
+
+    const what =
+      p.items.length === 1
+        ? `no ${p.name}`.replace(/^no (Parte|Etapa|Avalia)/, "na $1")
+        : missing.length === 1
+        ? `em ${missing[0].name}`
+        : p.combine === "soma"
+          ? `em ${p.name} (${missing.map(i => i.name).join(" + ")} somados)`
+          : `de média em ${p.name} (${missing.map(i => i.name).join(", ")})`;
+
+    if (need <= 0) {
+      return {
+        final, complete: false, kind: "ok", label: "Média garantida",
+        hint: "Mesmo tirando 0 no que falta, você já passa. 🎉"
+      };
+    }
+
+    hint = `Você precisa de ${formatGrade(need)} ${what} para chegar à média ${passText}.`;
+  } else {
+    hint = `Você precisa de média ${formatGrade(neededPeriod)} em ${open.map(p => p.name).join(", ")} para chegar à média ${passText}.`;
+  }
+
+  return { final, complete: false, kind: "partial", label: "Parcial", hint };
 }
 
 
 function renderGrades() {
+
+  syncGradeFilterOptions();
+
 
   if (!gradesContainer) {
     return;
@@ -5483,22 +5559,7 @@ function renderGrades() {
     subject => {
 
       if (!subject.grades) {
-
-        subject.grades = {
-
-          t1:
-            null,
-
-          p1:
-            null,
-
-          t2:
-            null,
-
-          p2:
-            null
-
-        };
+        subject.grades = {};
       }
 
 
@@ -5570,53 +5631,25 @@ function renderGrades() {
         "grades-grid";
 
 
-      const fields = [
+      const gradePeriods =
+        getGradeConfig().periods;
 
-        {
-          key:
-            "t1",
-
-          label:
-            "Trabalho 1",
-
-          part:
-            "part1"
-        },
-
-        {
-          key:
-            "p1",
-
-          label:
-            "Prova 1",
-
-          part:
-            "part1"
-        },
-
-        {
-          key:
-            "t2",
-
-          label:
-            "Trabalho 2",
-
-          part:
-            "part2"
-        },
-
-        {
-          key:
-            "p2",
-
-          label:
-            "Prova 2",
-
-          part:
-            "part2"
-        }
-
-      ];
+      const fields =
+        gradePeriods.flatMap(period =>
+          period.items.map((item, index) => ({
+            key: item.id,
+            label:
+              period.items.length === 1
+                ? (item.name === "Nota" ? period.name : `${period.name} · ${item.name}`)
+                : item.name,
+            part: period.id,
+            periodName: period.name,
+            periodWeight: period.weight,
+            periodCombine: period.combine,
+            periodSize: period.items.length,
+            firstOfPeriod: index === 0
+          }))
+        );
 
 
       fields.forEach(
@@ -5630,6 +5663,21 @@ function renderGrades() {
           ) {
 
             return;
+          }
+
+          // título de cada período (Parte 1, 1º bimestre…)
+          if (field.firstOfPeriod && gradePeriods.length > 1 && field.periodSize > 1) {
+            const periodTitle = document.createElement("div");
+            periodTitle.className = "grade-period-title";
+            periodTitle.textContent =
+              field.periodName +
+              (gradePeriods.some(p => p.weight !== gradePeriods[0].weight)
+                ? ` · peso ${fmtNumber(field.periodWeight)}`
+                : "") +
+              (field.periodCombine === "soma" && field.periodSize > 1
+                ? " · as notas somam até 10"
+                : "");
+            gradesGrid.appendChild(periodTitle);
           }
 
 
@@ -5736,7 +5784,7 @@ function renderGrades() {
 
         const value = document.createElement("span");
         value.textContent =
-          `Média final: ${info.final === null ? "—" : formatGrade(info.final)}`;
+          `${info.complete || info.final === null ? "Média final" : "Média até agora"}: ${info.final === null ? "—" : formatGrade(info.final)}`;
         line.appendChild(value);
 
         if (info.kind !== "empty") {
@@ -8502,15 +8550,210 @@ function renderAll() {
 
 
 // =====================================================
-// FÓRMULA DAS NOTAS (CONFIGURAÇÃO)
+// FÓRMULA DAS NOTAS (CONFIGURAÇÃO) — modelos e editor
 // =====================================================
 
-const gradeWeight1Input = document.getElementById("gradeWeight1Input");
-const gradeWeight2Input = document.getElementById("gradeWeight2Input");
+const gradePresetSelect = document.getElementById("gradePresetSelect");
+const gradePeriodsEditor = document.getElementById("gradePeriodsEditor");
+const addGradePeriodBtn = document.getElementById("addGradePeriodBtn");
 const gradePassingInput = document.getElementById("gradePassingInput");
 const formulaPreview = document.getElementById("formulaPreview");
 const saveGradeConfigBtn = document.getElementById("saveGradeConfigBtn");
 const gradeConfigStatus = document.getElementById("gradeConfigStatus");
+
+let gradeDraft = null;
+
+function newGradeId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+// ---------- listas usadas no resumo e no PDF ----------
+
+function syncGradeFilterOptions() {
+  if (!gradeFilterPart) return;
+  const { periods } = getGradeConfig();
+  const wanted = ["all", ...periods.map(p => p.id)].join("|");
+  if (gradeFilterPart.dataset.sig === wanted) return;
+
+  const current = gradeFilterPart.value;
+  gradeFilterPart.innerHTML = "";
+
+  const all = document.createElement("option");
+  all.value = "all";
+  all.textContent = "Todas as notas";
+  gradeFilterPart.appendChild(all);
+
+  periods.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = `Somente ${p.name} (${p.items.map(i => i.name).join(" + ")})`;
+    gradeFilterPart.appendChild(opt);
+  });
+
+  gradeFilterPart.value = periods.some(p => p.id === current) ? current : "all";
+  gradeFilterPart.dataset.sig = wanted;
+}
+
+function summaryGradeItemsHtml(grades) {
+  grades = grades || {};
+  return getAllGradeItems()
+    .map(it => `
+          <div>
+            <span>${escapeHtml(it.name)}</span>
+            <strong>${isGradeFilled(grades[it.id]) ? escapeHtml(String(grades[it.id]).replace(".", ",")) : "-"}</strong>
+          </div>`)
+    .join("");
+}
+
+function printGradeItemsText(grades) {
+  grades = grades || {};
+  return getGradeConfig()
+    .periods.map(p =>
+      p.items
+        .map(it => `${escapeHtml(p.items.length > 1 || it.name !== "Nota" ? it.name : p.name)}: ${isGradeFilled(grades[it.id]) ? escapeHtml(String(grades[it.id]).replace(".", ",")) : "-"}`)
+        .join(" | ")
+    )
+    .join(" | ");
+}
+
+// ---------- editor ----------
+
+function draftToText() {
+  const passing = Number(String(gradePassingInput ? gradePassingInput.value : "").replace(",", "."));
+  const saved = state.gradeConfig;
+  state.gradeConfig = { periods: gradeDraft, passingGrade: passing >= 0 && passing <= 10 ? passing : 6 };
+  const text = getFormulaText();
+  state.gradeConfig = saved;
+  return text;
+}
+
+function updateFormulaPreview() {
+  if (!formulaPreview || !gradeDraft) return;
+  formulaPreview.textContent = draftToText();
+}
+
+function orphanedGradeWarning(periods) {
+  const ids = new Set(periods.flatMap(p => p.items.map(i => i.id)));
+  const affected = (state.subjects || []).filter(sub =>
+    Object.entries(sub.grades || {}).some(([k, v]) => !ids.has(k) && isGradeFilled(v))
+  );
+  if (!affected.length) return "";
+  return ` Atenção: ${affected.length} ${affected.length === 1 ? "matéria tem" : "matérias têm"} notas lançadas que não aparecem neste modelo. Elas continuam guardadas e voltam se você retornar ao modelo anterior.`;
+}
+
+function renderGradePeriodsEditor() {
+  if (!gradePeriodsEditor || !gradeDraft) return;
+  gradePeriodsEditor.innerHTML = "";
+
+  gradeDraft.forEach((period, pIndex) => {
+    const box = document.createElement("div");
+    box.className = "gp-period";
+
+    const head = document.createElement("div");
+    head.className = "gp-period-head";
+    head.innerHTML = `
+      <label class="gp-field gp-name"><span>Período</span><input type="text" maxlength="40" /></label>
+      <label class="gp-field gp-weight"><span>Peso</span><input type="number" min="0" max="100" step="0.5" /></label>
+      <label class="gp-field gp-combine"><span>Juntar avaliações</span>
+        <select>
+          <option value="media">Média entre elas</option>
+          <option value="soma">Somar (ex.: trabalho + prova = 10)</option>
+        </select>
+      </label>
+      <button type="button" class="gp-remove-period ghost-btn" aria-label="Remover ${escapeHtml(period.name)}">Remover</button>
+    `;
+
+    const [nameInput, weightInput, combineSelect] = head.querySelectorAll("input, select");
+    nameInput.value = period.name;
+    weightInput.value = period.weight;
+    combineSelect.value = period.combine;
+
+    nameInput.addEventListener("input", () => { period.name = nameInput.value || `Período ${pIndex + 1}`; markCustom(); });
+    weightInput.addEventListener("input", () => {
+      const w = Number(String(weightInput.value).replace(",", "."));
+      period.weight = w >= 0 ? w : 0;
+      markCustom();
+    });
+    combineSelect.addEventListener("change", () => { period.combine = combineSelect.value; markCustom(); });
+
+    const removePeriodBtn = head.querySelector(".gp-remove-period");
+    removePeriodBtn.disabled = gradeDraft.length <= 1;
+    removePeriodBtn.addEventListener("click", () => {
+      gradeDraft.splice(pIndex, 1);
+      markCustom();
+      renderGradePeriodsEditor();
+    });
+
+    const items = document.createElement("div");
+    items.className = "gp-items";
+
+    period.items.forEach((item, iIndex) => {
+      const chip = document.createElement("div");
+      chip.className = "gp-item";
+      chip.innerHTML = `
+        <input type="text" maxlength="40" aria-label="Nome da avaliação" />
+        <button type="button" class="gp-remove-item" aria-label="Remover avaliação">×</button>
+      `;
+      const input = chip.querySelector("input");
+      input.value = item.name;
+      input.addEventListener("input", () => { item.name = input.value || "Avaliação"; markCustom(); });
+
+      const rm = chip.querySelector("button");
+      rm.disabled = period.items.length <= 1;
+      rm.addEventListener("click", () => {
+        period.items.splice(iIndex, 1);
+        markCustom();
+        renderGradePeriodsEditor();
+      });
+      items.appendChild(chip);
+    });
+
+    const addItem = document.createElement("button");
+    addItem.type = "button";
+    addItem.className = "gp-add-item";
+    addItem.textContent = "+ avaliação";
+    addItem.addEventListener("click", () => {
+      period.items.push({ id: newGradeId(period.id), name: `Avaliação ${period.items.length + 1}` });
+      markCustom();
+      renderGradePeriodsEditor();
+    });
+    items.appendChild(addItem);
+
+    box.append(head, items);
+    gradePeriodsEditor.appendChild(box);
+  });
+
+  updateFormulaPreview();
+}
+
+function markCustom() {
+  if (gradePresetSelect) gradePresetSelect.value = "personalizado";
+  updateFormulaPreview();
+}
+
+function renderGradeConfigFields() {
+  const cfg = getGradeConfig();
+  gradeDraft = clonePeriods(cfg.periods);
+
+  if (gradePresetSelect) {
+    if (!gradePresetSelect.options.length) {
+      Object.entries(GRADE_PRESETS).forEach(([key, preset]) => {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = preset.name;
+        gradePresetSelect.appendChild(opt);
+      });
+      const custom = document.createElement("option");
+      custom.value = "personalizado";
+      custom.textContent = "Personalizado";
+      gradePresetSelect.appendChild(custom);
+    }
+    gradePresetSelect.value = GRADE_PRESETS[cfg.preset] ? cfg.preset : "personalizado";
+  }
+
+  if (gradePassingInput) gradePassingInput.value = cfg.passingGrade;
+  renderGradePeriodsEditor();
+}
 
 function renderFormulaTexts() {
   const text = getFormulaText();
@@ -8519,64 +8762,63 @@ function renderFormulaTexts() {
   });
 }
 
-function renderGradeConfigFields() {
-  const cfg = getGradeConfig();
-  if (gradeWeight1Input) gradeWeight1Input.value = cfg.weight1;
-  if (gradeWeight2Input) gradeWeight2Input.value = cfg.weight2;
-  if (gradePassingInput) gradePassingInput.value = cfg.passingGrade;
-  updateFormulaPreview();
+if (gradePresetSelect) {
+  gradePresetSelect.addEventListener("change", () => {
+    const preset = GRADE_PRESETS[gradePresetSelect.value];
+    if (!preset) return;
+    gradeDraft = clonePeriods(preset.periods);
+    renderGradePeriodsEditor();
+    if (gradeConfigStatus) {
+      gradeConfigStatus.textContent =
+        "Modelo carregado. Ajuste se quiser e clique em Salvar fórmula." + orphanedGradeWarning(gradeDraft);
+    }
+  });
 }
 
-function readGradeConfigInputs() {
-  const parse = el => {
-    const raw = String(el ? el.value : "").replace(",", ".").trim();
-    return raw === "" ? NaN : Number(raw);
-  };
-  return {
-    weight1: parse(gradeWeight1Input),
-    weight2: parse(gradeWeight2Input),
-    passingGrade: parse(gradePassingInput)
-  };
+if (addGradePeriodBtn) {
+  addGradePeriodBtn.addEventListener("click", () => {
+    const id = newGradeId("per");
+    gradeDraft.push({
+      id,
+      name: `Período ${gradeDraft.length + 1}`,
+      weight: 1,
+      combine: "media",
+      items: [{ id: newGradeId(id), name: "Nota" }]
+    });
+    markCustom();
+    renderGradePeriodsEditor();
+  });
 }
 
-function updateFormulaPreview() {
-  if (!formulaPreview) return;
-  const { weight1, weight2, passingGrade } = readGradeConfigInputs();
-  if (!(weight1 >= 0) || !(weight2 > 0) || !(passingGrade >= 0)) {
-    formulaPreview.textContent = "preencha os três campos com números válidos.";
-    return;
-  }
-  const fmt = n => String(n).replace(".", ",");
-  formulaPreview.textContent =
-    `(T1 + P1) × ${fmt(weight1)} + (T2 + P2) × ${fmt(weight2)}, dividido por ${fmt(weight1 + weight2)} · média para passar ${fmt(passingGrade)}`;
+if (gradePassingInput) {
+  gradePassingInput.addEventListener("input", updateFormulaPreview);
 }
-
-[gradeWeight1Input, gradeWeight2Input, gradePassingInput].forEach(el => {
-  if (el) el.addEventListener("input", updateFormulaPreview);
-});
 
 if (saveGradeConfigBtn) {
   saveGradeConfigBtn.addEventListener("click", () => {
-    const cfg = readGradeConfigInputs();
+    const passing = Number(String(gradePassingInput ? gradePassingInput.value : "").replace(",", "."));
+    const periods = sanitizePeriods(gradeDraft);
 
-    if (
-      !(cfg.weight1 >= 0) || cfg.weight1 > 100 ||
-      !(cfg.weight2 > 0) || cfg.weight2 > 100 ||
-      !(cfg.passingGrade >= 0) || cfg.passingGrade > 10
-    ) {
-      if (gradeConfigStatus) {
-        gradeConfigStatus.textContent =
-          "Confira os valores: pesos entre 0 e 100 (o da Parte 2 maior que 0) e média entre 0 e 10.";
-      }
+    if (!(passing >= 0 && passing <= 10)) {
+      if (gradeConfigStatus) gradeConfigStatus.textContent = "A média para passar precisa ficar entre 0 e 10.";
+      return;
+    }
+    if (!periods || !periods.some(p => p.weight > 0)) {
+      if (gradeConfigStatus) gradeConfigStatus.textContent = "Inclua pelo menos um período com peso maior que 0.";
       return;
     }
 
-    state.gradeConfig = cfg;
+    state.gradeConfig = {
+      preset: gradePresetSelect ? gradePresetSelect.value : "personalizado",
+      periods,
+      passingGrade: passing
+    };
     saveState();
     renderAll();
 
     if (gradeConfigStatus) {
-      gradeConfigStatus.textContent = "Fórmula salva. As médias já foram recalculadas.";
+      gradeConfigStatus.textContent =
+        "Fórmula salva. As médias já foram recalculadas." + orphanedGradeWarning(periods);
     }
   });
 }

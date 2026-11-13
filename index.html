@@ -502,9 +502,9 @@
           <div>
             <p>Em cada matéria, preencha <strong>Trabalho 1, Prova 1, Trabalho 2 e Prova 2</strong>. O cálculo é feito automaticamente.</p>
             <p><strong>Fórmula atual:</strong> <span class="formula-text">(Trabalho 1 + Prova 1) × 2 + (Trabalho 2 + Prova 2) × 3, dividido por 5.</span></p>
-            <p>Para mudar os pesos ou a média para passar, abra <strong>Configuração → Fórmula das notas</strong>. Cada parte (trabalho + prova) vale até 10.</p>
-            <p>Depois de lançar Trabalho 1 e Prova 1, o site mostra <strong>quanto você precisa tirar na Parte 2</strong> para chegar à média.</p>
-            <p>O filtro permite visualizar tudo, apenas a Parte 1 ou apenas a Parte 2. A média também aparece no resumo acadêmico do semestre.</p>
+            <p>Para mudar a fórmula, abra <strong>Configuração → Fórmula das notas</strong>. Há modelos prontos (Faculdade com 2 partes, 4 bimestres, 3 trimestres, 2 semestres) e dá para montar a sua: quantos períodos, o peso de cada um, quantas avaliações em cada período e se elas se <strong>somam</strong> (trabalho + prova = 10) ou se tira a <strong>média</strong>.</p>
+            <p>Depois de completar o primeiro período, o site mostra <strong>quanto você precisa tirar no que falta</strong> para chegar à média. Enquanto nem tudo foi lançado, a média mostrada considera só o que já tem nota.</p>
+            <p>O filtro permite ver todas as notas ou só um período (uma parte, um bimestre…). A média também aparece no resumo acadêmico do semestre.</p>
           </div>
         </details>
 
@@ -690,23 +690,21 @@
             <div class="settings-icon">★</div>
             <div>
               <h3>Fórmula das notas</h3>
-              <p>Ajuste os pesos conforme as regras da sua faculdade. Cada parte é Trabalho + Prova e vale até 10.</p>
+              <p>Escolha um modelo pronto ou monte o da sua escola/faculdade: períodos (partes, bimestres, trimestres…), peso de cada um e as avaliações de cada período.</p>
             </div>
           </div>
-          <div class="grade-config-grid">
-            <label>
-              <span>Peso da Parte 1 (T1 + P1)</span>
-              <input type="number" id="gradeWeight1Input" min="0" max="100" step="0.5" />
+          <div class="gp-top">
+            <label class="gp-field">
+              <span>Modelo</span>
+              <select id="gradePresetSelect"></select>
             </label>
-            <label>
-              <span>Peso da Parte 2 (T2 + P2)</span>
-              <input type="number" id="gradeWeight2Input" min="0.5" max="100" step="0.5" />
-            </label>
-            <label>
+            <label class="gp-field gp-passing">
               <span>Média para passar</span>
               <input type="number" id="gradePassingInput" min="0" max="10" step="0.5" />
             </label>
           </div>
+          <div id="gradePeriodsEditor" class="gp-editor"></div>
+          <button id="addGradePeriodBtn" type="button" class="gp-add-period">+ Adicionar período</button>
           <p class="formula-preview">Como fica: <span id="formulaPreview"></span></p>
           <button id="saveGradeConfigBtn" class="primary-action-btn" type="button">Salvar fórmula</button>
           <p id="gradeConfigStatus" class="backup-status"></p>
@@ -854,7 +852,7 @@
   </main>
 
   <footer>
-    <p>Seus dados ficam salvos apenas neste navegador ❤️</p>
+    <p>Seus dados ficam neste navegador e, se você entrar com Google, também na sua nuvem ❤️</p>
   </footer>
 
   <script src="script.js"></script>

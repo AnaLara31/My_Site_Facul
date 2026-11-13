@@ -3506,3 +3506,144 @@ body.light .bg-option[data-preview="preto"] .bg-option-card { background: #fffff
 @media (max-width: 620px) {
   .cloud-chip { height: 32px; padding: 0 10px; }
 }
+
+/* ==================================================
+   NOTAS FLEXÍVEIS — títulos de período e editor da fórmula
+================================================== */
+
+.grade-period-title {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.grade-period-title:first-child { margin-top: 0; }
+
+.gp-top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.gp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.gp-field input,
+.gp-field select,
+.gp-item input {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.86rem;
+  min-width: 0;
+}
+
+.gp-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gp-period {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gp-period-head {
+  display: grid;
+  grid-template-columns: minmax(140px, 2fr) minmax(70px, 0.7fr) minmax(170px, 2fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.gp-period-head .gp-field input,
+.gp-period-head .gp-field select { background: var(--bg-card); }
+
+.gp-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.gp-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 2px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.gp-item input {
+  width: 120px;
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
+}
+
+.gp-remove-item,
+.gp-add-item,
+.gp-add-period,
+.gp-remove-period {
+  font: inherit;
+  cursor: pointer;
+}
+
+.gp-remove-item {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.gp-remove-item:hover:not(:disabled) { color: #f43f5e; }
+.gp-remove-item:disabled,
+.gp-remove-period:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.gp-add-item,
+.gp-add-period {
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--accent);
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.gp-add-period { margin: 10px 0 4px; }
+
+.gp-remove-period {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 620px) {
+  .gp-period-head { grid-template-columns: 1fr 90px; }
+  .gp-period-head .gp-combine { grid-column: 1 / -1; }
+  .gp-period-head .gp-remove-period { grid-column: 1 / -1; justify-self: start; }
+}
